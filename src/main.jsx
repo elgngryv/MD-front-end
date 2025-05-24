@@ -424,7 +424,10 @@ const AnimatedRoutes = () => {
               element={<ImportDetail mode="view" />}
             />
 
-             <Route path="employees/work-schedule/:id" element={<EmployeeWorkScheduleList/>}/>
+            <Route
+              path="employees/work-schedule/:id"
+              element={<EmployeeWorkScheduleList />}
+            />
 
             {/* Stock Order Routes */}
             <Route path="/stock/order" element={<StockOrderList />} />
@@ -434,8 +437,14 @@ const AnimatedRoutes = () => {
               path="/stock/order/edit/:id"
               element={<StockOrderDetail mode="edit" />}
             />
-            <Route path="/employees/work-schedule/:id/add" element={<EmployeeWorkScheduleAdd/>}/>
-            <Route path="/employees/work-schedule/:id/edit" element={<EmployeeWorkScheduleEdit/>}/>
+            <Route
+              path="/employees/work-schedule/:id/add"
+              element={<EmployeeWorkScheduleAdd />}
+            />
+            <Route
+              path="/employees/work-schedule/:id/edit"
+              element={<EmployeeWorkScheduleEdit />}
+            />
 
             {/* Stock Entry Routes */}
             <Route path="/stock/entry" element={<StockEntryList />} />
@@ -514,9 +523,9 @@ const AnimatedRoutes = () => {
 
             {/* Laboratory Routes */}
             <Route path="/lab/order/add" element={<AddOrder />} />
-            <Route path="/sent-orders" element={<SentOrders/>}/>
-            <Route path="/received-orders" element={<ReceivedOrders/>}/>
-            <Route path="/technicals-report" element={<TechnicalsReport/>}/>
+            <Route path="/sent-orders" element={<SentOrders />} />
+            <Route path="/received-orders" element={<ReceivedOrders />} />
+            <Route path="/technicals-report" element={<TechnicalsReport />} />
             {/* Queue Management */}
             <Route path="/queue" element={<QueueList />} />
             <Route path="/queue/add-new" element={<AddQueue />} />
