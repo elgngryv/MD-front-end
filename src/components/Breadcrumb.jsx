@@ -61,6 +61,10 @@ const Breadcrumb = () => {
         return 'Yenisini əlavə et';
       case 'edit':
         return 'Redaktə et';
+      case 'price-category':
+        return 'Qiymət kateqoriyaları';
+      case 'insurance':
+        return 'Sığorta şirkətləri';
       case 'examination':
         return 'Müayinə';
       case 'plans':
@@ -115,6 +119,8 @@ const Breadcrumb = () => {
         return 'Randevular';
       case 'employee-schedule':
         return 'İş qrafiki';
+      case 'technicians':
+        return 'Texniklər';
       case 'edit-employee':
         return 'İşçi readaktəsi';
       case 'employee-add':

@@ -29,6 +29,7 @@ import EmployeeDetails from "./pages/Employees/EmployeeDetails";
 import General from "./pages/patient/General";
 // import EmployeeAdd from "./pages/Employees/EmployeeAddTest";
 import EmployeeAdd from "./pages/Employees/EmployeeAdd";
+
 import Examination from "./pages/patient/Examination";
 import Plans from "./pages/patient/Plans";
 import Treatment from "./pages/patient/Treatment";
@@ -156,6 +157,11 @@ import TechnicalsReport from "./pages/Laboratory/TechnicalsReport";
 import EmployeeWorkScheduleList from "./pages/Employees/EmployeeWorkScheduleList";
 import EmployeeWorkScheduleAdd from "./pages/Employees/EmployeeWorkScheduleAdd";
 import EmployeeWorkScheduleEdit from "./pages/Employees/EmployeeWorkScheduleEdit";
+import Technicians from "./pages/Technicians/Technicians";
+import TechniciansPrices from "./pages/Technicians/TechniciansPrices";
+import AddTechnician from "./pages/Technicians/AddTechnician";
+import EditTechnician from "./pages/Technicians/EditTechnician";
+import InfoTechnician from "./pages/Technicians/InfoTechnician";
 // Məlumatları buraya əlavə edək
 const roomOptions = [
   { value: "1", label: "Otaq 1" },
@@ -282,6 +288,9 @@ const AnimatedRoutes = () => {
             <Route path="/blacklist-reasons" element={<BlacklistReasons />} />
             <Route path="/add-reason" element={<AddReason />} />
             <Route path="/edit-reason" element={<EditReason />} />
+            <Route path="/technicians" element={<Technicians />} />
+            <Route path="/technicians/prices/:id" element={<TechniciansPrices />} />
+            <Route path="/technicians/add" element={<AddTechnician />} />
             {/* Default Route */}
             <Route path="/specialities" element={<Specialities />} />
             <Route path="/edit-speciality/:id" element={<EditSpeciality />} />
@@ -431,6 +440,8 @@ const AnimatedRoutes = () => {
             {/* Stock Entry Routes */}
             <Route path="/stock/entry" element={<StockEntryList />} />
             <Route path="/stock/entry/:id" element={<StockEntryDetail />} />
+            <Route path= "technicians/edit/:id" element={<EditTechnician/>}/>
+            <Route path= "technicians/:id" element={<InfoTechnician/>}/>
 
             {/* Stock Delete Routes */}
             <Route path="/stock/delete" element={<StockDeleteList />} />

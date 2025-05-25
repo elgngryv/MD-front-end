@@ -21,7 +21,7 @@ const List = ({
       {/* Header */}
       <div className="bg-[#EEF2F6] p-4 flex items-center">
         <div className="flex-1 flex items-center gap-4 font-semibold text-gray-700">
-          <span>{`1-${data.length}`}</span>
+          <span>{data.length===0?'0':`1-${data.length}`}</span>
         </div>
         {columns.map((col) => (
           <div

@@ -111,7 +111,7 @@ function TechnicalsReport() {
         <table className="labTable">
           <thead>
             <tr>
-              <th>#</th>
+              <th>{tableData.length===0?'0':`1-${tableData.length}`}</th>
               {tableHead.map((title, idx) => (
                 <th key={idx}>
                   <div className="th-content">
