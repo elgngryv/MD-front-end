@@ -5,10 +5,13 @@ import CustomDropdown from "../../components/CustomDropdown";
 import DownloadIcon from "../../assets/icons/Download";
 import { useNavigate } from "react-router-dom";
 import useOrderFromWarehouseStore from "../../../stores/orderFromWarehouseStore";
+import useWorkerStore from "../../../stores/workerStore";
 
 const StockOrder = () => {
   const navigate = useNavigate();
   const { orders, error, fetchOrders } = useOrderFromWarehouseStore();
+  const { workers, fetchWorkers } = useWorkerStore();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -22,6 +25,7 @@ const StockOrder = () => {
 
   const columns = [
     { key: "date", label: "Tarix" },
+    { key: "time", label: "Saat" },
     { key: "room", label: "Otaq" },
     { key: "quantity", label: "Məhsul sayı" },
     { key: "personWhoPlacedOrder", label: "Sifariş verən" },
@@ -29,7 +33,8 @@ const StockOrder = () => {
 
   useEffect(() => {
     fetchOrders();
-  }, [fetchOrders]);
+    fetchWorkers();
+  }, []);
 
   useEffect(() => {
     setFilteredOrders(orders);
@@ -67,17 +72,37 @@ const StockOrder = () => {
     setFilteredOrders(filtered);
   }, [orders, searchTerm, selectedCategory]);
 
+  const getWorkerNameById = (id) => {
+    const worker = workers.find((w) => w.id === id);
+    if (!worker) {
+      console.warn(`Worker not found for id: ${id}`);
+      return "Anonim";
+    }
+    return `${worker.name} ${worker.surname}`;
+  };
+
+  const formatTime = (timeString) => {
+    if (!timeString) return "-";
+    const date = new Date(`1970-01-01T${timeString}`);
+    return date.toLocaleTimeString("az-AZ", { hour: "2-digit", minute: "2-digit" });
+  };
+
   const formattedOrders = filteredOrders.map((order) => {
-    console.log(order);
     const totalQuantity = Number(order.sumQuantity || order.quantity || 0);
     return {
       id: order.id || "-",
-      date:
-        (order.date ? new Date(order.date).toLocaleDateString("az-AZ") : "-") +
-        (order.time ? ` ${order.time}` : ""),
+      date: order.date ? new Date(order.date).toLocaleDateString("az-AZ") : "-",
+      time: order.time
+        ? formatTime(order.time)
+        : order.date
+        ? new Date(order.date).toLocaleTimeString("az-AZ", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        : "-",
       room: order.room || "-",
       quantity: totalQuantity,
-      personWhoPlacedOrder: order.personWhoPlacedOrder || "Anonim",
+      personWhoPlacedOrder: getWorkerNameById(order.personWhoPlacedOrder),
     };
   });
 
@@ -105,7 +130,8 @@ const StockOrder = () => {
         <div className="flex items-center gap-4">
           <button
             className="bg-[#155EEF] text-white px-4 py-2 rounded-lg"
-            onClick={() => navigate("/stock/order/add")}>
+            onClick={() => navigate("/stock/order/add")}
+          >
             Yenisini əlavə et
           </button>
           <button>
@@ -115,9 +141,7 @@ const StockOrder = () => {
       </div>
 
       {error ? (
-        <div className="text-red-500 p-4 text-center">
-          Xəta baş verdi: {error}
-        </div>
+        <div className="text-red-500 p-4 text-center">Xəta baş verdi: {error}</div>
       ) : (
         <SimpleList
           columns={columns}
