@@ -289,7 +289,10 @@ const AnimatedRoutes = () => {
             <Route path="/add-reason" element={<AddReason />} />
             <Route path="/edit-reason" element={<EditReason />} />
             <Route path="/technicians" element={<Technicians />} />
-            <Route path="/technicians/prices/:id" element={<TechniciansPrices />} />
+            <Route
+              path="/technicians/prices/:id"
+              element={<TechniciansPrices />}
+            />
             <Route path="/technicians/add" element={<AddTechnician />} />
             {/* Default Route */}
             <Route path="/specialities" element={<Specialities />} />
@@ -449,8 +452,8 @@ const AnimatedRoutes = () => {
             {/* Stock Entry Routes */}
             <Route path="/stock/entry" element={<StockEntryList />} />
             <Route path="/stock/entry/:id" element={<StockEntryDetail />} />
-            <Route path= "technicians/edit/:id" element={<EditTechnician/>}/>
-            <Route path= "technicians/:id" element={<InfoTechnician/>}/>
+            <Route path="technicians/edit/:id" element={<EditTechnician />} />
+            <Route path="technicians/:id" element={<InfoTechnician />} />
 
             {/* Stock Delete Routes */}
             <Route path="/stock/delete" element={<StockDeleteList />} />
