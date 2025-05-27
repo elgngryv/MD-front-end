@@ -47,8 +47,12 @@ const Breadcrumb = () => {
         return 'Xəstə';
       case 'card':
         return 'Pasiyent kartı';
+      case 'export':
+        return 'Məxaric';
       case 'general':
         return 'Ümumi';
+      case 'detail':
+        return 'Ətraflı';
       case 'technicals-report':
         return 'Texniklər üzrə hesabat';
       case 'sent-orders':

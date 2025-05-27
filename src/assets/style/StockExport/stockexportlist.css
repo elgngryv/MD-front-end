@@ -40,20 +40,17 @@
   }
   
   .download-btn {
-    background-color: #4CAF50;
-    color: white;
+    color:#155EEF ;
     border: none;
     padding: 8px 16px;
     border-radius: 4px;
+    font-size: 20px;
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 5px;
   }
   
-  .download-btn:hover {
-    background-color: #45a049;
-  }
   
   .table-container {
     width: 100%;

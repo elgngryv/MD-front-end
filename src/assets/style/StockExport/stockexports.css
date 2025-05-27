@@ -40,7 +40,7 @@
 }
 
 .stockExportsAddButton {
-  background-color: #4CAF50;
+  background-color: #155EEF;
   color: white;
   border: none;
   padding: 8px 16px;
@@ -49,10 +49,11 @@
   display: flex;
   align-items: center;
   gap: 5px;
+  transition: 0.4s ease;
 }
 
 .stockExportsAddButton:hover {
-  background-color: #45a049;
+  background-color: #083da8;
 }
 
 .stockExportsTableContainer {
@@ -79,6 +80,17 @@
   font-size: 12px;
 }
 
+.stockExportsTableContainer th {
+  font-weight: 600;
+  color: #333;
+  text-align: left;
+}
+
+.stockExportsTableContainer th:first-child {
+  border-right: 1px solid #e0e0e0;
+  text-align: center !important;
+}
+
 .stockExportsTableContainer td {
   text-align: center;
 }
@@ -88,16 +100,12 @@
   align-items: center;
   gap: 5px;
   cursor: pointer;
+  justify-content: flex-start;
 }
 
 .stockExportsTableArrowIcon {
   font-size: 16px;
   color: #666;
-}
-
-.stockExportsTableContainer th {
-  font-weight: 600;
-  color: #333;
 }
 
 .stockExportsTableContainer tbody tr:hover {
@@ -111,19 +119,19 @@
 }
 
 .stockExportsInfoIcon {
-  color: #2196F3;
+  color: #0D99FF;
   font-size: 20px;
   cursor: pointer;
 }
 
 .stockExportsEditIcon {
-  color: #4CAF50;
+  color: #0D99FF;
   font-size: 20px;
   cursor: pointer;
 }
 
 .stockExportsDeleteIcon {
-  color: #f44336;
+  color: #0D99FF;
   font-size: 20px;
   cursor: pointer;
 }
@@ -138,6 +146,13 @@
 .stockExportsStatusActive {
   background-color: #e8f5e9;
   color: #4CAF50;
+}
+
+.stockExportsEditIcon{
+  color: #0D99FF;
+}
+.stockExportsDeleteIcon{
+  color: red;
 }
 
 /* Responsive adjustments */
