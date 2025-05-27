@@ -7,8 +7,6 @@ const StockOrderDetail = ({ mode }) => {
   const navigate = useNavigate();
   const { id } = useParams();
 
-
-
   const { fetchOrderById, selectedOrder, loading, error } =
     useOrderFromWarehouseStore();
 
@@ -18,9 +16,16 @@ const StockOrderDetail = ({ mode }) => {
     }
   }, [id, fetchOrderById]);
 
-  const handleSubmit = (formData) => {
-    console.log("Form submitted:", formData);
-    navigate("/stock/order");
+  const handleSubmit = async (formData) => {
+    try {
+      await axios.put(
+        `${API_BASE_URL}/order-from-warehouse/update/${id}`,
+        formData
+      );
+      navigate("/stock/order");
+    } catch (err) {
+      console.error("Error updating order:", err);
+    }
   };
 
   const handleCancel = () => {

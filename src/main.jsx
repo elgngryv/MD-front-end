@@ -292,7 +292,10 @@ const AnimatedRoutes = () => {
             <Route path="/add-reason" element={<AddReason />} />
             <Route path="/edit-reason" element={<EditReason />} />
             <Route path="/technicians" element={<Technicians />} />
-            <Route path="/technicians/prices/:id" element={<TechniciansPrices />} />
+            <Route
+              path="/technicians/prices/:id"
+              element={<TechniciansPrices />}
+            />
             <Route path="/technicians/add" element={<AddTechnician />} />
             {/* Default Route */}
             <Route path="/specialities" element={<Specialities />} />
@@ -428,7 +431,10 @@ const AnimatedRoutes = () => {
               element={<ImportDetail mode="view" />}
             />
 
-             <Route path="employees/work-schedule/:id" element={<EmployeeWorkScheduleList/>}/>
+            <Route
+              path="employees/work-schedule/:id"
+              element={<EmployeeWorkScheduleList />}
+            />
 
             {/* Stock Order Routes */}
             <Route path="/stock/order" element={<StockOrderList />} />
@@ -438,14 +444,20 @@ const AnimatedRoutes = () => {
               path="/stock/order/edit/:id"
               element={<StockOrderDetail mode="edit" />}
             />
-            <Route path="/employees/work-schedule/:id/add" element={<EmployeeWorkScheduleAdd/>}/>
-            <Route path="/employees/work-schedule/:id/edit" element={<EmployeeWorkScheduleEdit/>}/>
+            <Route
+              path="/employees/work-schedule/:id/add"
+              element={<EmployeeWorkScheduleAdd />}
+            />
+            <Route
+              path="/employees/work-schedule/:id/edit"
+              element={<EmployeeWorkScheduleEdit />}
+            />
 
             {/* Stock Entry Routes */}
             <Route path="/stock/entry" element={<StockEntryList />} />
             <Route path="/stock/entry/:id" element={<StockEntryDetail />} />
-            <Route path= "technicians/edit/:id" element={<EditTechnician/>}/>
-            <Route path= "technicians/:id" element={<InfoTechnician/>}/>
+            <Route path="technicians/edit/:id" element={<EditTechnician />} />
+            <Route path="technicians/:id" element={<InfoTechnician />} />
 
             {/* Stock Delete Routes */}
             <Route path="/stock/delete" element={<StockDeleteList />} />
@@ -518,9 +530,9 @@ const AnimatedRoutes = () => {
 
             {/* Laboratory Routes */}
             <Route path="/lab/order/add" element={<AddOrder />} />
-            <Route path="/sent-orders" element={<SentOrders/>}/>
-            <Route path="/received-orders" element={<ReceivedOrders/>}/>
-            <Route path="/technicals-report" element={<TechnicalsReport/>}/>
+            <Route path="/sent-orders" element={<SentOrders />} />
+            <Route path="/received-orders" element={<ReceivedOrders />} />
+            <Route path="/technicals-report" element={<TechnicalsReport />} />
             {/* Queue Management */}
             <Route path="/queue" element={<QueueList />} />
             <Route path="/queue/add-new" element={<AddQueue />} />

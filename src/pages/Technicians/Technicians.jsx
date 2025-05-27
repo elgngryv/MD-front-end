@@ -1,51 +1,86 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
-// Style
 import "../../assets/style/Technicians/technicians.css";
 
-// Icons
-import { CiSearch } from "react-icons/ci";
-import { CiExport } from "react-icons/ci";
+import { CiSearch, CiExport, CiCircleInfo } from "react-icons/ci";
 import { HiArrowsUpDown } from "react-icons/hi2";
-import { FaRegEdit } from "react-icons/fa";
-import { MdDeleteOutline } from "react-icons/md";
-import { CiCircleInfo } from "react-icons/ci";
 import { FiEdit3 } from "react-icons/fi";
 import { GoTrash } from "react-icons/go";
 
-import { useNavigate } from "react-router-dom";
+import useTechnicianStore from "../../../stores/technicianStore";
 
 function Technicians() {
-  const dummyTechnicians = [
-    {
-      id: 1,
-      img:"https://i.pinimg.com/736x/7e/8c/81/7e8c8119bf240d4971880006afb7e1e6.jpg",
-      username: "techuser1",
-      name: "Elvin",
-      surname: "Məmmədov",
-      patronymic: "Əli oğlu",
-      authorities: ["Texnik", "Admin"],
-      phone: "+994501234567",
-      ratings: "4.5",
-      enabled: true,
-    },
-    {
-      id: 2,
-      img:"https://i.pinimg.com/736x/7e/8c/81/7e8c8119bf240d4971880006afb7e1e6.jpg",
-      username: "techuser2",
-      name: "Aysel",
-      surname: "Quliyeva",
-      patronymic: "Vəli qızı",
-      authorities: ["Texnik"],
-      phone: "+994502345678",
-      ratings: "4.8",
-      enabled: false,
-    },
-  ];
-  const navigation = useNavigate()
+  const {
+    fetchTechnicians,
+    removeTechnician, 
+    exportToExcel,
+    searchTechs,
+  } = useTechnicianStore();
+
+  const [technicians, setTechnicians] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const navigation = useNavigate();
+
+  useEffect(() => {
+    loadTechnicians();
+  }, []);
+
+  const loadTechnicians = async () => {
+    try {
+      const data = await fetchTechnicians();
+
+      if (Array.isArray(data)) {
+        setTechnicians(data);
+      } else if (Array.isArray(data?.technicians)) {
+        setTechnicians(data.technicians);
+      } else {
+        setTechnicians([]);
+        console.warn("fetchTechnicians data format is unexpected:", data);
+      }
+    } catch (err) {
+      console.error("Texnikləri yükləmək mümkün olmadı:", err);
+      setTechnicians([]);
+    }
+  };
+
   const getStatus = (tech) => (tech.enabled ? "Aktiv" : "Passiv");
-   const icons = [
+
+  const handleDelete = async (tech) => {
+    const confirmDelete = window.confirm(
+      `İşçini silmək istədiyinizə əminsiniz? (${tech.username})`
+    );
+    if (!confirmDelete) return;
+
+    try {
+      await removeTechnician(tech.id);
+      alert("İşçi uğurla silindi!");
+      loadTechnicians();
+    } catch (err) {
+      alert("Silinmə zamanı xəta baş verdi.");
+      console.error(err);
+    }
+  };
+
+  const handleSearch = async (e) => {
+    const term = e.target.value;
+    setSearchTerm(term);
+    try {
+      const filtered = await searchTechs(term);
+      if (Array.isArray(filtered)) {
+        setTechnicians(filtered);
+      } else if (Array.isArray(filtered?.technicians)) {
+        setTechnicians(filtered.technicians);
+      } else {
+        setTechnicians([]);
+        console.warn("searchTechs data format is unexpected:", filtered);
+      }
+    } catch (err) {
+      console.error("Axtarış zamanı xəta:", err);
+    }
+  };
+
+  const icons = [
     {
       icon: CiCircleInfo,
       action: (row) => navigation(`${row.id}`),
@@ -58,22 +93,11 @@ function Technicians() {
     },
     {
       icon: GoTrash,
-      action: async (row) => {
-        const confirmDelete = window.confirm(
-          `İşçini silmək istədiyinizə əminsiniz? (${row.username})`
-        );
-        if (confirmDelete) {
-          try {
-            await removeWorker(row.id);
-            alert("İşçi uğurla silindi!");
-          } catch (err) {
-            alert("Silinmə zamanı xəta baş verdi.");
-          }
-        }
-      },
+      action: (row) => handleDelete(row),
       className: "delete",
     },
   ];
+
   return (
     <div className="techniciansPageContainer">
       <div className="techiniciansPageTopPart">
@@ -85,69 +109,115 @@ function Technicians() {
             <option value="v4">Opt 4</option>
           </select>
           <div className="searchBarContainer">
-            <input type="text" placeholder="Axtarış" />
+            <input
+              type="text"
+              placeholder="Axtarış"
+              value={searchTerm}
+              onChange={handleSearch}
+            />
             <CiSearch className="searchIconBTN" />
           </div>
         </div>
         <div className="rightPartOfTop">
           <Link className="addNewTechnicianNow" to={"add"}>
-            <span>+</span>Yenisini əlavə et
+            <span>+</span> Yenisini əlavə et
           </Link>
-          <Link className="exportDataOfTechs" to={"/../"}>
+          <button
+            className="exportDataOfTechs"
+            onClick={() => exportToExcel(technicians)}
+            title="Export to Excel">
             <CiExport className="exportDataOfTechsIcon" />
-          </Link>
+          </button>
         </div>
       </div>
 
-      {/* Table Section */}
       <div className="techniciansTableWrapper">
         <table className="techniciansTable">
           <thead>
             <tr>
-              <th><span>İstifadəçi adı</span></th>
-              <th><span><HiArrowsUpDown className="tableArrowIcon" /> Adı</span></th>
-              <th><span><HiArrowsUpDown className="tableArrowIcon" /> Soyadı</span></th>
-              <th><span><HiArrowsUpDown className="tableArrowIcon" /> Ata adı</span></th>
-              <th><span><HiArrowsUpDown className="tableArrowIcon" /> İcazələr</span></th>
-              <th><span><HiArrowsUpDown className="tableArrowIcon" /> Mobil nömrə</span></th>
-              <th><span><HiArrowsUpDown className="tableArrowIcon" /> Qiymətlər</span></th>
-              <th><span><HiArrowsUpDown className="tableArrowIcon" /> Status</span></th>
-              <th><span>Düzəliş</span></th> 
+              <th>İstifadəçi adı</th>
+              <th>
+                <HiArrowsUpDown className="tableArrowIcon" /> Adı
+              </th>
+              <th>
+                <HiArrowsUpDown className="tableArrowIcon" /> Soyadı
+              </th>
+              <th>
+                <HiArrowsUpDown className="tableArrowIcon" /> Ata adı
+              </th>
+              <th>
+                <HiArrowsUpDown className="tableArrowIcon" /> İcazələr
+              </th>
+              <th>
+                <HiArrowsUpDown className="tableArrowIcon" /> Mobil nömrə
+              </th>
+              <th>Qiymətlər</th>
+              <th>
+                <HiArrowsUpDown className="tableArrowIcon" /> Status
+              </th>
+              <th>Düzəliş</th>
             </tr>
           </thead>
           <tbody>
-            {
-              dummyTechnicians.map((tech) => (
+            {Array.isArray(technicians) && technicians.length > 0 ? (
+              technicians.map((tech) => (
                 <tr key={tech.id}>
                   <td className="usernameOfTech">
-                    <img src={tech.img} className="imageOfTech" alt="" />
+                    <img
+                      src={
+                        tech.img
+                          ? tech.img
+                          : `https://avatar.iran.liara.run/username?username=${encodeURIComponent(
+                              tech.username
+                            )}`
+                      }
+                      className="imageOfTech"
+                      alt={tech.username}
+                    />
                     {tech.username}
                   </td>
                   <td>{tech.name}</td>
                   <td>{tech.surname}</td>
                   <td>{tech.patronymic}</td>
-                  <td>{tech.authorities.join(", ")}</td>
+                  <td>{tech.authorities?.join(", ")}</td>
                   <td>{tech.phone}</td>
-                  <td><Link className="priceListLinkTech" to={`prices/${tech.id}`}>Qiymətlər</Link></td>
                   <td>
-                    <span className={`status ${tech.enabled ? "active" : "passive"}`}>
+                    <Link
+                      className="priceListLinkTech"
+                      to={`prices/${tech.id}`}>
+                      Qiymətlər
+                    </Link>
+                  </td>
+                  <td>
+                    <span
+                      className={`status ${
+                        tech.enabled ? "active" : "passive"
+                      }`}>
                       {getStatus(tech)}
                     </span>
                   </td>
-                 <td>
-                      <div className="icons flex gap-3 cursor-pointer">
-                        {icons.map((iconObj, idx) => (
-                          <iconObj.icon
+                  <td>
+                    <div className="icons flex gap-3 cursor-pointer">
+                      {icons.map(
+                        ({ icon: IconComp, className, action }, idx) => (
+                          <IconComp
                             key={idx}
-                            className={iconObj.className}
-                            onClick={() => iconObj.action(tech)}
+                            className={className}
+                            onClick={() => action(tech)}
                           />
-                        ))}
-                      </div>
-                    </td>
+                        )
+                      )}
+                    </div>
+                  </td>
                 </tr>
               ))
-            }
+            ) : (
+              <tr>
+                <td colSpan={9} style={{ textAlign: "center" }}>
+                  Heç bir texnik tapılmadı.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

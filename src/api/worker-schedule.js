@@ -28,15 +28,23 @@ export const getWorkerSchedules = async () => {
   return response.data;
 };
 
-// 🔍 Axtarış (filtr ilə)
 export const searchWorkerSchedules = async (searchData) => {
-  const response = await axiosInstance.post(
-    `${API_BASE_URL}/workers-work-schedule/search`,
-    searchData
-  );
-  return response.data;
+  try {
+    const response = await axiosInstance.post(
+      `${API_BASE_URL}/workers-work-schedule/search`,
+      searchData,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Error searching worker schedules:", error);
+    throw error;
+  }
 };
-
 // 🔴 İş qrafikini silmək
 export const deleteWorkerSchedule = async (id) => {
   const response = await axiosInstance.delete(

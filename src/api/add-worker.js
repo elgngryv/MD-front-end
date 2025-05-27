@@ -2,7 +2,6 @@ import axiosInstance from "./temp-axios-auth";
 
 const API_BASE_URL = import.meta.env.VITE_BASE_URL;
 
-
 export const createWorker = async (workerData) => {
   try {
     // Log the request data for debugging
@@ -106,22 +105,24 @@ export const searchWorkers = async (searchParams) => {
 
 export const deleteWorker = async (id) => {
   try {
-    console.log('Attempting to delete worker with id:', id); // Silinən id-nin konsolda göründüyünü yoxlayın
+    console.log("Attempting to delete worker with id:", id);
+
     const response = await axiosInstance.delete(
       `${API_BASE_URL}/add-worker/delete/${id}`
     );
-    console.log('API response:', response); // Cavabın düzgün gəldiyini yoxlayın
+
     if (response.status === 200) {
-      console.log('Worker deleted successfully');
+      console.log("✅ Worker deleted successfully");
     } else {
-      console.error('Failed to delete worker');
+      console.error("❌ Worker deletion failed:", response);
     }
+
     return response.data;
   } catch (error) {
-    console.error("Error deleting worker:", error);
+    console.error(
+      "❌ Error deleting worker:",
+      error.response?.data || error.message
+    );
     throw error;
   }
 };
-
-
-

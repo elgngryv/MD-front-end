@@ -5,21 +5,26 @@ import {
   getWorkerSchedules,
   searchWorkerSchedules,
   deleteWorkerSchedule,
-} from "../src/api/worker-schedule"; 
+} from "../src/api/worker-schedule";
+import axios from "axios";
+const API_BASE_URL = "http://159.89.3.81:5555/api/v1";
 
 const useWorkersScheduleStore = create((set, get) => ({
-  schedules: [],
+  schedules: [], // Initialize as empty array
   loading: false,
   error: null,
+  selectedDoctor: null,
+  selectedRoom: null,
 
   // 🔄 Bütün iş qrafiklərini yüklə
   fetchSchedules: async () => {
     set({ loading: true, error: null });
     try {
       const data = await getWorkerSchedules();
-      set({ schedules: data });
+      set({ schedules: data || [] }); // Ensure it's always an array
     } catch (error) {
-      set({ error });
+      console.error("Fetch schedules error:", error);
+      set({ error, schedules: [] });
     } finally {
       set({ loading: false });
     }
@@ -50,20 +55,24 @@ const useWorkersScheduleStore = create((set, get) => ({
       set({ loading: false });
     }
   },
-
-  // 🔍 Qrafikləri axtar
   searchSchedules: async (searchData) => {
     set({ loading: true, error: null });
     try {
-      const data = await searchWorkerSchedules(searchData);
-      set({ schedules: data });
+      const response = await axios.post(
+        `${API_BASE_URL}/workers-work-schedule/search`,
+        searchData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      set({ schedules: response.data, loading: false });
     } catch (error) {
-      set({ error });
-    } finally {
-      set({ loading: false });
+      set({ error, loading: false });
+      console.error("Search schedules error:", error);
     }
   },
-
   // ❌ Qrafiki sil
   removeSchedule: async (id) => {
     set({ loading: true, error: null });
@@ -76,6 +85,15 @@ const useWorkersScheduleStore = create((set, get) => ({
       set({ loading: false });
     }
   },
+
+  // Həkim seç
+  setSelectedDoctor: (doctor) => set({ selectedDoctor: doctor }),
+
+  // Otaq seç
+  setSelectedRoom: (room) => set({ selectedRoom: room }),
+
+  // Clear error
+  clearError: () => set({ error: null }),
 }));
 
 export default useWorkersScheduleStore;

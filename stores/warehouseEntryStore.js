@@ -7,13 +7,12 @@ import {
   getWarehouseEntryInfo,
   deleteWarehouseEntry,
   deleteEntryProduct,
-} from "../src/api/warehouse-entry"; 
+} from "../src/api/warehouse-entry";
 
 const useWarehouseEntryStore = create((set, get) => ({
   entries: [],
   selectedEntry: null,
   searchedEntries: [],
-  
 
   fetchWarehouseEntries: async () => {
     try {
@@ -36,7 +35,7 @@ const useWarehouseEntryStore = create((set, get) => ({
   createEntry: async (entryData) => {
     try {
       const response = await createWarehouseEntry(entryData);
-      await get().fetchWarehouseEntries(); 
+      await get().fetchWarehouseEntries();
       return response;
     } catch (error) {
       console.error("Anbar girişi yaradılarkən xəta:", error);
