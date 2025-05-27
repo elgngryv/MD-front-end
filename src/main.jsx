@@ -162,6 +162,8 @@ import TechniciansPrices from "./pages/Technicians/TechniciansPrices";
 import AddTechnician from "./pages/Technicians/AddTechnician";
 import EditTechnician from "./pages/Technicians/EditTechnician";
 import InfoTechnician from "./pages/Technicians/InfoTechnician";
+import StockExportList from "./pages/stockExport/StockExportList";
+import StockExports from "./pages/stockExport/StockExports";
 // Məlumatları buraya əlavə edək
 const roomOptions = [
   { value: "1", label: "Otaq 1" },
@@ -283,6 +285,7 @@ const AnimatedRoutes = () => {
               path="product-categories/:name/edit-product/:id"
               element={<EditProduct />}
             />
+            <Route path="stock/export/:date" element={<StockExports/>}/>
             <Route path="/patients/add-patient" element={<PatientAdd />} />
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="/blacklist-reasons" element={<BlacklistReasons />} />
@@ -411,6 +414,7 @@ const AnimatedRoutes = () => {
             {/* Stock Management Routes */}
             <Route path="/stock/clinic" element={<ClinicStock />} />
             <Route path="/stock/cabinet" element={<CabinetStock />} />
+            <Route path="/stock/export" element={<StockExportList/>}/>
 
             {/* Stock Import Routes */}
             <Route path="/stock/import" element={<StockImportList />} />
