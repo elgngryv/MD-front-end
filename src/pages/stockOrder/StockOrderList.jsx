@@ -149,7 +149,7 @@ const StockOrder = () => {
           enableDelete={true}
           enableEdit={true}
           enableView={true}
-          handleView={(id) => navigate(`/stock/order/${id}`)}
+          handleView={(id) => navigate(`/stock/order/detail/${id}`)}
           handleEdit={(id) => navigate(`/stock/order/edit/${id}`)}
           handleDelete={handleDelete}
         />

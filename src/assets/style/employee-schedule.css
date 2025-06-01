@@ -82,8 +82,9 @@
 }
 
 .date-range {
-  font-size: 15px;
-  color: #666;
+  font-size: 20px !important;
+  color: #000 !important;
+  font-weight: 600 !important;
 }
 
 /* Naviqasiya düymələri */

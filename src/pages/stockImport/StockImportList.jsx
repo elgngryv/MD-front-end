@@ -99,7 +99,7 @@ const StockImport = () => {
   };
 
   const handleEdit = (id) => navigate(`/stock/import/edit/${id}`);
-  const handleView = (id) => handleEntrySelect(id);
+  const handleView = (id) => navigate(`/stock/import/${id}`);
 
   const getDateTime = (dateStr, timeStr) => {
     if (!dateStr || !timeStr) return null;
@@ -108,7 +108,7 @@ const StockImport = () => {
 
   const formatTime = (dt) => {
     if (!dt) return "-";
-    return dt.toTimeString().slice(0, 5); 
+    return dt.toTimeString().slice(0, 5);
   };
 
   const dataToShow = useMemo(
@@ -181,16 +181,14 @@ const StockImport = () => {
         <div className="flex items-center gap-8">
           <button
             className="bg-[#155EEF] text-white px-4 py-2 rounded-lg"
-            onClick={() => navigate("/stock/import/add")}
-          >
+            onClick={() => navigate("/stock/import/add")}>
             Yenisini əlavə et
           </button>
           <button
             onClick={() => {
               // Burada download funksionallığı əlavə edilə bilər
               console.log("Yükləmə funksiyası əlavə olunmalıdır");
-            }}
-          >
+            }}>
             <DownloadIcon />
           </button>
         </div>
@@ -223,7 +221,10 @@ const StockImport = () => {
             <div>
               <strong>Tarix:</strong>{" "}
               {entryDetails.date && entryDetails.time
-                ? getDateTime(entryDetails.date, entryDetails.time).toLocaleDateString("az-AZ")
+                ? getDateTime(
+                    entryDetails.date,
+                    entryDetails.time
+                  ).toLocaleDateString("az-AZ")
                 : "-"}
             </div>
             <div>

@@ -161,17 +161,19 @@ import TechniciansPrices from "./pages/Technicians/TechniciansPrices";
 import AddTechnician from "./pages/Technicians/AddTechnician";
 import EditTechnician from "./pages/Technicians/EditTechnician";
 import InfoTechnician from "./pages/Technicians/InfoTechnician";
-import AdminUser from "./pages/AdminUsers/AdminUser";
-import AddAdmin from "./pages/AdminUsers/AddAdmin";
-import EditAdmin from "./pages/AdminUsers/EditAdmin";
+import StockExportList from "./pages/stockExport/StockExportList";
+import StockExports from "./pages/stockExport/StockExports";
+import AddExportStock from "./pages/stockExport/AddExportStock";
+import InfoExportStock from "./pages/stockExport/InfoExportStock";
+import EditExportStock from "./pages/stockExport/EditExportStock";
 
-// Queue Management
-import QueueList from "./pages/Queue/QueueList";
-import AddQueue from "./pages/Queue/AddQueue";
-import EditQueue from "./pages/Queue/EditQueue";
 
-// Reports
-import ReportsPage from "./pages/Reports/ReportsPage";
+
+
+
+
+
+
 
 // Constants
 const roomOptions = [
@@ -256,8 +258,29 @@ const AnimatedRoutes = () => {
           <Route path="/" element={<LogIn />} />
           
           <Route element={<Layout />}>
-            {/* Patient Routes */}
-            <Route path="/patients" element={<PatientsList />} />
+            <Route path="/product-categories" element={<ProductCategory />} />
+            <Route
+              path="/product-categories/add-new"
+              element={<AddProductCategory />}
+            />
+            <Route
+              path="/product-categories/edit-category/:id"
+              element={<EditProductCategory />}
+            />
+            <Route path="product-categories/:name" element={<Products />} />
+            <Route
+              path="product-categories/:name/add-new"
+              element={<AddProduct />}
+            />
+            <Route
+              path="product-categories/:name/edit-product/:id"
+              element={<EditProduct />}
+            />
+            <Route path="stock/export/:date" element={<StockExports/>}/>
+            <Route path="stock/export/:date/add" element={<AddExportStock/>}/>
+            <Route path="stock/export/:date/detail" element={<InfoExportStock/>}/>
+            <Route path="stock/export/:date/detail/edit" element={<EditExportStock/>}/>
+            <Route path="stock/export/:date/edit" element={<EditExportStock/>}/>
             <Route path="/patients/add-patient" element={<PatientAdd />} />
             <Route path="patients/patient/:id" element={<PatientLayout />}>
               <Route path="general" element={<General />} />
@@ -299,6 +322,7 @@ const AnimatedRoutes = () => {
             {/* Stock Management Routes */}
             <Route path="/stock/clinic" element={<ClinicStock />} />
             <Route path="/stock/cabinet" element={<CabinetStock />} />
+            <Route path="/stock/export" element={<StockExportList/>}/>
 
             {/* Stock Import Routes */}
             <Route path="/stock/import" element={<StockImportList />} />
@@ -308,7 +332,10 @@ const AnimatedRoutes = () => {
 
             {/* Stock Order Routes */}
             <Route path="/stock/order" element={<StockOrderList />} />
-            <Route path="/stock/order/:id" element={<StockOrderDetail />} />
+            <Route
+              path="/stock/order/detail/:id"
+              element={<StockOrderDetail mode="view" />}
+            />
             <Route path="/stock/order/add" element={<AddStockOrder />} />
             <Route path="/stock/order/edit/:id" element={<StockOrderEdit />} />
 
