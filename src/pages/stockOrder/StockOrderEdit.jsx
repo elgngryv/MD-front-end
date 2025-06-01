@@ -1,4 +1,4 @@
-// StockOrderDetail.jsx
+// StockOrderEdit.jsx
 
 import { useState, useEffect } from "react";
 import CustomDropdown from "../../components/CustomDropdown";
@@ -17,11 +17,11 @@ import { useNavigate, useParams } from "react-router-dom";
 import MultiFileForm from "../../components/MultiFileForm";
 import axios from "axios";
 import useOrdersFromWarehouseStore from "../../../stores/orderFromWarehouseStore";
-import "../../assets/style/StockOrder/stockorderdetail.css";
-import { Link } from "react-router-dom";
+import "../../assets/style/StockOrder/stockorderedit.css";
+
 const API_BASE_URL = "http://159.89.3.81:5555/api/v1";
 
-const StockOrderDetail = () => {
+const StockOrderEdit = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const { register, handleSubmit, setValue, reset } = useForm();
@@ -47,7 +47,7 @@ const StockOrderDetail = () => {
   const [debugInfo, setDebugInfo] = useState(null);
   const [apiResponse, setApiResponse] = useState(null);
 
-  const mode = "info";
+  const mode = "edit";
 
   useEffect(() => {
     const fetchData = async () => {
@@ -84,7 +84,7 @@ const StockOrderDetail = () => {
           }))
         );
 
-        if (mode === "info" && id) {
+        if (mode === "edit" && id) {
           const orderResponse = await axios.get(
             `${API_BASE_URL}/order-from-warehouse/info/${id}`
           );
@@ -152,7 +152,7 @@ const StockOrderDetail = () => {
   };
 
   const fetchWarehouseEntryProducts = async (warehouseEntryId) => {
-    setIsLoadingEntryProducts(false);
+    setIsLoadingEntryProducts(true);
     try {
       const infoResponse = await axios.get(
         `${API_BASE_URL}/warehouse-entry/info/${warehouseEntryId}`
@@ -479,13 +479,13 @@ const StockOrderDetail = () => {
 
   if (isLoading) {
     return (
-      <div className="stockOrderDetail__loading">
+      <div className="stockOrderFormWrapper__loading">
         <FontAwesomeIcon
           icon={faSpinner}
           spin
-          className="stockOrderDetail__spinner"
+          className="stockOrderFormWrapper__spinner"
         />
-        <span className="stockOrderDetail__loadingText">
+        <span className="stockOrderFormWrapper__loadingText">
           Yüklənir...
         </span>
       </div>
@@ -493,98 +493,94 @@ const StockOrderDetail = () => {
   }
 
   return (
-    <div className="stockOrderDetailWrapper">
-        <div className="stockOrderTopPartIcons">
-            <Link to={`/stock/order/edit/${id}`}><EditIcon  className="stockOrderTopPartIcons__editIcon" /></Link>
-            <Link ><DeleteIcon onClick={handleDelete} className="stockOrderTopPartIcons__deleteIcon" /></Link>
-        </div>
+    <div className="stockOrderFormWrapper">
       <form
         onSubmit={handleSubmit(handleFormSubmit)}
-        className="stockOrderDetail__form"
+        className="stockOrderFormWrapper__form"
       >
-        <div className="stockOrderDetail__row">
+        <div className="stockOrderFormWrapper__row">
           <label
             htmlFor="orderDate"
-            className="stockOrderDetail__label"
+            className="stockOrderFormWrapper__label"
           >
             Sifariş tarixi{" "}
-            <span className="stockOrderDetail__required">*</span>
+            <span className="stockOrderFormWrapper__required">*</span>
           </label>
-          <div className="stockOrderDetail__inputContainer">
+          <div className="stockOrderFormWrapper__inputContainer">
             <input
               id="orderDate"
               type="date"
               {...register("orderDate", { required: true })}
-              readOnly={mode === "info"}
-              className="stockOrderDetail__input"
+              readOnly={mode === "view"}
+              className="stockOrderFormWrapper__input"
             />
           </div>
         </div>
 
-        <div className="stockOrderDetail__row">
+        <div className="stockOrderFormWrapper__row">
           <label
             htmlFor="orderTime"
-            className="stockOrderDetail__label"
+            className="stockOrderFormWrapper__label"
           >
             Saat{" "}
-            <span className="stockOrderDetail__required">*</span>
+            <span className="stockOrderFormWrapper__required">*</span>
           </label>
-          <div className="stockOrderDetail__inputContainer">
+          <div className="stockOrderFormWrapper__inputContainer">
             <input
               id="orderTime"
               type="time"
               {...register("orderTime", { required: true })}
-              readOnly={mode === "info"}
-              className="stockOrderDetail__input"
+              readOnly={mode === "view"}
+              className="stockOrderFormWrapper__input"
             />
           </div>
         </div>
 
-        <div className="stockOrderDetail__row">
-          <label htmlFor="room" className="stockOrderDetail__label">
+        <div className="stockOrderFormWrapper__row">
+          <label htmlFor="room" className="stockOrderFormWrapper__label">
             Otaq{" "}
-            <span className="stockOrderDetail__required">*</span>
+            <span className="stockOrderFormWrapper__required">*</span>
           </label>
-          <div className="stockOrderDetail__inputContainer">
+          <div className="stockOrderFormWrapper__inputContainer">
             <input
               id="room"
               type="text"
               {...register("room", { required: true })}
-              readOnly={mode === "info"}
-              className="stockOrderDetail__input"
+              readOnly={mode === "view"}
+              className="stockOrderFormWrapper__input"
             />
           </div>
         </div>
 
-        <div className="stockOrderDetail__row">
-          <label htmlFor="note" className="stockOrderDetail__label">
+        <div className="stockOrderFormWrapper__row">
+          <label htmlFor="note" className="stockOrderFormWrapper__label">
             Qeyd{" "}
-            <span className="stockOrderDetail__required">*</span>
+            <span className="stockOrderFormWrapper__required">*</span>
           </label>
-          <div className="stockOrderDetail__inputContainer">
+          <div className="stockOrderFormWrapper__inputContainer">
             <textarea
               id="note"
               {...register("note", { required: true })}
-              readOnly={mode === "info"}
-              className="stockOrderDetail__textarea"
+              readOnly={mode === "view"}
+              className="stockOrderFormWrapper__textarea"
             />
           </div>
         </div>
 
-        {mode === "info" && (
-          <div className="stockOrderDetail__productsSection">
-            <div className="stockOrderDetail__row">
-              <label className="stockOrderDetail__label">
+        {mode !== "view" && (
+          <div className="stockOrderFormWrapper__productsSection">
+            <div className="stockOrderFormWrapper__row">
+              <label className="stockOrderFormWrapper__label">
                 Məhsullar
               </label>
-              <div className="stockOrderDetail__productsControls">
+              <div className="stockOrderFormWrapper__productsControls">
                 <div
-                  className="stockOrderDetail__fieldGroup"
+                  className="stockOrderFormWrapper__fieldGroup"
                   style={{ minWidth: "200px" }}
                 >
-                  <label className="stockOrderDetail__labelSmall">
+                  <label className="stockOrderFormWrapper__labelSmall">
                     Anbar girişi{" "}
-                    <span className="stockOrderDetail__required">
+                    <span className="stockOrderFormWrapper__required">
                       *
                     </span>
                   </label>
@@ -597,31 +593,31 @@ const StockOrderDetail = () => {
                     onChange={handleWarehouseEntryChange}
                     options={warehouseEntries}
                     placeholder="Anbar girişi seçin"
-                    className="stockOrderDetail__dropdown"
+                    className="stockOrderFormWrapper__dropdown"
                   />
                 </div>
 
                 {isLoadingEntryProducts ? (
-                  <div className="stockOrderDetail__fieldGroup">
-                    <label className="stockOrderDetail__labelSmall">
+                  <div className="stockOrderFormWrapper__fieldGroup">
+                    <label className="stockOrderFormWrapper__labelSmall">
                       Anbar məhsulu
                     </label>
-                    <div className="stockOrderDetail__loadingSmall">
+                    <div className="stockOrderFormWrapper__loadingSmall">
                       <FontAwesomeIcon
                         icon={faSpinner}
                         spin
-                        className="stockOrderDetail__spinnerSmall"
+                        className="stockOrderFormWrapper__spinnerSmall"
                       />
-                      <span className="stockOrderDetail__loadingTextSmall">
+                      <span className="stockOrderFormWrapper__loadingTextSmall">
                         Yüklənir...
                       </span>
                     </div>
                   </div>
                 ) : warehouseEntryProducts.length > 0 ? (
-                  <div className="stockOrderDetail__fieldGroup">
-                    <label className="stockOrderDetail__labelSmall">
+                  <div className="stockOrderFormWrapper__fieldGroup">
+                    <label className="stockOrderFormWrapper__labelSmall">
                       Anbar məhsulu{" "}
-                      <span className="stockOrderDetail__required">
+                      <span className="stockOrderFormWrapper__required">
                         *
                       </span>
                     </label>
@@ -634,24 +630,24 @@ const StockOrderDetail = () => {
                       onChange={handleWarehouseEntryProductChange}
                       options={warehouseEntryProducts}
                       placeholder="Anbar məhsulu seçin"
-                      className="stockOrderDetail__dropdown"
+                      className="stockOrderFormWrapper__dropdown"
                     />
                   </div>
                 ) : currentProduct.warehouseEntryId ? (
-                  <div className="stockOrderDetail__fieldGroup">
-                    <label className="stockOrderDetail__labelSmall">
+                  <div className="stockOrderFormWrapper__fieldGroup">
+                    <label className="stockOrderFormWrapper__labelSmall">
                       Anbar məhsulu
                     </label>
-                    <div className="stockOrderDetail__noProducts">
+                    <div className="stockOrderFormWrapper__noProducts">
                       Bu anbar girişi üçün məhsul tapılmadı!
                     </div>
                   </div>
                 ) : null}
 
-                <div className="stockOrderDetail__fieldGroup">
-                  <label className="stockOrderDetail__labelSmall">
+                <div className="stockOrderFormWrapper__fieldGroup">
+                  <label className="stockOrderFormWrapper__labelSmall">
                     Miqdar{" "}
-                    <span className="stockOrderDetail__required">
+                    <span className="stockOrderFormWrapper__required">
                       *
                     </span>
                   </label>
@@ -665,12 +661,12 @@ const StockOrderDetail = () => {
                         e.target.value
                       )
                     }
-                    className="stockOrderDetail__inputSmall"
+                    className="stockOrderFormWrapper__inputSmall"
                   />
                 </div>
 
-                <div className="stockOrderDetail__fieldGroup">
-                  <label className="stockOrderDetail__labelSmall">
+                <div className="stockOrderFormWrapper__fieldGroup">
+                  <label className="stockOrderFormWrapper__labelSmall">
                     &nbsp;
                   </label>
                   <button
@@ -681,7 +677,7 @@ const StockOrderDetail = () => {
                       !currentProduct.warehouseEntryProductId ||
                       !currentProduct.quantity
                     }
-                    className="stockOrderDetail__buttonAdd"
+                    className="stockOrderFormWrapper__buttonAdd"
                   >
                     <FontAwesomeIcon icon={faPlus} />
                     Məhsul əlavə et
@@ -690,7 +686,7 @@ const StockOrderDetail = () => {
               </div>
             </div>
 
-            <div className="stockOrderDetail__row stockOrderDetail__tableRow">
+            <div className="stockOrderFormWrapper__row stockOrderFormWrapper__tableRow">
               <ListWithSubtotal
                 columns={[
                   { key: "categoryName", label: "Kategoriya" },
@@ -704,42 +700,42 @@ const StockOrderDetail = () => {
                 ]}
                 data={products}
                 subtotalColumns={["price"]}
-                enableEdit={mode !== "info"}
-                enableDelete={mode !== "info"}
+                enableEdit={mode !== "view"}
+                enableDelete={mode !== "view"}
                 handleEdit={handleEditProduct}
                 handleDelete={handleDeleteProduct}
-                className="stockOrderDetail__list"
+                className="stockOrderFormWrapper__list"
               />
             </div>
           </div>
         )}
 
         {apiResponse && (
-          <div className="stockOrderDetail__debug">
-            <h3 className="stockOrderDetail__debugTitle">
+          <div className="stockOrderFormWrapper__debug">
+            <h3 className="stockOrderFormWrapper__debugTitle">
               API Cavabı:
             </h3>
-            <pre className="stockOrderDetail__debugPre">
+            <pre className="stockOrderFormWrapper__debugPre">
               {apiResponse}
             </pre>
           </div>
         )}
 
-        <div className="stockOrderDetail__row">
-          <label className="stockOrderDetail__label">
+        <div className="stockOrderFormWrapper__row">
+          <label className="stockOrderFormWrapper__label">
             Sənədlər
           </label>
-          <div className="stockOrderDetail__inputContainer">
+          <div className="stockOrderFormWrapper__inputContainer">
             <MultiFileForm mode={mode} />
           </div>
         </div>
 
-        {mode !== "info" && (
-          <div className="stockOrderDetail__actions">
+        {mode !== "view" && (
+          <div className="stockOrderFormWrapper__actions">
             <button
               type="button"
               onClick={() => navigate(-1)}
-              className="stockOrderDetail__buttonCancel"
+              className="stockOrderFormWrapper__buttonCancel"
             >
               <FontAwesomeIcon icon={faXmark} />
               Ləğv et
@@ -747,7 +743,7 @@ const StockOrderDetail = () => {
             <button
               type="submit"
               disabled={isSubmitting || products.length === 0}
-              className="stockOrderDetail__buttonSave"
+              className="stockOrderFormWrapper__buttonSave"
             >
               {isSubmitting ? (
                 <>
@@ -764,8 +760,8 @@ const StockOrderDetail = () => {
           </div>
         )}
       </form>
-    </div>
-  );
+        </div>
+    );
 };
 
-export default StockOrderDetail;
+export default StockOrderEdit;

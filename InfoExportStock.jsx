@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
-import '../../assets/style/StockExport/infoexportstock.css';
-import AddPhotoIcon from "../../assets/icons/AddPhoto";
-import CloseIcon from "../../assets/icons/Close";
+import './InfoExportStock.css';
+// import AddPhotoIcon from "../../assets/icons/AddPhoto";
+// import CloseIcon from "../../assets/icons/Close";
 
 const InfoExportStock = ({ data }) => {
     const [files, setFiles] = useState([]);
@@ -154,7 +154,7 @@ const InfoExportStock = ({ data }) => {
                             className="infoExportStockUploadButton"
                             onClick={handleUploadClick}
                         >
-                            <AddPhotoIcon />
+                            {/* <AddPhotoIcon /> */}
                             <span>Müvafiq sənədləri yükləyin</span>
                         </button>
 
@@ -172,7 +172,7 @@ const InfoExportStock = ({ data }) => {
                                             onClick={() => handleDeleteImage(index)}
                                             type="button"
                                         >
-                                            <CloseIcon />
+                                            {/* <CloseIcon /> */}
                                         </button>
                                     </div>
                                 ))}
