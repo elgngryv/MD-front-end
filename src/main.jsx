@@ -161,12 +161,13 @@ import TechniciansPrices from "./pages/Technicians/TechniciansPrices";
 import AddTechnician from "./pages/Technicians/AddTechnician";
 import EditTechnician from "./pages/Technicians/EditTechnician";
 import InfoTechnician from "./pages/Technicians/InfoTechnician";
-import StockExportList from "./pages/stockExport/StockExportList";
-import StockExports from "./pages/stockExport/StockExports";
-import AddExportStock from "./pages/stockExport/AddExportStock";
-import InfoExportStock from "./pages/stockExport/InfoExportStock";
-import EditExportStock from "./pages/stockExport/EditExportStock";
-
+import AdminUser from "./pages/AdminUsers/AdminUser"
+import AddAdmin from "./pages/AdminUsers/AddAdmin"
+import EditAdmin from "./pages/AdminUsers/EditAdmin"
+import QueueList from "./pages/Queue/QueueList"
+import AddQueue from "./pages/Queue/AddQueue"
+import EditQueue from "./pages/Queue/EditQueue"
+import ReportsPage from "./pages/Reports/ReportsPage"
 
 
 
@@ -258,6 +259,7 @@ const AnimatedRoutes = () => {
           <Route path="/" element={<LogIn />} />
           
           <Route element={<Layout />}>
+          <Route path="/patients" element={<PatientsList/>} />
             <Route path="/product-categories" element={<ProductCategory />} />
             <Route
               path="/product-categories/add-new"
