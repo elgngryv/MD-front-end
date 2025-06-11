@@ -161,12 +161,13 @@ import TechniciansPrices from "./pages/Technicians/TechniciansPrices";
 import AddTechnician from "./pages/Technicians/AddTechnician";
 import EditTechnician from "./pages/Technicians/EditTechnician";
 import InfoTechnician from "./pages/Technicians/InfoTechnician";
-import StockExportList from "./pages/stockExport/StockExportList";
-import StockExports from "./pages/stockExport/StockExports";
-import AddExportStock from "./pages/stockExport/AddExportStock";
-import InfoExportStock from "./pages/stockExport/InfoExportStock";
-import EditExportStock from "./pages/stockExport/EditExportStock";
-
+import AdminUser from "./pages/AdminUsers/AdminUser"
+import EditAdmin from "./pages/AdminUsers/EditAdmin"
+import AddAdmin from "./pages/AdminUsers/AddAdmin"
+import  QueueList from "./pages/Queue/QueueList"
+import  AddQueue from "./pages/Queue/AddQueue"
+import  EditQueue from "./pages/Queue/EditQueue"
+import ReportsPage from "./pages/Reports/ReportsPage"
 
 
 
@@ -263,6 +264,7 @@ const AnimatedRoutes = () => {
               path="/product-categories/add-new"
               element={<AddProductCategory />}
             />
+            <Route path="/patients" element={<PatientsList/>}/>
             <Route
               path="/product-categories/edit-category/:id"
               element={<EditProductCategory />}
@@ -282,6 +284,7 @@ const AnimatedRoutes = () => {
             <Route path="stock/export/:date/detail/edit" element={<EditExportStock/>}/>
             <Route path="stock/export/:date/edit" element={<EditExportStock/>}/>
             <Route path="/patients/add-patient" element={<PatientAdd />} />
+            
             <Route path="patients/patient/:id" element={<PatientLayout />}>
               <Route path="general" element={<General />} />
               <Route path="edit" element={<PatientEdit />} />
