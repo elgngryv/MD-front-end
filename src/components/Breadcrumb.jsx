@@ -97,6 +97,8 @@ const Breadcrumb = () => {
         return 'Silinmə';
       case 'usage':
         return 'İstifadə';
+      case 'colors':
+        return 'Rənglər';
       case 'edit-category':
         return '';
       case 'edit-product':

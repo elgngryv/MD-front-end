@@ -114,7 +114,6 @@ import TechnicalsReport from "./pages/Laboratory/TechnicalsReport";
 
 // Settings Pages
 import ColorList from "./pages/settings/colors/ColorList";
-import AddColor from "./pages/settings/colors/AddColor";
 import ColorDetail from "./pages/settings/colors/ColorDetail";
 import InsuranceList from "./pages/settings/insurance/InsuranceList";
 import AddInsurance from "./pages/settings/insurance/AddInsurance";
@@ -170,8 +169,9 @@ import AddAppointmentType from "./pages/AppointmentTypes/AddAppointmentTypes";
 import EditAppointmentType from "./pages/AppointmentTypes/EditAppointmentTypes";
 import ChecklistPage from "./pages/ChecklistPage/ChecklistPage";
 import AddCheckList from "./pages/ChecklistPage/AddChecklist";
-
-
+import ColorsPage from "./pages/ColorsPage/ColorsPage";
+import AddColor from "./pages/ColorsPage/AddColor";
+import EditColor from "./pages/ColorsPage/EditColor";
 
 // Constants
 const roomOptions = [
@@ -455,6 +455,12 @@ const AnimatedRoutes = () => {
             <Route path="checklist" element={<ChecklistPage/>}/>
             <Route path="checklist/add" element={<AddCheckList/>}/>
             <Route path="checklist/:id/edit" element={<AddCheckList/>}/>
+            
+
+            {/* Colors Page Routes */}
+            <Route path="/colors" element={<ColorsPage/>}/>
+            <Route path="/colors/add" element={<AddColor/>}/>
+            <Route path="/colors/:id/edit" element={<EditColor/>}/>
 
             {/* Other Routes */}
 
