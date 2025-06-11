@@ -32,7 +32,6 @@ import PatientsList from "./pages/Patients/PatientsList";
 import PatientAdd from "./pages/Patients/PatientAdd";
 import PatientEdit from "./pages/patient/PatientEdit";
 import General from "./pages/patient/General";
-import Examination from "./pages/patient/Examination";
 import Plans from "./pages/patient/Plans";
 import Treatment from "./pages/patient/Treatment";
 import History from "./pages/patient/History";
@@ -114,9 +113,6 @@ import SentOrders from "./pages/Laboratory/SentOrders";
 import TechnicalsReport from "./pages/Laboratory/TechnicalsReport";
 
 // Settings Pages
-import ExaminationList from "./pages/settings/examination/ExaminationList";
-import AddExamination from "./pages/settings/examination/AddExamination";
-import ExaminationDetail from "./pages/settings/examination/ExaminationDetail";
 import ColorList from "./pages/settings/colors/ColorList";
 import AddColor from "./pages/settings/colors/AddColor";
 import ColorDetail from "./pages/settings/colors/ColorDetail";
@@ -172,8 +168,8 @@ import InfoAdmin from "./pages/AdminUsers/InfoAdmin";
 import AppointmentTypes from "./pages/AppointmentTypes/AppointmentTypes";
 import AddAppointmentType from "./pages/AppointmentTypes/AddAppointmentTypes";
 import EditAppointmentType from "./pages/AppointmentTypes/EditAppointmentTypes";
-
-
+import ChecklistPage from "./pages/ChecklistPage/ChecklistPage";
+import AddCheckList from "./pages/ChecklistPage/AddChecklist";
 
 
 
@@ -291,7 +287,6 @@ const AnimatedRoutes = () => {
               <Route path="general" element={<General />} />
               <Route path="edit" element={<PatientEdit />} />
               <Route path="report" element={<PatientReport />} />
-              <Route path="examination" element={<Examination />} />
               <Route path="plans" element={<Plans />} />
               <Route path="plan/edit" element={<EditPlan />} />
               <Route path="plan/create" element={<CreatePlan />} />
@@ -381,9 +376,6 @@ const AnimatedRoutes = () => {
             <Route path="/technicals-report" element={<TechnicalsReport />} />
 
             {/* Settings Routes */}
-            <Route path="/settings/examination" element={<ExaminationList />} />
-            <Route path="/settings/examination/add" element={<AddExamination />} />
-            <Route path="/settings/examination/:id" element={<ExaminationDetail />} />
 
             <Route path="/settings/color" element={<ColorList />} />
             <Route path="/settings/color/add" element={<AddColor />} />
@@ -459,7 +451,14 @@ const AnimatedRoutes = () => {
             <Route path="/appointment-types/add" element={<AddAppointmentType/>}/>
             <Route path="/appointment-types/:id/edit" element={<EditAppointmentType/>}/>
 
+            {/* Checklist Page Routes */}
+            <Route path="checklist" element={<ChecklistPage/>}/>
+            <Route path="checklist/add" element={<AddCheckList/>}/>
+            <Route path="checklist/:id/edit" element={<AddCheckList/>}/>
+
             {/* Other Routes */}
+
+
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="/change-password" element={<ChangePassword />} />
           </Route>

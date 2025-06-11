@@ -167,7 +167,7 @@ const SidebarMenu = () => {
         { id: 72, title: "Admin istifadəçiləri", path: "/admin-users" },
         { id: 73, title: "Texniklər", path: "/technicians" },
         { id: 74, title: "Randevu tipləri", path: "/appointment-types" },
-        { id: 75, title: "Müayinə siyahısı", path: "/settings/examination" },
+        { id: 75, title: "Müayinə siyahısı", path: "/checklist" },
         { id: 76, title: "Əməliyyat növləri", path: "/operations" },
         { id: 77, title: "Dişlər", path: "/teeth" },
         { id: 78, title: "Rənglər", path: "/colors" },

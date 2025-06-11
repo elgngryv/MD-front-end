@@ -119,6 +119,8 @@ const Breadcrumb = () => {
         return 'Növbə gözləyənlər';
       case 'add-new':
         return 'Yenisini əlavə et';
+      case 'checklist':
+        return 'Müayinə siyahısı';
       case 'appointments':
         return 'Randevular';
       case 'employee-schedule':
