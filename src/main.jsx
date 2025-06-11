@@ -172,6 +172,17 @@ import EditPriceCategory from "./pages/PriceCategory/EditPriceCategory";
 import CabinetsPage from "./pages/CabinetsPage/CabinetsPage";
 import AddCabinet from "./pages/CabinetsPage/AddCabinet";
 import EditCabinet from "./pages/CabinetsPage/EditCabinet";
+
+import OtherObjects from "./pages/OtherObjects/OtherObjects";
+import AddObject from "./pages/OtherObjects/AddObject";
+import EditObject from "./pages/OtherObjects/EditObject";
+
+import RecommendationsPage from "./pages/RecommendationsPage/RecommendationsPage";
+import AddRecommendation from "./pages/RecommendationsPage/AddRecommendation";
+import EditRecommendation from "./pages/RecommendationsPage/EditRecommendation";
+
+import GeneralSettings from "./pages/GeneralSettings/GeneralSettings";
+import EditSettings from "./pages/GeneralSettings/EditSettings";
 // Constants
 const roomOptions = [
   { value: "1", label: "Otaq 1" },
@@ -463,6 +474,25 @@ const AnimatedRoutes = () => {
             <Route path="/cabinets" element={<CabinetsPage/>}/>
             <Route path="/cabinets/add" element={<AddCabinet/>}/>
             <Route path="/cabinets/:id/edit" element={<EditCabinet/>}/>
+
+            {/* Recepts Page Routes */}
+
+            {/* Reccomendations Page Routes */}
+            <Route path="/recommendations" element={<RecommendationsPage/>}/>
+            <Route path="/recommendations/add" element={<AddRecommendation/>}/>
+            <Route path="/recommendations/:id/edit" element={<EditRecommendation/>}/>
+
+            
+            {/* General Settings Routes */}
+            <Route path="/general-settings" element={<GeneralSettings/>}/>
+            <Route path="/general-settings/edit" element={<EditSettings/>}/>
+            
+
+            {/* Other Objects Routes */}
+            <Route path="other-objects" element={<OtherObjects/>}/>
+            <Route path="other-objects/add" element={<AddObject/>}/>
+            <Route path="other-objects/:id/edit" element={<EditObject/>}/>
+
 
             {/* Other Routes */}
 
