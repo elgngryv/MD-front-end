@@ -1,54 +1,53 @@
-import React from 'react';
+import React from "react";
 import "../../assets/style/StockExport/stockexportlist.css";
-import { CiSearch, CiExport, CiCircleInfo } from 'react-icons/ci';
-import { HiArrowsUpDown } from 'react-icons/hi2';
-import { FiEdit3 } from 'react-icons/fi';
-import { GoTrash } from 'react-icons/go';
+import { CiSearch, CiExport, CiCircleInfo } from "react-icons/ci";
+import { HiArrowsUpDown } from "react-icons/hi2";
+import { FiEdit3 } from "react-icons/fi";
+import { GoTrash } from "react-icons/go";
 import { FiShoppingBag } from "react-icons/fi";
-import { Link } from 'react-router-dom';
-
+import { Link } from "react-router-dom";
 
 function StockExportList() {
   const mockData = [
     {
       id: 1,
-      date: '16.03.2025',
-      time: '00:00',
-      otaq: 'Otaq 1',
-      admin: 'Admin User',
+      date: "16.03.2025",
+      time: "00:00",
+      otaq: "Otaq 1",
+      admin: "Admin User",
       cesidSayi: 2,
       sifarisCount: 4,
       gonderilenCount: 5,
-      qalanCount: 1
+      qalanCount: 1,
     },
     {
       id: 2,
-      date: '16.03.2025',
-      time: '00:00',
-      otaq: 'Otaq 2',
-      admin: 'Admin User',
+      date: "16.03.2025",
+      time: "00:00",
+      otaq: "Otaq 2",
+      admin: "Admin User",
       cesidSayi: 2,
       sifarisCount: 7,
       gonderilenCount: 6,
-      qalanCount: 1
+      qalanCount: 1,
     },
     {
       id: 3,
-      date: '16.03.2025',
-      time: '00:00',
-      otaq: 'Otaq 3',
-      admin: 'Admin User',
+      date: "16.03.2025",
+      time: "00:00",
+      otaq: "Otaq 3",
+      admin: "Admin User",
       cesidSayi: 2,
       sifarisCount: 80,
       gonderilenCount: 70,
-      qalanCount: 20
-    }
+      qalanCount: 20,
+    },
   ];
 
   const icons = [
     {
       icon: CiCircleInfo,
-      action: (row) => console.log('Info:', row),
+      action: (row) => console.log("Info:", row),
       className: "info",
     },
   ];
@@ -64,22 +63,64 @@ function StockExportList() {
           <CiExport />
         </button>
       </div>
-      
+
       <div className="table-container">
         <table>
           <thead>
             <tr>
-              <th><span>{mockData.length === 0 ? '0' : `1-${mockData.length}`}</span></th>
-              <th><span><HiArrowsUpDown className="tableArrowIcon" /> Tarix</span></th>
-              <th><span><HiArrowsUpDown className="tableArrowIcon" /> Saat</span></th>
-              <th><span><HiArrowsUpDown className="tableArrowIcon" /> Otaq</span></th>
-              <th><span><HiArrowsUpDown className="tableArrowIcon" /> Sifariş verən</span></th>
-              <th><span><HiArrowsUpDown className="tableArrowIcon" /> Çeşid sayı</span></th>
-              <th><span><HiArrowsUpDown className="tableArrowIcon" /> Sifariş miq.</span></th>
-              <th><span><HiArrowsUpDown className="tableArrowIcon" /> Göndərilən miq.</span></th>
-              <th><span><HiArrowsUpDown className="tableArrowIcon" /> Qalıq miq.</span></th>
-              <th><span><HiArrowsUpDown className="tableArrowIcon" /> Məxariclər</span></th>
-              <th><span>Düzəliş</span></th>
+              <th>
+                <span>
+                  {mockData.length === 0 ? "0" : `1-${mockData.length}`}
+                </span>
+              </th>
+              <th>
+                <span>
+                  <HiArrowsUpDown className="tableArrowIcon" /> Tarix
+                </span>
+              </th>
+              <th>
+                <span>
+                  <HiArrowsUpDown className="tableArrowIcon" /> Saat
+                </span>
+              </th>
+              <th>
+                <span>
+                  <HiArrowsUpDown className="tableArrowIcon" /> Otaq
+                </span>
+              </th>
+              <th>
+                <span>
+                  <HiArrowsUpDown className="tableArrowIcon" /> Sifariş verən
+                </span>
+              </th>
+              <th>
+                <span>
+                  <HiArrowsUpDown className="tableArrowIcon" /> Çeşid sayı
+                </span>
+              </th>
+              <th>
+                <span>
+                  <HiArrowsUpDown className="tableArrowIcon" /> Sifariş miq.
+                </span>
+              </th>
+              <th>
+                <span>
+                  <HiArrowsUpDown className="tableArrowIcon" /> Göndərilən miq.
+                </span>
+              </th>
+              <th>
+                <span>
+                  <HiArrowsUpDown className="tableArrowIcon" /> Qalıq miq.
+                </span>
+              </th>
+              <th>
+                <span>
+                  <HiArrowsUpDown className="tableArrowIcon" /> Məxariclər
+                </span>
+              </th>
+              <th>
+                <span>Düzəliş</span>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -94,9 +135,11 @@ function StockExportList() {
                 <td>{row.sifarisCount}</td>
                 <td>{row.gonderilenCount}</td>
                 <td>{row.qalanCount}</td>
-                <td >
-                  <Link className='stockExportCheckIconContainer' to={`/stock/export/${row.date}`}>
-                   <FiShoppingBag className="stockExportCheckIcon" />
+                <td>
+                  <Link
+                    className="stockExportCheckIconContainer"
+                    to={`/stock/export/${row.date}`}>
+                    <FiShoppingBag className="stockExportCheckIcon" />
                   </Link>
                 </td>
                 <td>

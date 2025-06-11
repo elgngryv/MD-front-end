@@ -168,6 +168,7 @@ import  QueueList from "./pages/Queue/QueueList"
 import  AddQueue from "./pages/Queue/AddQueue"
 import  EditQueue from "./pages/Queue/EditQueue"
 import ReportsPage from "./pages/Reports/ReportsPage"
+import InfoAdmin from "./pages/AdminUsers/InfoAdmin";
 
 
 
@@ -259,6 +260,7 @@ const AnimatedRoutes = () => {
           <Route path="/" element={<LogIn />} />
           
           <Route element={<Layout />}>
+          <Route path="/patients" element={<PatientsList/>} />
             <Route path="/product-categories" element={<ProductCategory />} />
             <Route
               path="/product-categories/add-new"
@@ -408,7 +410,8 @@ const AnimatedRoutes = () => {
             {/* Other Settings Routes */}
             <Route path="/admin-users" element={<AdminUser />} />
             <Route path="/admin-users/add" element={<AddAdmin />} />
-            <Route path="/admin-users/edit" element={<EditAdmin />} />
+            <Route path="/admin-users/:id/edit" element={<EditAdmin />} />
+            <Route path="/admin-users/:id/info" element={<InfoAdmin />} />
 
 
             <Route path="/specialities" element={<Specialities />} />

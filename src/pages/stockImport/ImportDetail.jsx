@@ -11,58 +11,53 @@ const ImportDetail = () => {
   const [entryData, setEntryData] = useState(null);
 
   useEffect(() => {
-    const loadData = async () => {
+    (async () => {
       await fetchCategories();
       await fetchProducts();
-    };
-    loadData();
-  }, []);
-
-  useEffect(() => {
-    if (products.length && categories.length) {
-      fetchEntryDetail();
-    }
-  }, [products, categories]);
+      await fetchEntryDetail();
+    })();
+  }, [id]);
 
   const fetchEntryDetail = async () => {
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_BASE_URL}/order-from-warehouse/info/${id}`,
+        `${import.meta.env.VITE_BASE_URL}/warehouse-entry/info/${id}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         }
       );
-
       if (!res.ok) throw new Error("API-dən düzgün cavab gəlmədi");
-
       const data = await res.json();
 
-      const transformedData = {
-        id: data.id || null,
-        date: data.date || "",
-        time: `${data.time?.hour?.toString().padStart(2, "0") || "00"}:${
-          data.time?.minute?.toString().padStart(2, "0") || "00"
-        }`,
-        description: data.description || "",
-        warehouseEntryProductUpdateRequests:
-          data.orderFromWarehouseProductResponses.map((p) => {
-            const product = products.find(
-              (prod) => prod.productName === p.productName
-            );
-            const category = categories.find(
-              (cat) => cat.categoryName === p.categoryName
-            );
+      // data.time obyektinin olub-olmamasını yoxlayırıq
+      let formattedTime = "";
+      if (
+        data.time &&
+        typeof data.time.hour === "number" &&
+        typeof data.time.minute === "number" &&
+        typeof data.time.second === "number"
+      ) {
+        formattedTime = `${String(data.time.hour).padStart(2, "0")}:${String(
+          data.time.minute
+        ).padStart(2, "0")}:${String(data.time.second).padStart(2, "0")}`;
+      }
 
-            return {
-              warehouseEntryProductId: p.id || "",
-              categoryId: category?.id || "",
-              productId: product?.id || "",
-              quantity: p.quantity || 0,
-              price: p.price || 0,
-            };
-          }),
+      const transformedData = {
+        id: id,
+        date: data.date || "",
+        time: formattedTime,
+        description: data.description || "",
+        warehouseEntryProductUpdateRequests: data.warehouseEntryProducts.map(
+          (p) => ({
+            warehouseEntryProductId: p.id,
+            categoryId: p.categoryId || 0,
+            productId: p.productId || 0,
+            quantity: p.quantity,
+            price: p.price,
+          })
+        ),
       };
 
       setEntryData(transformedData);
@@ -71,18 +66,13 @@ const ImportDetail = () => {
     }
   };
 
-  if (!entryData)
-    return (
-      <div className="flex-col gap-4 w-full flex items-center justify-center">
-        <div className="w-20 h-20 border-4 border-transparent text-blue-400 text-4xl animate-spin flex items-center justify-center border-t-blue-400 rounded-full">
-          <div className="w-16 h-16 border-4 border-transparent text-red-400 text-2xl animate-spin flex items-center justify-center border-t-red-400 rounded-full" />
-        </div>
-      </div>
-    );
+  if (!entryData) return <div>Yüklənir...</div>;
 
   return (
     <div className="p-4 bg-white rounded-lg border border-gray-200">
-      <h2 className="text-xl font-bold mb-4">Mədaxil Detalları (ID: {id})</h2>
+      <h2 className="text-xl font-bold mb-4">
+        Anbar Giriş Məlumatları (ID: {id})
+      </h2>
 
       <div className="mb-4">
         <label className="block mb-1">Tarix:</label>
@@ -98,7 +88,7 @@ const ImportDetail = () => {
         <label className="block mb-1">Saat:</label>
         <input
           type="time"
-          value={entryData.time}
+          value={entryData.time ? entryData.time.slice(0, 5) : ""}
           disabled
           className="p-2 border rounded w-full bg-gray-100"
         />
@@ -111,10 +101,9 @@ const ImportDetail = () => {
             <select
               value={item.categoryId}
               disabled
-              className="p-2 border rounded w-full bg-gray-100">
-              <option disabled value="">
-                Kategoriya seçin
-              </option>
+              className="p-2 border rounded w-full bg-gray-100"
+            >
+              <option value="">Seçin</option>
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
                   {cat.categoryName}
@@ -128,10 +117,9 @@ const ImportDetail = () => {
             <select
               value={item.productId}
               disabled
-              className="p-2 border rounded w-full bg-gray-100">
-              <option disabled value="">
-                Məhsul seçin
-              </option>
+              className="p-2 border rounded w-full bg-gray-100"
+            >
+              <option value="">Seçin</option>
               {products
                 .filter((p) => p.categoryId === item.categoryId)
                 .map((product) => (
@@ -152,7 +140,7 @@ const ImportDetail = () => {
             />
           </div>
 
-          {/* <div>
+          <div className="mb-2">
             <label className="block mb-1">Qiymət:</label>
             <input
               type="number"
@@ -160,7 +148,7 @@ const ImportDetail = () => {
               disabled
               className="p-2 border rounded w-full bg-gray-100"
             />
-          </div> */}
+          </div>
         </div>
       ))}
 

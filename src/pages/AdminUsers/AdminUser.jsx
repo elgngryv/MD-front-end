@@ -6,38 +6,40 @@ import { HiArrowsUpDown } from "react-icons/hi2";
 import { FaPlus, FaDownload } from "react-icons/fa";
 import "../../assets/style/AdminUsers/adminusers.css"
 import { CiExport } from "react-icons/ci";
-import { Link } from "react-router-dom";
-const mockUsers = [
-  {
-    id: 1,
-    avatar: "https://randomuser.me/api/portraits/men/1.jpg",
-    username: "Admin",
-    name: "Admin",
-    surname: "User",
-    permission: "Tam icazə",
-    phone: "(050) xxx xx xx",
-    status: "Aktiv",
-  },
-  ...Array(7).fill({
-    avatar: "https://randomuser.me/api/portraits/women/3.jpg",
-    username: "Dr.elmira",
-    name: "Elmira",
-    surname: "Aliyeva",
-    permission: "Tam icazə",
-    phone: "(050) xxx xx xx",
-    status: "Passiv",
-  }).map((item, i) => ({ ...item, id: i + 2 })),
-];
-
-const statusOptions = [
-  { value: "", label: "Status" },
-  { value: "Aktiv", label: "Aktiv" },
-  { value: "Passiv", label: "Passiv" },
-];
+import { Link, useNavigate } from "react-router-dom";
 
 const AdminUser = () => {
+  const navigate = useNavigate();
   const [status, setStatus] = useState("");
   const [search, setSearch] = useState("");
+
+  const mockUsers = [
+    {
+      id: 1,
+      avatar: "https://randomuser.me/api/portraits/men/1.jpg",
+      username: "Admin",
+      name: "Admin",
+      surname: "User",
+      permission: "Tam icazə",
+      phone: "(050) xxx xx xx",
+      status: "Aktiv",
+    },
+    ...Array(7).fill({
+      avatar: "https://randomuser.me/api/portraits/women/3.jpg",
+      username: "Dr.elmira",
+      name: "Elmira",
+      surname: "Aliyeva",
+      permission: "Tam icazə",
+      phone: "(050) xxx xx xx",
+      status: "Passiv",
+    }).map((item, i) => ({ ...item, id: i + 2 })),
+  ];
+
+  const statusOptions = [
+    { value: "", label: "Status" },
+    { value: "Aktiv", label: "Aktiv" },
+    { value: "Passiv", label: "Passiv" },
+  ];
 
   const filteredUsers = mockUsers.filter(
     (user) =>
@@ -48,6 +50,14 @@ const AdminUser = () => {
         user.surname.toLowerCase().includes(search.toLowerCase())
       )
   );
+
+  const handleEdit = (userId) => {
+    navigate(`${userId}/edit`);
+  };
+
+  const handleInfo = (userId) => {
+    navigate(`${userId}/info`);
+  };
 
   return (
     <div className="adminUsersPageContainer">
@@ -149,8 +159,14 @@ const AdminUser = () => {
                 </td>
                 <td>
                   <div className="icons flex gap-3 cursor-pointer">
-                    <CiCircleInfo className="info" />
-                    <FiEdit3 className="edit" />
+                    <CiCircleInfo 
+                      className="info" 
+                      onClick={() => handleInfo(user.id)}
+                    />
+                    <FiEdit3 
+                      className="edit" 
+                      onClick={() => handleEdit(user.id)}
+                    />
                     <GoTrash className="delete" />
                   </div>
                 </td>

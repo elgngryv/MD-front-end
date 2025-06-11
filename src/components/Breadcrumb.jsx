@@ -125,6 +125,8 @@ const Breadcrumb = () => {
         return 'İş qrafiki';
       case 'technicians':
         return 'Texniklər';
+      case 'admin-users':
+        return 'Admin istifadəçiləri';
       case 'edit-employee':
         return 'İşçi readaktəsi';
       case 'employee-add':
