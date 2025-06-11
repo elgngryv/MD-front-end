@@ -121,9 +121,6 @@ import InsuranceDetail from "./pages/settings/insurance/InsuranceDetail";
 import DentalSetList from "./pages/settings/dentalSet/DentalSetList";
 import AddDentalSet from "./pages/settings/dentalSet/AddDentalSet";
 import DentalSetDetail from "./pages/settings/dentalSet/DentalSetDetail";
-import CabinetList from "./pages/settings/cabinets/CabinetList";
-import AddCabinet from "./pages/settings/cabinets/AddCabinet";
-import CabinetDetail from "./pages/settings/cabinets/CabinetDetail";
 
 // Other Settings Pages
 import Specialities from "./pages/SpecialitiesPage/Specialities";
@@ -172,6 +169,9 @@ import EditColor from "./pages/ColorsPage/EditColor";
 import PriceCategory from "./pages/PriceCategory/PriceCategory";
 import AddPriceCategory from "./pages/PriceCategory/AddPriceCategory";
 import EditPriceCategory from "./pages/PriceCategory/EditPriceCategory";
+import CabinetsPage from "./pages/CabinetsPage/CabinetsPage";
+import AddCabinet from "./pages/CabinetsPage/AddCabinet";
+import EditCabinet from "./pages/CabinetsPage/EditCabinet";
 // Constants
 const roomOptions = [
   { value: "1", label: "Otaq 1" },
@@ -389,9 +389,6 @@ const AnimatedRoutes = () => {
             <Route path="/settings/dental-set/add" element={<AddDentalSet />} />
             <Route path="/settings/dental-set/:id" element={<DentalSetDetail />} />
 
-            <Route path="/settings/cabinet" element={<CabinetList />} />
-            <Route path="/settings/cabinet/add" element={<AddCabinet />} />
-            <Route path="/settings/cabinet/:id" element={<CabinetDetail />} />
 
 
             {/* Other Settings Routes */}
@@ -461,6 +458,12 @@ const AnimatedRoutes = () => {
             <Route path="/price-category" element={<PriceCategory/>}/>
             <Route path="price-category/add" element={<AddPriceCategory/>}/>
             <Route path="price-category/:id/edit" element={<EditPriceCategory/>}/>
+
+            {/* Cabinets Page Routes */}
+            <Route path="/cabinets" element={<CabinetsPage/>}/>
+            <Route path="/cabinets/add" element={<AddCabinet/>}/>
+            <Route path="/cabinets/:id/edit" element={<EditCabinet/>}/>
+
             {/* Other Routes */}
 
 

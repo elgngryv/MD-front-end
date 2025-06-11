@@ -67,6 +67,8 @@ const Breadcrumb = () => {
         return 'Redaktə et';
       case 'price-category':
         return 'Qiymət kateqoriyaları';
+      case 'cabinets':
+        return 'Kabinetlər';
       case 'insurance':
         return 'Sığorta şirkətləri';
       case 'examination':
