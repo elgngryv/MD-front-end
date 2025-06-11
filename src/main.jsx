@@ -118,9 +118,6 @@ import ColorDetail from "./pages/settings/colors/ColorDetail";
 import InsuranceList from "./pages/settings/insurance/InsuranceList";
 import AddInsurance from "./pages/settings/insurance/AddInsurance";
 import InsuranceDetail from "./pages/settings/insurance/InsuranceDetail";
-import PriceCategoryList from "./pages/settings/priceCategories/PriceCategoryList";
-import AddPriceCategory from "./pages/settings/priceCategories/AddPriceCategory";
-import PriceCategoryDetail from "./pages/settings/priceCategories/PriceCategoryDetail";
 import DentalSetList from "./pages/settings/dentalSet/DentalSetList";
 import AddDentalSet from "./pages/settings/dentalSet/AddDentalSet";
 import DentalSetDetail from "./pages/settings/dentalSet/DentalSetDetail";
@@ -172,7 +169,9 @@ import AddCheckList from "./pages/ChecklistPage/AddChecklist";
 import ColorsPage from "./pages/ColorsPage/ColorsPage";
 import AddColor from "./pages/ColorsPage/AddColor";
 import EditColor from "./pages/ColorsPage/EditColor";
-
+import PriceCategory from "./pages/PriceCategory/PriceCategory";
+import AddPriceCategory from "./pages/PriceCategory/AddPriceCategory";
+import EditPriceCategory from "./pages/PriceCategory/EditPriceCategory";
 // Constants
 const roomOptions = [
   { value: "1", label: "Otaq 1" },
@@ -385,10 +384,6 @@ const AnimatedRoutes = () => {
             <Route path="/settings/insurance/add" element={<AddInsurance />} />
             <Route path="/settings/insurance/:id" element={<InsuranceDetail />} />
 
-            <Route path="/settings/price-category" element={<PriceCategoryList />} />
-            <Route path="/settings/price-category/add" element={<AddPriceCategory />} />
-            <Route path="/settings/price-category/:id" element={<PriceCategoryDetail />} />
-            <Route path="/settings/price-category/:id/edit" element={<PriceCategoryDetail mode="edit" />} />
 
             <Route path="/settings/dental-set" element={<DentalSetList />} />
             <Route path="/settings/dental-set/add" element={<AddDentalSet />} />
@@ -462,6 +457,10 @@ const AnimatedRoutes = () => {
             <Route path="/colors/add" element={<AddColor/>}/>
             <Route path="/colors/:id/edit" element={<EditColor/>}/>
 
+            {/* Price Category Page Routes */}
+            <Route path="/price-category" element={<PriceCategory/>}/>
+            <Route path="price-category/add" element={<AddPriceCategory/>}/>
+            <Route path="price-category/:id/edit" element={<EditPriceCategory/>}/>
             {/* Other Routes */}
 
 

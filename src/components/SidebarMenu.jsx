@@ -173,9 +173,9 @@ const SidebarMenu = () => {
         { id: 78, title: "Rənglər", path: "/colors" },
         { id: 79, title: "İmplantlar", path: "/implants" },
         { id: 80, title: "Qarniturlar", path: "/dental-set" }, // Sənin "Diş dəstləri" path-ı "/settings/dental-set" idi, istersen dəyiş
-        { id: 81, title: "Sığorta şirkətləri", path: "/settings/insurance" },
-        { id: 82, title: "Qiymət kateqoriyaları", path: "/settings/price-category" },
-        { id: 83, title: "Kabinetlər", path: "/settings/cabinet" },
+        { id: 81, title: "Sığorta şirkətləri", path: "/insurance" },
+        { id: 82, title: "Qiymət kateqoriyaları", path: "/price-category" },
+        { id: 83, title: "Kabinetlər", path: "/cabinet" },
         { id: 84, title: "Digər obyektlər", path: "/other-objects" },
         { id: 85, title: "Reseptlər", path: "/prescriptions" },
         { id: 86, title: "Tövsiyə edilənlər", path: "/recommendations" },
