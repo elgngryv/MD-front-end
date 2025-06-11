@@ -169,9 +169,9 @@ import  AddQueue from "./pages/Queue/AddQueue"
 import  EditQueue from "./pages/Queue/EditQueue"
 import ReportsPage from "./pages/Reports/ReportsPage"
 import InfoAdmin from "./pages/AdminUsers/InfoAdmin";
-
-
-
+import AppointmentTypes from "./pages/AppointmentTypes/AppointmentTypes";
+import AddAppointmentType from "./pages/AppointmentTypes/AddAppointmentTypes";
+import EditAppointmentType from "./pages/AppointmentTypes/EditAppointmentTypes";
 
 
 
@@ -453,6 +453,11 @@ const AnimatedRoutes = () => {
             <Route path="/queue" element={<QueueList />} />
             <Route path="/queue/add-new" element={<AddQueue />} />
             <Route path="/queue/edit-queue/:id" element={<EditQueue />} />
+
+            {/*Appointment Types Routes  */}
+            <Route path="/appointment-types" element={<AppointmentTypes/>}/>
+            <Route path="/appointment-types/add" element={<AddAppointmentType/>}/>
+            <Route path="/appointment-types/:id/edit" element={<EditAppointmentType/>}/>
 
             {/* Other Routes */}
             <Route path="/reports" element={<ReportsPage />} />

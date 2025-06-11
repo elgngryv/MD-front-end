@@ -129,6 +129,8 @@ const Breadcrumb = () => {
         return 'Admin istifadəçiləri';
       case 'edit-employee':
         return 'İşçi readaktəsi';
+      case 'appointment-types':
+        return 'Randevu tipləri';
       case 'employee-add':
         return 'İşçi əlavə et';
       case 'employee':
