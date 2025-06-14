@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 
 // Icons
 import { FiDownload, FiEdit3 } from "react-icons/fi";
@@ -8,48 +8,51 @@ import { CiSearch } from "react-icons/ci";
 import { GoTrash } from "react-icons/go";
 import { HiOutlineArrowsUpDown } from "react-icons/hi2";
 
-// Style
-import "../../assets/style/Specialities/specialities.css";
-
-// Libraries
-import { Link } from 'react-router-dom';
+// Store
+import useBlackListResultStore from "../../../stores/blacklistReasonStore";
 
 function BlacklistReasons() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
 
-  const tableData = [
-    { id: 1, name: "Problemli müştəri", status: "Aktiv" },
-    { id: 1, name: "Problemli müştəri", status: "Aktiv" },
-    { id: 1, name: "Problemli müştəri", status: "Aktiv" },
-    { id: 1, name: "Problemli müştəri", status: "Aktiv" },
-    { id: 1, name: "Problemli müştəri", status: "Aktiv" },
-    { id: 1, name: "Problemli müştəri", status: "Aktiv" },
-    { id: 1, name: "Problemli müştəri", status: "Aktiv" },
-    { id: 1, name: "Problemli müştəri", status: "Aktiv" },
-    
-  ];
+  const { results, fetchResults, removeResult, exportToExcel, loading, error } =
+    useBlackListResultStore();
 
-  const filteredData = tableData.filter((row) =>
-    row.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  useEffect(() => {
+    fetchResults();
+  }, []);
+
+  const dataArray = Array.isArray(results?.data) ? results.data : [];
+
+  const filteredData = dataArray.filter((row) => {
+    const matchesName = row.statusName
+      ?.toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesStatus = filterStatus ? row.status === filterStatus : true;
+    return matchesName && matchesStatus;
+  });
 
   const handleEdit = (row) => {
-    navigate(`/edit-reason`);
+    navigate(`/edit-reason/${row.id}`);
   };
 
-  const handleDelete = (row) => {
-    alert(`Silindi: ${row.name}`);
+  const handleDelete = async (row) => {
+    if (window.confirm(`"${row.statusName}" silinsin?`)) {
+      await removeResult(row.id);
+    }
   };
 
   return (
     <div className="specialitiesContainer">
       <div className="specialitiesContainerTopPart">
         <div className="leftPart">
-          <select>
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}>
             <option value="">Status</option>
-            <option value="Aktiv">Aktiv</option>
-            <option value="Passiv">Passiv</option>
+            <option value="ACTIVE">Aktiv</option>
+            <option value="PASSIVE">Passiv</option>
           </select>
           <div className="specialitiesQuickSearch">
             <input
@@ -62,12 +65,15 @@ function BlacklistReasons() {
           </div>
         </div>
         <div className="rightPart">
-          <Link className="addSpeciality" to={'/add-reason'}>
+          <Link className="addSpeciality" to={"/add-reason"}>
             <IoMdAdd className="addSpecialityIcon" /> Yenisini əlavə et
           </Link>
-          <Link className="exportSpecialities">
+          <button
+            className="exportSpecialities"
+            onClick={exportToExcel}
+            disabled={loading}>
             <FiDownload className="exportSpecialitiesIcon" />
-          </Link>
+          </button>
         </div>
       </div>
 
@@ -75,40 +81,65 @@ function BlacklistReasons() {
         <table className="specialitiesTable">
           <thead>
             <tr>
-              <th>{filteredData.length !== 0 ? `1-${filteredData.length}` : 0}</th>
-              <th className='specialityName'>
+              <th>
+                {filteredData.length !== 0 ? `1-${filteredData.length}` : 0}
+              </th>
+              <th className="specialityName">
                 <span>
-                  <HiOutlineArrowsUpDown className='arrowIconsNow' /> İxtisasın adı
+                  <HiOutlineArrowsUpDown className="arrowIconsNow" /> Səbəb adı
                 </span>
               </th>
               <th>
                 <span>
-                  <HiOutlineArrowsUpDown className='arrowIconsNow' /> Status
+                  <HiOutlineArrowsUpDown className="arrowIconsNow" /> Status
                 </span>
               </th>
               <th>Düzəliş</th>
             </tr>
           </thead>
           <tbody>
-            {filteredData.map((row, index) => (
-              <tr key={row.id}>
-                <td>{index + 1}</td>
-                <td className='specialityName'>{row.name}</td>
-                <td>
-                  <span className={`statusBadge ${row.status === "Aktiv" ? "active" : "passive"}`}>
-                    {row.status}
-                  </span>
-                </td>
-                <td>
-                  <div className="actionIcons">
-                    <FiEdit3 className="editBtn" onClick={() => handleEdit(row)} />
-                    <GoTrash className="deleteBtn" onClick={() => handleDelete(row)} />
-                  </div>
+            {filteredData.length > 0 ? (
+              filteredData.map((row, index) => (
+                <tr key={row.id}>
+                  <td>{index + 1}</td>
+                  <td className="specialityName">{row.statusName}</td>
+                  <td>
+                    <span
+                      className={`statusBadge ${
+                        row.status === "ACTIVE" ? "active" : "passive"
+                      }`}>
+                      {row.status === "ACTIVE" ? "Aktiv" : "Passiv"}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="actionIcons">
+                      <FiEdit3
+                        className="editBtn"
+                        onClick={() => handleEdit(row)}
+                      />
+                      <GoTrash
+                        className="deleteBtn"
+                        onClick={() => handleDelete(row)}
+                      />
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : !loading ? (
+              <tr>
+                <td colSpan={4} style={{ textAlign: "center" }}>
+                  Nəticə tapılmadı
                 </td>
               </tr>
-            ))}
+            ) : null}
           </tbody>
         </table>
+        {loading && <p>Yüklənir...</p>}
+        {error && (
+          <p style={{ color: "red" }}>
+            Xəta: {error.message || "Serverdən cavab alınmadı"}
+          </p>
+        )}
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 import {
   createPriceCategory,
   readPriceCategories,
@@ -8,7 +8,7 @@ import {
   deletePriceCategory,
   searchPriceCategories,
   exportPriceCategoriesToExcel,
-} from '../src/api/price-categories';
+} from "../src/api/price-categories";
 
 const usePriceCategoryStore = create((set) => ({
   categories: [],
@@ -28,13 +28,16 @@ const usePriceCategoryStore = create((set) => ({
   },
 
   // Get by ID
+  // Get by ID
   fetchCategoryById: async (id) => {
     set({ loading: true, error: null });
     try {
       const data = await readPriceCategoryById(id);
       set({ selectedCategory: data, loading: false });
+      return data; // <-- BUNU ƏLAVƏ ET
     } catch (error) {
       set({ error, loading: false });
+      throw error; // Hətta error da return edək
     }
   },
 
@@ -98,9 +101,9 @@ const usePriceCategoryStore = create((set) => ({
     try {
       const data = await exportPriceCategoriesToExcel();
       const url = window.URL.createObjectURL(new Blob([data]));
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
-      link.setAttribute('download', 'price-categories.xlsx');
+      link.setAttribute("download", "price-categories.xlsx");
       document.body.appendChild(link);
       link.click();
     } catch (error) {

@@ -46,7 +46,7 @@ export const updatePriceCategoryStatus = async (id, statusData) => {
 
 // Delete price category
 export const deletePriceCategory = async (id) => {
-  const response = await axiosInstance.put(
+  const response = await axiosInstance.delete(
     `${API_BASE_URL}/price-categories/delete/${id}`
   );
   return response.data;

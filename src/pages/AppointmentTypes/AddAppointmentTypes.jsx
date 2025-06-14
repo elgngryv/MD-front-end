@@ -1,16 +1,18 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import useAppointmentTypeStore from "../../../stores/appointment-type-store";
 import "../../assets/style/AppointmentTypes/addappointmenttypes.css";
-import { FaRegClock } from "react-icons/fa"; // Saat ikonası
-import { FaTimes, FaCheck } from "react-icons/fa"; // Ləğv və Yadda saxla ikonları
+import { FaRegClock, FaTimes, FaCheck } from "react-icons/fa";
 
 function AddAppointmentType() {
   const navigate = useNavigate();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const addAppointmentType = useAppointmentTypeStore((state) => state.addAppointmentType);
+  const loading = useAppointmentTypeStore((state) => state.loading);
+
   const [formData, setFormData] = useState({
     appointmentName: "",
-    duration: "",
+    duration: "", // "HH:MM"
   });
 
   const handleInputChange = (e) => {
@@ -20,71 +22,85 @@ function AddAppointmentType() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
+
+    if (!formData.appointmentName.trim()) {
+      toast.error("Randevu tipinin adı daxil edilməlidir");
+      return;
+    }
+
+    // Backend 'time' string formatında gözləyir, ona görə düz string göndəririk
+    // Backend 'HH:mm:ss' formatını istəyir, ona görə :ss əlavə edirik
+    const timeString = formData.duration ? `${formData.duration}:00` : "00:00:00";
+
+    const sendData = {
+      appointmentTypeName: formData.appointmentName,
+      time: timeString,
+    };
+
     try {
-      // API çağırışı burada olacaq (məsələn, randevu tipini serverə göndərmək)
-      setTimeout(() => {
-        setIsSubmitting(false);
-        toast.success("Randevu tipi uğurla əlavə edildi");
-        navigate("/appointment-types"); // Randevu tipləri səhifəsinə yönləndirmə
-      }, 1000);
+      await addAppointmentType(sendData);
+      toast.success("Randevu tipi uğurla əlavə edildi");
+      navigate("/appointment-types");
     } catch (error) {
       toast.error("Xəta baş verdi");
-      setIsSubmitting(false);
     }
   };
 
   return (
     <div className="addAppointmentTypeFormWrapper">
-        <div className="addAppointmentTypeFormContainer">
+      <div className="addAppointmentTypeFormContainer">
         <form onSubmit={handleSubmit}>
-            <div className="addAppointmentTypeFormRow">
+          <div className="addAppointmentTypeFormRow">
             <label className="addAppointmentTypeLabel">
-                Randevu tipinin adı <span className="required">*</span>
+              Randevu tipinin adı <span className="required">*</span>
             </label>
             <input
-                type="text"
-                className="addAppointmentTypeField"
-                name="appointmentName"
-                value={formData.appointmentName}
-                onChange={handleInputChange}
-                required
+              type="text"
+              className="addAppointmentTypeField"
+              name="appointmentName"
+              value={formData.appointmentName}
+              onChange={handleInputChange}
+              required
+              disabled={loading}
+              placeholder="Randevu tipinin adını daxil edin"
             />
-            </div>
-            <div className="addAppointmentTypeFormRow">
+          </div>
+
+          <div className="addAppointmentTypeFormRow">
             <label className="addAppointmentTypeLabel">Müddət</label>
             <div className="addAppointmentTypeInputFieldWithIcon">
-                <input
-                type="time" // Və ya "time" input type istifadə edə bilərsiniz
+              <input
+                type="time"
                 className="addAppointmentTypeField"
                 name="duration"
                 value={formData.duration}
                 onChange={handleInputChange}
                 placeholder="HH:MM"
-                />
-
+                disabled={loading}
+              />
+              <FaRegClock className="clockIcon" />
             </div>
-            </div>
+          </div>
 
-            <div className="addAppointmentTypeActions">
+          <div className="addAppointmentTypeActions">
             <button
-                type="button"
-                className="addAppointmentTypeCancelBtn"
-                onClick={() => navigate("/appointment-types")}
-                disabled={isSubmitting}
+              type="button"
+              className="addAppointmentTypeCancelBtn"
+              onClick={() => navigate("/appointment-types")}
+              disabled={loading}
             >
-                <FaTimes /> İmtina et
+              <FaTimes /> İmtina et
             </button>
             <button
-                type="submit"
-                className="addAppointmentTypeSaveBtn"
-                disabled={isSubmitting}
+              type="submit"
+              className="addAppointmentTypeSaveBtn"
+              disabled={loading}
             >
-                {isSubmitting ? "Yüklənir..." : <><FaCheck /> Yadda saxla</>}
+              {loading ? "Yüklənir..." : <><FaCheck /> Yadda saxla</>}
             </button>
-            </div>
+          </div>
         </form>
-        </div>
+      </div>
     </div>
   );
 }

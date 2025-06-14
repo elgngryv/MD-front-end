@@ -3,28 +3,29 @@ import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import "../../assets/style/PriceCategory/editpricecategory.css";
 import { FaTimes, FaCheck } from "react-icons/fa";
+import usePriceCategoryStore from "../../../stores/priceCategoryStore";
 
 function EditPriceCategory() {
   const navigate = useNavigate();
   const { id } = useParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { selectedCategory, fetchCategoryById, updateCategory } =
+    usePriceCategoryStore();
+
   const [formData, setFormData] = useState({
     categoryName: "",
-    status: "Aktiv"
+    status: "Aktiv",
   });
 
   useEffect(() => {
-    // Burada API-dən məlumatları gətirmək üçün çağırış ediləcək
-    // Məsələn:
-    const fetchCategoryData = async () => {
+    const loadData = async () => {
       try {
-        // const response = await api.getCategory(id);
-        // setFormData(response.data);
-        
-        // Mock data for example:
+        const data = await fetchCategoryById(id);
+
         setFormData({
-          categoryName: "Konservativ müayinə",
-          status: "Aktiv"
+          categoryName: data.name || "",
+          status: data.status === "ACTIVE" ? "Aktiv" : "Passiv",
         });
       } catch (error) {
         toast.error("Məlumatları yükləmək mümkün olmadı");
@@ -32,8 +33,17 @@ function EditPriceCategory() {
       }
     };
 
-    fetchCategoryData();
-  }, [id, navigate]);
+    loadData();
+  }, [id]);
+
+  useEffect(() => {
+    if (selectedCategory) {
+      setFormData({
+        categoryName: selectedCategory.name || "",
+        status: selectedCategory.status === "ACTIVE" ? "Aktiv" : "Passiv",
+      });
+    }
+  }, [selectedCategory]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -43,15 +53,19 @@ function EditPriceCategory() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+
+    const updatedData = {
+      name: formData.categoryName,
+      status: formData.status === "Aktiv" ? "ACTIVE" : "PASSIVE",
+    };
+
     try {
-      // API çağırışı burada olacaq
-      setTimeout(() => {
-        setIsSubmitting(false);
-        toast.success("Qiymət kateqoriyası uğurla yeniləndi");
-        navigate("/price-category");
-      }, 1000);
+      await updateCategory(id, updatedData);
+      toast.success("Qiymət kateqoriyası uğurla yeniləndi");
+      navigate("/price-category");
     } catch (error) {
       toast.error("Xəta baş verdi");
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -83,8 +97,7 @@ function EditPriceCategory() {
               name="status"
               value={formData.status}
               onChange={handleInputChange}
-              required
-            >
+              required>
               <option value="Aktiv">Aktiv</option>
               <option value="Passiv">Passiv</option>
             </select>
@@ -95,16 +108,20 @@ function EditPriceCategory() {
               type="button"
               className="editPriceCategoryCancelBtn"
               onClick={() => navigate("/price-category")}
-              disabled={isSubmitting}
-            >
+              disabled={isSubmitting}>
               <FaTimes /> İmtina et
             </button>
             <button
               type="submit"
               className="editPriceCategorySaveBtn"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Yüklənir..." : <><FaCheck /> Yadda saxla</>}
+              disabled={isSubmitting}>
+              {isSubmitting ? (
+                "Yüklənir..."
+              ) : (
+                <>
+                  <FaCheck /> Yadda saxla
+                </>
+              )}
             </button>
           </div>
         </form>

@@ -2,19 +2,17 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import "../../assets/style/AppointmentTypes/editappointmenttypes.css";
-import { FaRegClock } from "react-icons/fa"; // Saat ikonası
-import { FaTimes, FaCheck } from "react-icons/fa"; // Ləğv və Yadda saxla ikonları
+import { FaRegClock } from "react-icons/fa";
+import { FaTimes, FaCheck } from "react-icons/fa";
 
-// Mock data (real tətbiqdə API-dən gələcək)
 const mockAppointmentTypes = [
   { id: 1, name: "Aparat kontrol", duration: "00:15" },
   { id: 2, name: "Breketin təkrar yapışdırılması", duration: "00:20" },
-  // ... digər mock randevu tipləri
 ];
 
 function EditAppointmentType() {
   const navigate = useNavigate();
-  const { id } = useParams(); // URL-dən ID-ni götürürük
+  const { id } = useParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     appointmentName: "",
@@ -22,8 +20,9 @@ function EditAppointmentType() {
   });
 
   useEffect(() => {
-    // ID-yə əsasən məlumatları yüklə (real tətbiqdə API çağırışı olacaq)
-    const typeToEdit = mockAppointmentTypes.find(type => type.id === parseInt(id));
+    const typeToEdit = mockAppointmentTypes.find(
+      (type) => type.id === parseInt(id)
+    );
     if (typeToEdit) {
       setFormData({
         appointmentName: typeToEdit.name,
@@ -31,7 +30,7 @@ function EditAppointmentType() {
       });
     } else {
       toast.error("Randevu tipi tapılmadı!");
-      navigate("/appointment-types"); // Tapılmasa siyahıya yönləndir
+      navigate("/appointment-types");
     }
   }, [id, navigate]);
 
@@ -44,11 +43,10 @@ function EditAppointmentType() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      // API çağırışı burada olacaq (məsələn, randevu tipini serverdə yeniləmək)
       setTimeout(() => {
         setIsSubmitting(false);
         toast.success("Randevu tipi uğurla yeniləndi");
-        navigate("/appointment-types"); // Randevu tipləri səhifəsinə yönləndirmə
+        navigate("/appointment-types");
       }, 1000);
     } catch (error) {
       toast.error("Xəta baş verdi");
@@ -92,16 +90,20 @@ function EditAppointmentType() {
               type="button"
               className="editAppointmentTypeCancelBtn"
               onClick={() => navigate("/appointment-types")}
-              disabled={isSubmitting}
-            >
+              disabled={isSubmitting}>
               <FaTimes /> İmtina et
             </button>
             <button
               type="submit"
               className="editAppointmentTypeSaveBtn"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Yüklənir..." : <><FaCheck /> Yadda saxla</>}
+              disabled={isSubmitting}>
+              {isSubmitting ? (
+                "Yüklənir..."
+              ) : (
+                <>
+                  <FaCheck /> Yadda saxla
+                </>
+              )}
             </button>
           </div>
         </form>
