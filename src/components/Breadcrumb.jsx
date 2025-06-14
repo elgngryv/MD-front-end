@@ -49,6 +49,10 @@ const Breadcrumb = () => {
         return 'Pasiyent kartı';
       case 'export':
         return 'Məxaric';
+      case 'anamnesis-details':
+        return 'Anamnezlər';
+      case 'anamnesis':
+        return 'Anamnezlərin siyahısı';
       case 'recepts':
         return 'Reseptlər';
       case 'recommendations':
@@ -143,6 +147,41 @@ const Breadcrumb = () => {
         return 'Admin istifadəçiləri';
       case 'edit-employee':
         return 'İşçi readaktəsi';
+      case 'permissions':
+        return 'İcazələr';
+      case 'add-permission':
+        return 'İcazə əlavə et';
+      case 'academic-degrees':
+        return 'Elmi dərəcələr';
+      case 'add-degree':
+        return 'Elmi dərəcə əlavə et';
+      case 'specialities':
+        return 'İxtisaslar';
+      case 'add-speciality':
+        return 'İxtisas əlavə et';
+      case 'metals':
+        return 'Metallar';
+      case 'add-metal':
+        return 'Metal əlavə et';
+      case 'ceramics':
+        return 'Keramikalar';
+      case 'add-ceramic':
+        return 'Keramika əlavə et';
+      case 'blacklist-reasons':
+        return 'Qara siyahı səbəbləri';
+      case 'add-reason':
+        return 'Səbəb əlavə et';
+      case 'edit-reason':
+        return 'Səbəbi redaktə et';
+      case 'edit-ceramic':
+        return 'Keramikanı redaktə et';
+      case 'edit-metal':
+        return 'Metalı redaktə et';
+      case 'edit-speciality':
+        return 'İxtisası redaktə et';
+      case 'edit-degree':
+        return 'Elmi dərəcəni redaktə et';
+
       case 'appointment-types':
         return 'Randevu tipləri';
       case 'employee-add':

@@ -183,6 +183,16 @@ import EditRecommendation from "./pages/RecommendationsPage/EditRecommendation";
 
 import GeneralSettings from "./pages/GeneralSettings/GeneralSettings";
 import EditSettings from "./pages/GeneralSettings/EditSettings";
+
+import AnamnesisCategoryList from "./pages/Anamnesis/AnamnesisCategoryList";
+import AddAnamnesisCategory from "./pages/Anamnesis/AddAnamnesisCategory";
+import EditAnamnesisCategory from "./pages/Anamnesis/EditAnamnesisCategory";
+
+import AnamnesisList from "./pages/Anamnesis/AnamnesisList";
+import AddAnamnesis from "./pages/Anamnesis/AddAnamnesis";
+import EditAnamnesis from "./pages/Anamnesis/EditAnamnesisCategory";
+
+
 // Constants
 const roomOptions = [
   { value: "1", label: "Otaq 1" },
@@ -453,6 +463,14 @@ const AnimatedRoutes = () => {
             <Route path="/appointment-types" element={<AppointmentTypes/>}/>
             <Route path="/appointment-types/add" element={<AddAppointmentType/>}/>
             <Route path="/appointment-types/:id/edit" element={<EditAppointmentType/>}/>
+
+            {/* AnamnesisList Page Routes */}
+            <Route path="/anamnesis" element={<AnamnesisCategoryList/>}/>
+            <Route path="/anamnesis/add" element={<AddAnamnesisCategory/>}/>
+            <Route path="/anamnesis/edit/:name" element={<EditAnamnesisCategory/>}/> 
+            <Route path="/anamnesis/anamnesis-details/:name" element={<AnamnesisList/>}/>
+            <Route path="/anamnesis/anamnesis-details/:name/add" element={<AddAnamnesis/>}/>
+            <Route path="/anamnesis/anamnesis-details/:name/edit/:id" element={<EditAnamnesis/>}/>
 
             {/* Checklist Page Routes */}
             <Route path="checklist" element={<ChecklistPage/>}/>
