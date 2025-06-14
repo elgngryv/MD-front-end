@@ -3,10 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "../../assets/style/PriceCategory/addpricecategory.css";
 import { FaTimes, FaCheck } from "react-icons/fa";
+import usePriceCategoryStore from "../../../stores/priceCategoryStore"
 
 function AddPriceCategory() {
   const navigate = useNavigate();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const addCategory = usePriceCategoryStore((state) => state.addCategory);
+  const loading = usePriceCategoryStore((state) => state.loading);
   const [formData, setFormData] = useState({
     categoryName: "",
   });
@@ -18,17 +20,18 @@ function AddPriceCategory() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    const payload = {
+      name: formData.categoryName,
+      status: "ACTIVE",
+    };
+
     try {
-      // API çağırışı burada olacaq
-      setTimeout(() => {
-        setIsSubmitting(false);
-        toast.success("Qiymət kateqoriyası uğurla əlavə edildi");
-        navigate("/price-category"); // Qiymət kateqoriyaları səhifəsinə yönləndirmə
-      }, 1000);
+      await addCategory(payload);
+      toast.success("Qiymət kateqoriyası uğurla əlavə edildi");
+      navigate("/price-category");
     } catch (error) {
       toast.error("Xəta baş verdi");
-      setIsSubmitting(false);
+      console.error("Error:", error);
     }
   };
 
@@ -55,16 +58,16 @@ function AddPriceCategory() {
               type="button"
               className="addPriceCategoryCancelBtn"
               onClick={() => navigate("/price-category")}
-              disabled={isSubmitting}
+              disabled={loading}
             >
               <FaTimes /> İmtina et
             </button>
             <button
               type="submit"
               className="addPriceCategorySaveBtn"
-              disabled={isSubmitting}
+              disabled={loading}
             >
-              {isSubmitting ? "Yüklənir..." : <><FaCheck /> Yadda saxla</>}
+              {loading ? "Yüklənir..." : <><FaCheck /> Yadda saxla</>}
             </button>
           </div>
         </form>
