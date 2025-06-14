@@ -133,10 +133,10 @@ const AppointmentTypes = () => {
                 <td>
                   <span
                     className={`status ${
-                      (type?.status || "") === "Aktiv" ? "active" : "passive"
+                      (type?.status || "") === "ACTIVE" ? "active" : "passive"
                     }`}
                   >
-                    {type?.status || ""}
+                    {(type?.status || "") === "ACTIVE" ? "Aktiv" : "Passiv"}
                   </span>
                 </td>
                 <td>
