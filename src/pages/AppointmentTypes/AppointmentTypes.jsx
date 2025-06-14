@@ -22,7 +22,7 @@ const AppointmentTypes = () => {
     error,
     fetchAppointmentTypes,
     removeAppointmentType,
-    updateAppointmentTypeStatus, // Store-da əlavə etmisən?
+    updateAppointmentTypeStatus,
   } = useAppointmentTypeStore();
 
   const [status, setStatus] = useState("");
@@ -33,7 +33,6 @@ const AppointmentTypes = () => {
     fetchAppointmentTypes();
   }, [fetchAppointmentTypes]);
 
-  // Filter edilmiş siyahı — statusa və axtarışa görə
   const filteredAppointmentTypes = (appointmentTypes || []).filter(
     (type) =>
       (status === "" || (type?.status || "") === status) &&
@@ -52,7 +51,6 @@ const AppointmentTypes = () => {
     }
   };
 
-  // Statusa kliklə dəyişmə funksiyası
   const toggleStatus = async (type) => {
     if (!updateAppointmentTypeStatus) return;
 

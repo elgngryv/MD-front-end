@@ -12,9 +12,9 @@ export const createAppointmentType = async (data) => {
 };
 
 // ✔ Update
-export const updateAppointmentType = async (id, data) => {
+export const updateAppointmentType = async (data) => {
   const response = await axiosInstance.put(
-    `${API_BASE_URL}/appointment-type/update/${id}`,
+    `${API_BASE_URL}/appointment-type/update`,
     data
   );
   return response.data;
