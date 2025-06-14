@@ -46,14 +46,6 @@ export const readAppointmentTypes = async () => {
   return response.data;
 };
 
-// ✔ Read by ID (əgər varsa)
-export const readAppointmentTypeById = async (id) => {
-  const response = await axiosInstance.get(
-    `${API_BASE_URL}/appointment-type/read/${id}`
-  );
-  return response.data;
-};
-
 // ✔ Delete
 export const deleteAppointmentType = async (id) => {
   const response = await axiosInstance.delete(

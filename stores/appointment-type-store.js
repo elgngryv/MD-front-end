@@ -1,9 +1,7 @@
-// src/stores/appointmentTypeStore.js
 import { create } from "zustand";
 import {
   createAppointmentType,
   readAppointmentTypes,
-  readAppointmentTypeById,
   updateAppointmentType,
   updateAppointmentTypeStatus,
   deleteAppointmentType,
@@ -22,17 +20,6 @@ const useAppointmentTypeStore = create((set) => ({
     try {
       const data = await readAppointmentTypes();
       set({ appointmentTypes: data, loading: false });
-    } catch (error) {
-      set({ error, loading: false });
-    }
-  },
-
-  // Read by ID
-  fetchAppointmentTypeById: async (id) => {
-    set({ loading: true, error: null });
-    try {
-      const data = await readAppointmentTypeById(id);
-      set({ selectedAppointmentType: data, loading: false });
     } catch (error) {
       set({ error, loading: false });
     }

@@ -6,14 +6,13 @@ import { HiArrowsUpDown } from "react-icons/hi2";
 import { FaPlus } from "react-icons/fa";
 import "../../assets/style/AppointmentTypes/appointmenttypes.css";
 import { CiExport } from "react-icons/ci";
-import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import useAppointmentTypeStore from "../../../stores/appointment-type-store";
 
 const statusOptions = [
   { value: "", label: "Status" },
-  { value: "Aktiv", label: "Aktiv" },
-  { value: "Passiv", label: "Passiv" },
+  { value: "ACTIVE", label: "Aktiv" },
+  { value: "PASSIVE", label: "Passiv" },
 ];
 
 const AppointmentTypes = () => {
@@ -22,11 +21,10 @@ const AppointmentTypes = () => {
     loading,
     error,
     fetchAppointmentTypes,
-    fetchAppointmentTypeById,
     removeAppointmentType,
-    searchAppointmentTypes,
+    updateAppointmentTypeStatus, // Store-da əlavə etmisən?
   } = useAppointmentTypeStore();
-  
+
   const [status, setStatus] = useState("");
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
@@ -35,10 +33,13 @@ const AppointmentTypes = () => {
     fetchAppointmentTypes();
   }, [fetchAppointmentTypes]);
 
+  // Filter edilmiş siyahı — statusa və axtarışa görə
   const filteredAppointmentTypes = (appointmentTypes || []).filter(
     (type) =>
       (status === "" || (type?.status || "") === status) &&
-      (type?.appointmentTypeName || "").toLowerCase().includes(search.toLowerCase())
+      (type?.appointmentTypeName || "")
+        .toLowerCase()
+        .includes(search.toLowerCase())
   );
 
   const handleEdit = (id) => {
@@ -51,16 +52,31 @@ const AppointmentTypes = () => {
     }
   };
 
+  // Statusa kliklə dəyişmə funksiyası
+  const toggleStatus = async (type) => {
+    if (!updateAppointmentTypeStatus) return;
+
+    const newStatus = type.status === "ACTIVE" ? "PASSIVE" : "ACTIVE";
+
+    await updateAppointmentTypeStatus({ id: type.id, status: newStatus });
+  };
+
   const handleSearch = async () => {
     if (search.trim()) {
-      await searchAppointmentTypes({ search });
     } else {
       await fetchAppointmentTypes();
     }
   };
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error.message}</div>;
+  if (loading)
+    return (
+      <div className="flex-col gap-4 w-full flex items-center justify-center">
+        <div className="w-20 h-20 border-4 border-transparent text-blue-400 text-4xl animate-spin flex items-center justify-center border-t-blue-400 rounded-full">
+          <div className="w-16 h-16 border-4 border-transparent text-red-400 text-2xl animate-spin flex items-center justify-center border-t-red-400 rounded-full" />
+        </div>
+      </div>
+    );
+  if (error) return <div>Error: {error.message || error.toString()}</div>;
 
   return (
     <div className="appointmentTypesPageContainer">
@@ -69,25 +85,26 @@ const AppointmentTypes = () => {
           <select
             className="appointmentTypesStatusSelect"
             value={status}
-            onChange={(e) => setStatus(e.target.value)}
-          >
+            onChange={(e) => setStatus(e.target.value)}>
             {statusOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
               </option>
             ))}
           </select>
+
           <div className="searchBarContainer">
             <input
               type="text"
               placeholder="Axtarış"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+              onKeyPress={(e) => e.key === "Enter" && handleSearch()}
             />
             <CiSearch className="searchIconBTN" onClick={handleSearch} />
           </div>
         </div>
+
         <div className="rightPartOfTop">
           <Link to={"add"} className="addNewAppointmentType">
             <FaPlus /> Yenisini əlavə et
@@ -124,18 +141,21 @@ const AppointmentTypes = () => {
               <th>Düzəliş</th>
             </tr>
           </thead>
+
           <tbody>
             {filteredAppointmentTypes.map((type, idx) => (
               <tr key={type?.id || idx}>
                 <td>{idx + 1}</td>
                 <td>{type?.appointmentTypeName || ""}</td>
-                <td>{type?.time ? type.time.slice(0, 5) : ""}</td> {/* Saat:dəqiqə göstərilməsi */}
+                <td>{type?.time ? type.time.slice(0, 5) : ""}</td>
                 <td>
                   <span
+                    onClick={() => toggleStatus(type)}
                     className={`status ${
                       (type?.status || "") === "ACTIVE" ? "active" : "passive"
                     }`}
-                  >
+                    style={{ cursor: "pointer", userSelect: "none" }}
+                    title="Statusu dəyişmək üçün kliklə">
                     {(type?.status || "") === "ACTIVE" ? "Aktiv" : "Passiv"}
                   </span>
                 </td>
