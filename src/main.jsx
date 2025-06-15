@@ -115,12 +115,7 @@ import TechnicalsReport from "./pages/Laboratory/TechnicalsReport";
 // Settings Pages
 import ColorList from "./pages/settings/colors/ColorList";
 import ColorDetail from "./pages/settings/colors/ColorDetail";
-import InsuranceList from "./pages/settings/insurance/InsuranceList";
-import AddInsurance from "./pages/settings/insurance/AddInsurance";
 import InsuranceDetail from "./pages/settings/insurance/InsuranceDetail";
-import DentalSetList from "./pages/settings/dentalSet/DentalSetList";
-import AddDentalSet from "./pages/settings/dentalSet/AddDentalSet";
-import DentalSetDetail from "./pages/settings/dentalSet/DentalSetDetail";
 
 // Other Settings Pages
 import Specialities from "./pages/SpecialitiesPage/Specialities";
@@ -197,6 +192,14 @@ import AddRecept from "./pages/ReceptsPage/AddRecept";
 import EditRecept from "./pages/ReceptsPage/EditRecept";
 import MedicinesList from "./pages/ReceptsPage/MedicinesList";
 import AddMedicine from "./pages/ReceptsPage/AddMedicine";
+
+import InsuranceList from "./pages/Insurance/InsuranceList";
+import AddInsurance from "./pages/Insurance/AddInsurance";
+import EditInsurance from "./pages/Insurance/EditInsurance";
+
+import DentalSetList from "./pages/DentalSet/DentalSetList";
+import AddDentalSet from "./pages/DentalSet/AddDentalSet";
+import EditDentalSet from "./pages/DentalSet/EditDentalSet";
 
 
 // Constants
@@ -532,12 +535,7 @@ const AnimatedRoutes = () => {
               element={<InsuranceDetail />}
             />
 
-            <Route path="/settings/dental-set" element={<DentalSetList />} />
-            <Route path="/settings/dental-set/add" element={<AddDentalSet />} />
-            <Route
-              path="/settings/dental-set/:id"
-              element={<DentalSetDetail />}
-            />
+
 
             {/* Other Settings Routes */}
             <Route path="/admin-users" element={<AdminUser />} />
@@ -637,6 +635,17 @@ const AnimatedRoutes = () => {
             <Route path="/recepts/:id" element={<MedicinesList/>}/>
             <Route path="/recepts/:id/add" element={<AddMedicine/>}/>
             <Route path="/recepts/:id/edit/:id" element={<AddMedicine/>}/>
+            {/* Insurance Page Routes */}
+            <Route path="/insurance" element={<InsuranceList/>}/>
+            <Route path="/insurance/add" element={<AddInsurance/>}/>
+            <Route path="/insurance/edit/:id" element={<EditInsurance/>}/>
+            
+
+            {/* Dental Set Routes */}
+            <Route path="/dental-set" element={<DentalSetList/>}/>
+            <Route path="dental-set/add" element={<AddDentalSet/>}/>
+            <Route path="dental-set/edit/:id" element={<EditDentalSet/>}/>
+
             {/* Reccomendations Page Routes */}
             <Route path="/recommendations" element={<RecommendationsPage />} />
             <Route
@@ -661,6 +670,8 @@ const AnimatedRoutes = () => {
 
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="/change-password" element={<ChangePassword />} />
+
+
           </Route>
         </Routes>
       </div>
