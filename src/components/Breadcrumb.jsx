@@ -59,8 +59,7 @@ const Breadcrumb = () => {
         return 'Reseptlər';
       case 'recommendations':
         return 'Tövsiyə edənlər';
-      case 'recommendation':
-        return 'Tövsiyə edən';
+
       case 'general-settings':
         return 'Ümumi tənzimləmələr';
       case 'other-objects':
