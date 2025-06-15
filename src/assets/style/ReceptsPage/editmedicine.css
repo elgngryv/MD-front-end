@@ -1,6 +1,6 @@
-.addReceptWrapper {
+.editMedicineWrapper {
     height: 100vh;
-    >.addReceptContainer {
+    >.editMedicineContainer {
         display: flex;
         flex-direction: column;
         gap: 20px;
@@ -8,7 +8,7 @@
         background-color: #fff;
         border-radius: 10px;
         padding: 20px;
-        >.addReceptInput {
+        >.editMedicineInput {
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -19,14 +19,14 @@
                 padding-left: 10px;
                 border-radius: 8px;
             }
-            >p {
+            >label {
                 >span {
                     color: red;
                     margin-left: 10px;
                 }
             }
         }
-        >.addReceptButtons {
+        >.editMedicineButtons {
             display: flex;
             align-items: center;
             justify-content: flex-end;
@@ -65,4 +65,4 @@
             }
         }
     }
-}
+} 

@@ -193,6 +193,10 @@ import AddAnamnesis from "./pages/Anamnesis/AddAnamnesis";
 import EditAnamnesis from "./pages/Anamnesis/EditAnamnesisCategory";
 
 import ReceptsList from "./pages/ReceptsPage/ReceptsList";
+import AddRecept from "./pages/ReceptsPage/AddRecept";
+import EditRecept from "./pages/ReceptsPage/EditRecept";
+import MedicinesList from "./pages/ReceptsPage/MedicinesList";
+import AddMedicine from "./pages/ReceptsPage/AddMedicine";
 
 
 // Constants
@@ -628,6 +632,11 @@ const AnimatedRoutes = () => {
 
             {/* Recepts Page Routes */}
             <Route path="/recepts" element={<ReceptsList/>}/>
+            <Route path="/recepts/add" element={<AddRecept/>}/>
+            <Route path="/recepts/edit/:id" element={<EditRecept/>}/>
+            <Route path="/recepts/:id" element={<MedicinesList/>}/>
+            <Route path="/recepts/:id/add" element={<AddMedicine/>}/>
+            <Route path="/recepts/:id/edit/:id" element={<AddMedicine/>}/>
             {/* Reccomendations Page Routes */}
             <Route path="/recommendations" element={<RecommendationsPage />} />
             <Route

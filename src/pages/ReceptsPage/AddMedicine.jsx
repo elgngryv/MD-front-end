@@ -1,13 +1,14 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "../../assets/style/ReceptsPage/addrecept.css";
+import "../../assets/style/ReceptsPage/addmedicine.css";
 
 import acceptButton from "../../assets/images/EmployeesPage/verifyProcess.png";
 import cancelButton from "../../assets/images/EmployeesPage/cancelProcess.png";
 
-function AddRecept() {
+function AddMedicine() {
   const [formData, setFormData] = useState({
-    receptName: "",
+    medicineName: "",
+    note: "",
   });
 
   const navigate = useNavigate();
@@ -24,12 +25,13 @@ function AddRecept() {
     e.preventDefault();
 
     try {
-      console.log("New Recept:", formData);
-      alert("Resept uğurla yaradıldı");
-      navigate("/recepts");
+      console.log("New Medicine:", formData);
+      alert("Dərman uğurla əlavə edildi");
+      navigate(-1); // Go back to previous page (medicines list)
 
       setFormData({
-        receptName: "",
+        medicineName: "",
+        note: "",
       });
     } catch (error) {
       alert("Xəta baş verdi: " + error.message);
@@ -37,28 +39,34 @@ function AddRecept() {
   };
 
   return (
-    <form className="addReceptWrapper" onSubmit={handleSubmit}>
-      <div className="addReceptContainer">
-        <div className="addReceptInput">
-          <p>Reseptin adı<span>*</span></p>
+    <form className="addMedicineWrapper" onSubmit={handleSubmit}>
+      <div className="addMedicineContainer">
+        <div className="addMedicineInput">
+          <p>Dərmanın adı<span>*</span></p>
           <input
             type="text"
-            placeholder="Reseptin adı"
-            name="receptName"
-            value={formData.receptName}
+            placeholder="Dərmanın adı"
+            name="medicineName"
+            value={formData.medicineName}
             onChange={handleChange}
             required
           />
         </div>
-        <div className="addReceptButtons">
+        <div className="addMedicineInput">
+          <p>Qeyd</p>
+          <input
+            type="text"
+            placeholder="Tezlik"
+            name="frequency"
+            value={formData.frequency}
+            onChange={handleChange}
+          />
+        </div>
+        <div className="addMedicineButtons">
           <button
             type="button"
             className="cancelFormCondition"
-            onClick={() =>
-              setFormData({
-                receptName: "",
-              })
-            }
+            onClick={() => navigate(-1)}
           >
             <img src={cancelButton} alt="Cancel" />
             İmtina et
@@ -73,4 +81,4 @@ function AddRecept() {
   );
 }
 
-export default AddRecept;
+export default AddMedicine;

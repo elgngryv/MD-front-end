@@ -11,129 +11,122 @@ function ReceptsList() {
   const [searchTerm, setSearchTerm] = useState("");
 
   // Static data for demonstration
-  const staticReceptsData = [
+  const [receptsData, setReceptsData] = useState([
     {
       id: 1,
       receptName: "Recept 1",
-      medicines: "Aspirin, Parol",
-      status: "Aktiv",
+      medicinesCount: "1",
+      status: "ACTIVE",
     },
     {
       id: 2,
-      receptName: "Recept 2",
-      medicines: "Vitamin C, D",
-      status: "Passiv",
+      receptName: "Recept 1",
+      medicinesCount: "1",
+      status: "ACTIVE",
     },
     {
       id: 3,
-      receptName: "Recept 3",
-      medicines: "Calcium, Magnesium",
-      status: "Aktiv",
+      receptName: "Recept 1",
+      medicinesCount: "1",
+      status: "ACTIVE",
     },
-  ];
+    
+  ]);
 
-  const filteredData = staticReceptsData.filter((row) =>
-    row.receptName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const totalReceptsCount = receptsData.length;
 
-  const handleEdit = (row) => {
-    navigate(`/recepts/edit/${row.id}`);
+  const handleEdit = (id) => {
+    navigate(`/recepts/edit/${id}`);
   };
 
-  const handleDelete = (row) => {
+  const handleDelete = (id) => {
+    const recept = receptsData.find(r => r.id === id);
     const confirmDelete = window.confirm(
-      `${row.receptName} reseptini silmək istədiyinizə əminsiniz?`
+      `${recept.receptName} reseptini silmək istədiyinizə əminsiniz?`
     );
     if (!confirmDelete) return;
 
     // Here you would typically call your delete API
-    alert(`${row.receptName} uğurla silindi.`);
+    alert(`${recept.receptName} uğurla silindi.`);
   };
 
   return (
-    <div className="receptPageWrapper">
-      <div className="receptCategoryQuickSearch">
-        <div className="receptCategoryLeftPart">
-          <select>
+    <div className="receptsList-container">
+      <div className="receptsList-controls-section">
+        <div className="receptsList-filters">
+          <select className="receptsList-status-dropdown">
             <option value="">Status</option>
-            <option value="Aktiv">Aktiv</option>
-            <option value="Passiv">Passiv</option>
+            <option value="ACTIVE">Aktiv</option>
+            <option value="PASSIVE">Passiv</option>
           </select>
-          <div className="searchForNameRecept">
+          <div className="receptsList-search-box">
             <input
               type="text"
               placeholder="Axtarış"
+              className="receptsList-search-input"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <CiSearch className="searchForNameIcon" />
+            <button className="receptsList-search-button">
+              <CiSearch className="receptsList-search-icon" />
+            </button>
           </div>
         </div>
-        <div className="receptCategoryRightPart">
-          <Link to={"./add-new"}>
-            <p className="addNewReceptCategory">
-              <span>+</span> Yenisini əlavə et
-            </p>
+        <div className="receptsList-actions">
+          <Link to={"./add"} className="receptsList-add-new-button">
+            <span>+</span> Yenisini əlavə et
           </Link>
-          <Link to={"/export"}>
-            <FiDownload className="exportReceptCategoriesData" />
-          </Link>
+          <button className="receptsList-download-button">
+            <FiDownload className="receptsList-download-icon" />
+          </button>
         </div>
       </div>
 
-      <div className="receptPageTableWrapper">
-        <table className="receptPageTable">
+      <div className="receptsList-table-section">
+        <table className="receptsList-table">
           <thead>
             <tr>
               <th>
-                {staticReceptsData.length === 0
-                  ? "0"
-                  : `1-${staticReceptsData.length}`}
-              </th>
-              <th>
-                <span>
-                  <HiOutlineArrowsUpDown className="arrowIconsNow" /> Reseptin
-                  adı
+                <span className='firstElementOfTHS'>
+                  <HiOutlineArrowsUpDown className="receptsList-sort-icon" />
+                  {totalReceptsCount === 0 ? '0' : `1-${totalReceptsCount}`}
                 </span>
               </th>
               <th>
                 <span>
-                  <HiOutlineArrowsUpDown className="arrowIconsNow" /> Dərmanları
+                  <HiOutlineArrowsUpDown className="receptsList-sort-icon" /> Reseptin adı
                 </span>
               </th>
               <th>
                 <span>
-                  <HiOutlineArrowsUpDown className="arrowIconsNow" /> Status
+                  <HiOutlineArrowsUpDown className="receptsList-sort-icon" /> Dərmanları
                 </span>
               </th>
-              <th>Düzəliş</th>
+              <th>
+                <span>
+                  <HiOutlineArrowsUpDown className="receptsList-sort-icon" /> Status
+                </span>
+              </th>
+              <th>
+                <span>Düzəliş</span>
+              </th>
             </tr>
           </thead>
           <tbody>
-            {filteredData.map((row, index) => (
+            {receptsData.map((row, index) => (
               <tr key={row.id}>
                 <td>{index + 1}</td>
-                <td className="receptNameCol">{row.receptName}</td>
-                <td>{row.medicines}</td>
+                <td>{row.receptName}</td>
+                <td><Link to={`/recepts/${row.id}`}>Dərmanlar({row.medicinesCount})</Link></td>
                 <td>
-                  <span
-                    className={`statusBadge ${
-                      row.status === "Aktiv" ? "active" : "passive"
-                    }`}
-                  >
-                    {row.status}
+                  <span className={`receptsList-status-badge ${row.status === "ACTIVE" ? "active" : "passive"}`}>
+                    {row.status === "ACTIVE" ? "Aktiv" : "Passiv"}
                   </span>
                 </td>
                 <td>
-                  <div className="receptActionIcons">
-                    <FiEdit3
-                      className="editBtn"
-                      onClick={() => handleEdit(row)}
-                    />
-                    <GoTrash
-                      className="deleteBtn"
-                      onClick={() => handleDelete(row)}
-                    />
+                  <div className="receptsList-action-icons">
+                    <FiEdit3 className="receptsList-edit-button" onClick={() => handleEdit(row.id)} />
+                    <GoTrash className="receptsList-delete-button" onClick={() => handleDelete(row.id)} />
                   </div>
                 </td>
               </tr>

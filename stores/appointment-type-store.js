@@ -37,11 +37,7 @@ const useAppointmentTypeStore = create((set) => ({
   },
 
   // Update
-<<<<<<< HEAD
-  updateAppointmentType: async ( updatedData) => {
-=======
   updateAppointmentType: async (updatedData) => {
->>>>>>> 5cfef57b102b28092b971f5f88e02168459d6502
     set({ loading: true, error: null });
     try {
       await updateAppointmentType(updatedData);
