@@ -192,6 +192,8 @@ import AnamnesisList from "./pages/Anamnesis/AnamnesisList";
 import AddAnamnesis from "./pages/Anamnesis/AddAnamnesis";
 import EditAnamnesis from "./pages/Anamnesis/EditAnamnesisCategory";
 
+import ReceptsList from "./pages/ReceptsPage/ReceptsList";
+
 
 // Constants
 const roomOptions = [
@@ -625,7 +627,7 @@ const AnimatedRoutes = () => {
             <Route path="/cabinets/:id/edit" element={<EditCabinet />} />
 
             {/* Recepts Page Routes */}
-
+            <Route path="/recepts" element={<ReceptsList/>}/>
             {/* Reccomendations Page Routes */}
             <Route path="/recommendations" element={<RecommendationsPage />} />
             <Route
@@ -640,7 +642,7 @@ const AnimatedRoutes = () => {
             {/* General Settings Routes */}
             <Route path="/general-settings" element={<GeneralSettings />} />
             <Route path="/general-settings/edit" element={<EditSettings />} />
-
+        
             {/* Other Objects Routes */}
             <Route path="other-objects" element={<OtherObjects />} />
             <Route path="other-objects/add" element={<AddObject />} />

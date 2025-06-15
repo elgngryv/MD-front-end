@@ -17,6 +17,7 @@ function EditAppointmentType() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
+    id:"",
     appointmentTypeName: "", // Changed to match API
     duration: "00:00", // Changed to duration instead of time
   });
@@ -91,8 +92,9 @@ function EditAppointmentType() {
 
     try {
       await updateAppointmentType(parseInt(id), {
+        id: parseInt(id),
         appointmentTypeName: formData.appointmentTypeName,
-        time: parseDuration(formData.duration), // Changed to time to match API
+        time: parseDuration(formData.duration),
       });
 
       toast.success("Randevu tipi uğurla yeniləndi");

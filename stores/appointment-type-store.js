@@ -37,10 +37,10 @@ const useAppointmentTypeStore = create((set) => ({
   },
 
   // Update
-  updateAppointmentType: async (id, updatedData) => {
+  updateAppointmentType: async ( updatedData) => {
     set({ loading: true, error: null });
     try {
-      await updateAppointmentType(id, updatedData);
+      await updateAppointmentType(updatedData);
       await useAppointmentTypeStore.getState().fetchAppointmentTypes();
     } catch (error) {
       set({ error, loading: false });
