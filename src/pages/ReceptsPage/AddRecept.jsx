@@ -4,12 +4,14 @@ import "../../assets/style/ReceptsPage/addrecept.css";
 
 import acceptButton from "../../assets/images/EmployeesPage/verifyProcess.png";
 import cancelButton from "../../assets/images/EmployeesPage/cancelProcess.png";
+import useRecipeStore from "../../../stores/receptsStore";
 
 function AddRecept() {
   const [formData, setFormData] = useState({
-    receptName: "",
+    name: "",
   });
 
+  const { createNewRecipe } = useRecipeStore();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -24,13 +26,10 @@ function AddRecept() {
     e.preventDefault();
 
     try {
-      console.log("New Recept:", formData);
+      await createNewRecipe(formData); // Store-dan çağırılır
       alert("Resept uğurla yaradıldı");
       navigate("/recepts");
-
-      setFormData({
-        receptName: "",
-      });
+      setFormData({ name: "" });
     } catch (error) {
       alert("Xəta baş verdi: " + error.message);
     }
@@ -40,12 +39,14 @@ function AddRecept() {
     <form className="addReceptWrapper" onSubmit={handleSubmit}>
       <div className="addReceptContainer">
         <div className="addReceptInput">
-          <p>Reseptin adı<span>*</span></p>
+          <p>
+            Reseptin adı<span>*</span>
+          </p>
           <input
             type="text"
             placeholder="Reseptin adı"
-            name="receptName"
-            value={formData.receptName}
+            name="name"
+            value={formData.name}
             onChange={handleChange}
             required
           />
@@ -54,12 +55,7 @@ function AddRecept() {
           <button
             type="button"
             className="cancelFormCondition"
-            onClick={() =>
-              setFormData({
-                receptName: "",
-              })
-            }
-          >
+            onClick={() => setFormData({ name: "" })}>
             <img src={cancelButton} alt="Cancel" />
             İmtina et
           </button>

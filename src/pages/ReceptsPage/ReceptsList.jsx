@@ -4,51 +4,36 @@ import { FiDownload, FiEdit3 } from "react-icons/fi";
 import { GoTrash } from "react-icons/go";
 import { HiOutlineArrowsUpDown } from "react-icons/hi2";
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import useRecipeStore from "../../../stores/receptsStore";
 
 function ReceptsList() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
+  const { recipes, fetchRecipes, deleteRecipeById, exportExcel } = useRecipeStore();
 
-  // Static data for demonstration
-  const [receptsData, setReceptsData] = useState([
-    {
-      id: 1,
-      receptName: "Recept 1",
-      medicinesCount: "1",
-      status: "ACTIVE",
-    },
-    {
-      id: 2,
-      receptName: "Recept 1",
-      medicinesCount: "1",
-      status: "ACTIVE",
-    },
-    {
-      id: 3,
-      receptName: "Recept 1",
-      medicinesCount: "1",
-      status: "ACTIVE",
-    },
-    
-  ]);
-
-  const totalReceptsCount = receptsData.length;
+  useEffect(() => {
+    fetchRecipes();
+  }, []);
 
   const handleEdit = (id) => {
     navigate(`/recepts/edit/${id}`);
   };
 
-  const handleDelete = (id) => {
-    const recept = receptsData.find(r => r.id === id);
+  const handleDelete = async (id) => {
+    const recept = recipes.find((r) => r.id === id);
     const confirmDelete = window.confirm(
-      `${recept.receptName} reseptini silmək istədiyinizə əminsiniz?`
+      `${recept.name} reseptini silmək istədiyinizə əminsiniz?`
     );
     if (!confirmDelete) return;
 
-    // Here you would typically call your delete API
-    alert(`${recept.receptName} uğurla silindi.`);
+    await deleteRecipeById(id);
+    alert(`${recept.name} uğurla silindi.`);
   };
+
+  const filteredRecepts = recipes.filter((r) =>
+    r.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="receptsList-container">
@@ -76,7 +61,7 @@ function ReceptsList() {
           <Link to={"./add"} className="receptsList-add-new-button">
             <span>+</span> Yenisini əlavə et
           </Link>
-          <button className="receptsList-download-button">
+          <button className="receptsList-download-button" onClick={exportExcel}>
             <FiDownload className="receptsList-download-icon" />
           </button>
         </div>
@@ -87,9 +72,9 @@ function ReceptsList() {
           <thead>
             <tr>
               <th>
-                <span className='firstElementOfTHS'>
+                <span className="firstElementOfTHS">
                   <HiOutlineArrowsUpDown className="receptsList-sort-icon" />
-                  {totalReceptsCount === 0 ? '0' : `1-${totalReceptsCount}`}
+                  {filteredRecepts.length === 0 ? "0" : `1-${filteredRecepts.length}`}
                 </span>
               </th>
               <th>
@@ -113,13 +98,20 @@ function ReceptsList() {
             </tr>
           </thead>
           <tbody>
-            {receptsData.map((row, index) => (
+            {filteredRecepts.map((row, index) => (
               <tr key={row.id}>
                 <td>{index + 1}</td>
-                <td>{row.receptName}</td>
-                <td><Link to={`/recepts/${row.id}`}>Dərmanlar({row.medicinesCount})</Link></td>
+                <td>{row.name}</td>
                 <td>
-                  <span className={`receptsList-status-badge ${row.status === "ACTIVE" ? "active" : "passive"}`}>
+                  <Link to={`/recepts/${row.id}`}>
+                    Dərmanlar({row.medicinesCount || 0})
+                  </Link>
+                </td>
+                <td>
+                  <span
+                    className={`receptsList-status-badge ${
+                      row.status === "ACTIVE" ? "active" : "passive"
+                    }`}>
                     {row.status === "ACTIVE" ? "Aktiv" : "Passiv"}
                   </span>
                 </td>
