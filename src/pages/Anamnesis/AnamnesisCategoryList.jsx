@@ -1,21 +1,19 @@
-import React, { useState } from 'react';
-import '../../assets/style/Anamnesis/anamnesiscategorylist.css';
-import { CiSearch } from "react-icons/ci"; // Axtarış iconu
-import { FiDownload, FiEdit3 } from "react-icons/fi"; // Yükləmə və redaktə iconları
-import { GoTrash } from "react-icons/go"; // Silmə iconu
-import { HiOutlineArrowsUpDown } from "react-icons/hi2"; // Sıralama iconu
-import { Link, useNavigate } from "react-router-dom"; // Link üçün
+import React, { useEffect } from "react";
+import "../../assets/style/Anamnesis/anamnesiscategorylist.css";
+import { CiSearch } from "react-icons/ci";
+import { FiDownload, FiEdit3 } from "react-icons/fi";
+import { GoTrash } from "react-icons/go";
+import { HiOutlineArrowsUpDown } from "react-icons/hi2";
+import { Link, useNavigate } from "react-router-dom";
+import useAnamnesisCategoryStore from "../../../stores/anamnesisCategoryStore";
 
 const AnamnesisList = () => {
   const navigate = useNavigate();
-  // Nümunə məlumatları (bu real API çağırışı ilə dəyişdirilə bilər)
-  const [anamnesisData, setAnamnesisData] = useState([
-    { id: 1, categoryName: "Ürək damar", anamnesisCount: 2,  status: "ACTIVE" },
-    { id: 2, categoryName: "Sinir Sistemi", anamnesisCount: 5, status: "ACTIVE" },
-    { id: 3, categoryName: "Həzm Sistemi", anamnesisCount: 1,  status: "ACTIVE" },
-  ]);
+  const { categories, fetchCategories, loading } = useAnamnesisCategoryStore();
 
-  const totalAnamnesisCount = anamnesisData.length;
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   const handleEdit = (id) => {
     navigate(`/anamnesis/edit/${id}`);
@@ -31,7 +29,11 @@ const AnamnesisList = () => {
             <option value="PASSIVE">Passiv</option>
           </select>
           <div className="anamnesisList-search-box">
-            <input type="text" placeholder="Axtarış" className="anamnesisList-search-input" />
+            <input
+              type="text"
+              placeholder="Axtarış"
+              className="anamnesisList-search-input"
+            />
             <button className="anamnesisList-search-button">
               <CiSearch className="anamnesisList-search-icon" />
             </button>
@@ -51,17 +53,26 @@ const AnamnesisList = () => {
         <table className="anamnesisList-table">
           <thead>
             <tr>
-              <th >
-                <span className='firstElementOfTHS'><HiOutlineArrowsUpDown className="anamnesisList-sort-icon" />{totalAnamnesisCount === 0 ? '0' : `1-${totalAnamnesisCount}`}</span>
+              <th>
+                <span className="firstElementOfTHS">
+                  <HiOutlineArrowsUpDown />
+                  {categories.length ? `1-${categories.length}` : "0"}
+                </span>
               </th>
               <th>
-                <span><HiOutlineArrowsUpDown className="anamnesisList-sort-icon" /> Kategoriyanın adı</span>
+                <span>
+                  <HiOutlineArrowsUpDown /> Kategoriyanın adı
+                </span>
               </th>
               <th>
-                <span><HiOutlineArrowsUpDown className="anamnesisList-sort-icon" /> Anamnezlər</span>
+                <span>
+                  <HiOutlineArrowsUpDown /> Anamnezlər
+                </span>
               </th>
               <th>
-                <span><HiOutlineArrowsUpDown className="anamnesisList-sort-icon" /> Status</span>
+                <span>
+                  <HiOutlineArrowsUpDown /> Status
+                </span>
               </th>
               <th>
                 <span>Düzəliş</span>
@@ -69,24 +80,47 @@ const AnamnesisList = () => {
             </tr>
           </thead>
           <tbody>
-            {anamnesisData.map((row, index) => (
-              <tr key={row.id}>
-                <td>{index + 1}</td>
-                <td>{row.categoryName}</td>
-                <td><Link to={`./anamnesis-details/${row.categoryName}`}>Anamnezləri ({row.anamnesisCount})</Link></td>
-                <td>
-                  <span className={`anamnesisList-status-badge ${row.status === "ACTIVE" ? "active" : "passive"}`}>
-                    {row.status === "ACTIVE" ? "Aktiv" : "Passiv"}
-                  </span>
-                </td>
-                <td>
-                  <div className="anamnesisList-action-icons">
-                    <FiEdit3 className="anamnesisList-edit-button" onClick={() => handleEdit(row.id)} />
-                    <GoTrash className="anamnesisList-delete-button" onClick={() => console.log('Delete', row.id)} />
-                  </div>
-                </td>
+            {loading ? (
+              <tr>
+                <td colSpan="5">Yüklənir...</td>
               </tr>
-            ))}
+            ) : categories.length === 0 ? (
+              <tr>
+                <td colSpan="5">Heç bir kateqoriya tapılmadı.</td>
+              </tr>
+            ) : (
+              categories.map((row, index) => (
+                <tr key={row.id}>
+                  <td>{index + 1}</td>
+                  <td>{row.name}</td>
+                  <td>
+                    <Link to={`./anamnesis-details/${row.name}`}>
+                      Anamnezləri ({row.anamnesisCount || 0})
+                    </Link>
+                  </td>
+                  <td>
+                    <span
+                      className={`anamnesisList-status-badge ${
+                        row.status === "ACTIVE" ? "active" : "passive"
+                      }`}>
+                      {row.status === "ACTIVE" ? "Aktiv" : "Passiv"}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="anamnesisList-action-icons">
+                      <FiEdit3
+                        className="anamnesisList-edit-button"
+                        onClick={() => handleEdit(row.id)}
+                      />
+                      <GoTrash
+                        className="anamnesisList-delete-button"
+                        onClick={() => console.log("Delete", row.id)}
+                      />
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

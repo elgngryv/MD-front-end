@@ -3,38 +3,46 @@ import { CiSearch } from "react-icons/ci";
 import { FiDownload, FiEdit3 } from "react-icons/fi";
 import { GoTrash } from "react-icons/go";
 import { HiOutlineArrowsUpDown } from "react-icons/hi2";
-import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
-
-// Static data for example
-const staticAnamnesisData = [
-  { id: "1", anamnesisName: "Ümumi Anamnez", anamnesisNo: "001", anamnesisTitle: "Ümumi xəstəlik tarixçəsi", status: "Aktiv" },
-  { id: "2", anamnesisName: "Stomatoloji Anamnez", anamnesisNo: "002", anamnesisTitle: "Diş xəstəlikləri tarixçəsi", status: "Aktiv" },
-  { id: "3", anamnesisName: "Allergik Anamnez", anamnesisNo: "003", anamnesisTitle: "Allergiya tarixçəsi", status: "Passiv" },
-];
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import useAnamnesisListStore from "../../../stores/anamnesStore";
 
 function AnamnesisList() {
   const navigate = useNavigate();
+  const { name } = useParams(); // URL-dən anamnesis kateqoriya adı alırıq
   const [searchTerm, setSearchTerm] = useState("");
-  const [anamnesisData] = useState(staticAnamnesisData);
 
-  const filteredData = anamnesisData.filter((row) =>
-    row.anamnesisName.toLowerCase().includes(searchTerm.toLowerCase())
+  // Zustand store-dan dataları və funksiyaları alırıq
+  const {
+    anamnesisList,
+    fetchAnamnesisList,
+    removeAnamnesis,
+    loading,
+    error,
+  } = useAnamnesisListStore();
+
+  // Komponent mount olduqda backenddən datanı yüklə
+  useEffect(() => {
+    fetchAnamnesisList();
+  }, []);
+
+  // Axtarışa görə filterləmə
+  const filteredData = anamnesisList.filter((row) =>
+    row.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleEdit = (row) => {
     navigate(`edit/${row.id}`);
   };
 
-  const handleDelete = (row) => {
+  const handleDelete = async (row) => {
     const confirmDelete = window.confirm(
-      `${row.anamnesisName} anamnezini silmək istədiyinizə əminsiniz?`
+      `${row.name} anamnezini silmək istədiyinizə əminsiniz?`
     );
     if (!confirmDelete) return;
 
-    // Here you would typically make an API call to delete
-    console.log("Deleting anamnesis:", row.id);
-    alert(`${row.anamnesisName} uğurla silindi.`);
+    await removeAnamnesis(row.id);
+    alert(`${row.name} uğurla silindi.`);
   };
 
   return (
@@ -43,8 +51,8 @@ function AnamnesisList() {
         <div className="anamnesisCategoryLeftPart">
           <select>
             <option value="">Status</option>
-            <option value="Aktiv">Aktiv</option>
-            <option value="Passiv">Passiv</option>
+            <option value="ACTIVE">Aktiv</option>
+            <option value="INACTIVE">Passiv</option>
           </select>
           <div className="searchForNameAnamnesis">
             <input
@@ -68,15 +76,17 @@ function AnamnesisList() {
         </div>
       </div>
 
+      {loading && <p>Yüklənir...</p>}
+      {error && <p style={{ color: "red" }}>Xəta baş verdi: {error.message || error.toString()}</p>}
+
       <div className="anamnesisPageTableWrapper">
         <table className="anamnesisPageTable">
           <thead>
             <tr>
-              <th > {staticAnamnesisData.length===0?'0':`1-${staticAnamnesisData.length}`}</th>
-              <th >
+              <th>{anamnesisList.length === 0 ? "0" : `1-${anamnesisList.length}`}</th>
+              <th>
                 <span>
-                  <HiOutlineArrowsUpDown className="arrowIconsNow" /> Anamnezin
-                  adı
+                  <HiOutlineArrowsUpDown className="arrowIconsNow" /> Anamnezin adı
                 </span>
               </th>
               <th>
@@ -91,30 +101,29 @@ function AnamnesisList() {
             {filteredData.map((row, index) => (
               <tr key={row.id}>
                 <td>{index + 1}</td>
-                <td className="anamnesisNameCol">{row.anamnesisName}</td>
+                <td className="anamnesisNameCol">{row.name}</td>
                 <td>
                   <span
                     className={`statusBadge ${
-                      row.status === "Aktiv" ? "active" : "passive"
+                      row.status === "ACTIVE" ? "active" : "passive"
                     }`}
                   >
-                    {row.status}
+                    {row.status === "ACTIVE" ? "Aktiv" : "Passiv"}
                   </span>
                 </td>
                 <td>
                   <div className="anamnesisActionIcons">
-                    <FiEdit3
-                      className="editBtn"
-                      onClick={() => handleEdit(row)}
-                    />
-                    <GoTrash
-                      className="deleteBtn"
-                      onClick={() => handleDelete(row)}
-                    />
+                    <FiEdit3 className="editBtn" onClick={() => handleEdit(row)} />
+                    <GoTrash className="deleteBtn" onClick={() => handleDelete(row)} />
                   </div>
                 </td>
               </tr>
             ))}
+            {filteredData.length === 0 && (
+              <tr>
+                <td colSpan={4}>Axtarışa uyğun anamnez tapılmadı.</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

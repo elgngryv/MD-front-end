@@ -1,18 +1,21 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import "../../assets/style/Anamnesis/addanamnesis.css";
 
 import acceptButton from "../../assets/images/EmployeesPage/verifyProcess.png";
 import cancelButton from "../../assets/images/EmployeesPage/cancelProcess.png";
 
+import useAnamnesisListStore from "../../../stores/anamnesStore"; // zustand
+
 function AddAnamnesis() {
   const [formData, setFormData] = useState({
-    anamnesisName: "",
-    anamnesisNo: "",
-    anamnesisTitle: "",
+    name: "",
+    status: "ACTIVE",
   });
 
   const navigate = useNavigate();
+  const { id } = useParams(); // Bu ID - anamnesisCategoryId olacaq
+  const { addAnamnesis } = useAnamnesisListStore();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -27,19 +30,15 @@ function AddAnamnesis() {
 
     const dataToSend = {
       ...formData,
-      anamnesisNo: Number(formData.anamnesisNo),
+      anamnesisCategoryId: Number(id), // Burada ID-ni category ID kimi göndəririk
     };
 
     try {
-      console.log("New Anamnesis:", dataToSend);
+      await addAnamnesis(dataToSend);
       alert("Anamnez uğurla yaradıldı");
       navigate("/anamnesis");
-
-      setFormData({
-        anamnesisName: "",
-      });
     } catch (error) {
-      alert("Xəta baş verdi: " + error.message);
+      alert("Xəta baş verdi: " + (error?.message || "Bilinməyən xəta"));
     }
   };
 
@@ -47,15 +46,24 @@ function AddAnamnesis() {
     <form className="addAnamnesisWrapper" onSubmit={handleSubmit}>
       <div className="addAnamnesisContainer">
         <div className="addAnamnesisInput">
-          <p>Anamnezin adı<span>*</span></p>
+          <p>
+            Anamnezin adı <span>*</span>
+          </p>
           <input
             type="text"
             placeholder="Anamnezin adı"
-            name="anamnesisName"
-            value={formData.anamnesisName}
+            name="name"
+            value={formData.name}
             onChange={handleChange}
             required
           />
+        </div>
+        <div className="addAnamnesisInput">
+          <p>Status</p>
+          <select name="status" value={formData.status} onChange={handleChange}>
+            <option value="ACTIVE">Aktiv</option>
+            <option value="INACTIVE">Passiv</option>
+          </select>
         </div>
         <div className="addAnamnesisButtons">
           <button
@@ -63,7 +71,8 @@ function AddAnamnesis() {
             className="cancelFormCondition"
             onClick={() =>
               setFormData({
-                anamnesisName: "",
+                name: "",
+                status: "ACTIVE",
               })
             }
           >

@@ -13,26 +13,32 @@ import cancelButton from "../../assets/images/EmployeesPage/cancelProcess.png";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+// Store
+import useAnamnesisCategoryStore from "../../../stores/anamnesisCategoryStore";
+
 function AddAnamnesis() {
   const [anamnesisName, setAnamnesisName] = useState("");
   const navigate = useNavigate();
+  const addCategory = useAnamnesisCategoryStore((state) => state.addCategory);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!anamnesisName.trim()) return;
+    if (!anamnesisName.trim()) {
+      toast.warning("Zəhmət olmasa kateqoriya adını daxil edin!");
+      return;
+    }
 
     try {
-      // Static data example
       const newAnamnesis = {
-        id: Math.random().toString(36).substr(2, 9),
-        anamnesisName: anamnesisName.trim(),
+        name: anamnesisName.trim(),
       };
 
-      console.log("New Anamnesis:", newAnamnesis);
-      setAnamnesisName("");
-      toast.success("Anamnez uğurla əlavə olundu!");
-      navigate("/anamnesis");
+      await addCategory(newAnamnesis);
+      toast.success("Anamnez kateqoriyası uğurla əlavə olundu!");
+      setTimeout(() => {
+        navigate("/anamnesis");
+      }, 1500);
     } catch (error) {
       console.error("Anamnez əlavə edilərkən xəta:", error);
       toast.error("Anamnez əlavə edilərkən xəta baş verdi!");
@@ -41,6 +47,7 @@ function AddAnamnesis() {
 
   return (
     <div className="addAnamnesisWrapper">
+      <ToastContainer />
       <form className="addAnamnesisContainer" onSubmit={handleSubmit}>
         <div className="addAnamnesisInput">
           <p>
