@@ -201,6 +201,13 @@ import DentalSetList from "./pages/DentalSet/DentalSetList";
 import AddDentalSet from "./pages/DentalSet/AddDentalSet";
 import EditDentalSet from "./pages/DentalSet/EditDentalSet";
 
+import ImplantsList from "./pages/Implants/ImplantsList";
+import EditImplant from "./pages/Implants/EditImplant";
+import AddImplant from "./pages/Implants/AddImplant";
+import SizesList from "./pages/Implants/SizesList";
+import EditSize from "./pages/Implants/EditSize";
+import AddSize from "./pages/Implants/AddSize";
+
 
 // Constants
 const roomOptions = [
@@ -656,6 +663,14 @@ const AnimatedRoutes = () => {
               path="/recommendations/:id/edit"
               element={<EditRecommendation />}
             />
+
+            {/* Reccomendations Page Routes */}
+            <Route path="/implants" element={<ImplantsList/>}/>    
+            <Route path="/implants/edit/:id" element={<EditImplant/>}/>    
+            <Route path="/implants/add" element={<AddImplant/>}/>    
+            <Route path="/implants/sizes/:name" element={<SizesList/>}/>    
+            <Route path="/implants/sizes/:name/edit/:id" element={<EditSize/>}/>    
+            <Route path="/implants/sizes/:name/add" element={<AddSize/>}/>    
 
             {/* General Settings Routes */}
             <Route path="/general-settings" element={<GeneralSettings />} />
