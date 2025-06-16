@@ -207,6 +207,13 @@ import AddImplant from "./pages/Implants/AddImplant";
 import SizesList from "./pages/Implants/SizesList";
 import EditSize from "./pages/Implants/EditSize";
 import AddSize from "./pages/Implants/AddSize";
+import OperationCategoryList from "./pages/Operations/OperationCategoryList";
+import AddOperationCategory from "./pages/Operations/AddOperationCategory";
+import EditOperationCategory from "./pages/Operations/EditOperationCategory";
+
+import OperationList from "./pages/Operations/OperationList";
+import EditOperation from "./pages/Operations/EditOperation";
+import AddOperation from "./pages/Operations/AddOperation";
 
 
 // Constants
@@ -664,13 +671,21 @@ const AnimatedRoutes = () => {
               element={<EditRecommendation />}
             />
 
-            {/* Reccomendations Page Routes */}
+            {/* Implants Page Routes */}
             <Route path="/implants" element={<ImplantsList/>}/>    
             <Route path="/implants/edit/:id" element={<EditImplant/>}/>    
             <Route path="/implants/add" element={<AddImplant/>}/>    
             <Route path="/implants/sizes/:name" element={<SizesList/>}/>    
             <Route path="/implants/sizes/:name/edit/:id" element={<EditSize/>}/>    
             <Route path="/implants/sizes/:name/add" element={<AddSize/>}/>    
+
+            {/* Operations Page Routes */}
+            <Route path="/operations" element={<OperationCategoryList/>}/>
+            <Route path="/operations/add" element={<AddOperationCategory/>}/>
+            <Route path="/operations/edit/:id" element={<EditOperationCategory/>}/>
+            <Route path="/operations/:name" element={<OperationList/>}/>
+            <Route path="/operations/:name/edit/:id" element={<EditOperation/>}/>
+            <Route path="/operations/:name/add" element={<AddOperation/>}/>
 
             {/* General Settings Routes */}
             <Route path="/general-settings" element={<GeneralSettings />} />

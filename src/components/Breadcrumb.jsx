@@ -55,6 +55,8 @@ const Breadcrumb = () => {
         return 'Anamnezlərin siyahısı';
       case 'dental-set':
         return 'Qarniturlar';
+      case 'operations':
+        return 'Əməliyyat nümunələri';
       case 'recepts':
         return 'Reseptlər';
       case 'recommendations':
