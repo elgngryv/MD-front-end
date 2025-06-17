@@ -74,6 +74,8 @@ const Breadcrumb = () => {
         return 'Ümumi';
       case 'detail':
         return 'Ətraflı';
+      case 'teeth':
+        return 'Dişlər';
       case 'technicals-report':
         return 'Texniklər üzrə hesabat';
       case 'sent-orders':

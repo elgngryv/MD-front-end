@@ -214,6 +214,13 @@ import EditOperationCategory from "./pages/Operations/EditOperationCategory";
 import OperationList from "./pages/Operations/OperationList";
 import EditOperation from "./pages/Operations/EditOperation";
 import AddOperation from "./pages/Operations/AddOperation";
+import TeethList from "./pages/Teeth/TeethList";
+import OperationPictures from "./pages/Teeth/OperationPictures";
+import ExaminationPictures from "./pages/Teeth/ExaminationPictures";
+import AddTeeth from "./pages/Teeth/AddTeeth";
+import EditTeeth from "./pages/Teeth/EditTeeth";
+import AddOperationPicture from "./pages/Teeth/AddOperationPicture";
+import AddExaminationPicture from "./pages/Teeth/AddExaminationPicture";
 
 
 // Constants
@@ -687,6 +694,15 @@ const AnimatedRoutes = () => {
             <Route path="/operations/:name/edit/:id" element={<EditOperation/>}/>
             <Route path="/operations/:name/add" element={<AddOperation/>}/>
 
+            {/* Teeth Pages Routes */}
+            <Route path="/teeth" element={<TeethList/>}/>
+            <Route path="/teeth/add" element={<AddTeeth/>}/>
+            <Route path="/teeth/edit/:id" element={<EditTeeth/>}/>
+            <Route path="/teeth/:id/operation-pictures" element={<OperationPictures/>}/>
+            <Route path="/teeth/:id/operation-pictures/add" element={<AddOperationPicture/>}/>
+            <Route path="/teeth/:id/examination-pictures" element={<ExaminationPictures/>}/>
+            <Route path="/teeth/:id/examination-pictures/add" element={<AddExaminationPicture/>}/>
+            
             {/* General Settings Routes */}
             <Route path="/general-settings" element={<GeneralSettings />} />
             <Route path="/general-settings/edit" element={<EditSettings />} />
