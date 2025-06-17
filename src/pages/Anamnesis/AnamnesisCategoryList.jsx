@@ -94,7 +94,7 @@ const AnamnesisList = () => {
                   <td>{index + 1}</td>
                   <td>{row.name}</td>
                   <td>
-                    <Link to={`./anamnesis-details/${row.name}`}>
+                    <Link to={`./anamnesis-details/${row.id}`}>
                       Anamnezləri ({row.anamnesisCount || 0})
                     </Link>
                   </td>

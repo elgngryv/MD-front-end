@@ -115,14 +115,10 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
       .number()
       .min(0, "Təcrübə mənfi ola bilməz")
       .typeError("Təcrübə rəqəm olmalıdır"),
-    authorities:
+    permissions:
       mode !== "view"
         ? yup.array().min(1, "Ən azı bir icazə seçilməlidir")
-        : yup
-            .array()
-            .transform((value) =>
-              Array.isArray(value) && value.length > 0 ? [value[0]] : []
-            ),
+        : yup.array(),
   });
 
   const {
@@ -149,10 +145,11 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
       phone: "",
       phone2: "",
       homePhone: "",
+      phone3: "",
       email: "",
       address: "",
       experience: 0,
-      authorities: [],
+      permissions: [],
     },
   });
 
@@ -518,17 +515,6 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                 className={mode === "view" ? "readonly" : ""}
               />
             </div>
-            {/* 
-            <div className="main-form-group">
-              <label htmlFor="workAddress">İş ünvanı</label>
-              <input
-                id="workAddress"
-                type="text"
-                {...register('workAddress')}
-                readOnly={mode === 'view'}
-                className={mode === 'view' ? 'readonly' : ''}
-              />
-            </div> */}
 
             <div className="main-form-group">
               <label htmlFor="experience">Təcrübə (il)</label>
@@ -542,12 +528,12 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
             </div>
 
             <div className="main-form-group">
-              <label htmlFor="authorities">
+              <label htmlFor="permissions">
                 İcazələr <span className="text-red-500">*</span>
               </label>
               <div className="permissions-checklist">
                 <Controller
-                  name="authorities"
+                  name="permissions"
                   control={control}
                   render={({ field }) => (
                     <>
@@ -557,8 +543,13 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                             type="checkbox"
                             value={permission.value}
                             checked={field.value.includes(permission.value)}
-                            onChange={() => {
-                              field.onChange([permission.value]); // replace with single value in array
+                            onChange={(e) => {
+                              const isChecked = e.target.checked;
+                              if (isChecked) {
+                                field.onChange([permission.value]); // Set as single item array
+                              } else {
+                                field.onChange([]); // Clear if unchecked
+                              }
                             }}
                             disabled={mode === "view"}
                           />
@@ -600,4 +591,5 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
     </div>
   );
 }
+
 export default UserForm;

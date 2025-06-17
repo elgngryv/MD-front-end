@@ -5,14 +5,9 @@ const API_BASE_URL = import.meta.env.VITE_BASE_URL;
 
 export const createProduct = async (productData) => {
   try {
-    const response = await axios.post(
-      "http://159.89.3.81:5555/api/v1/product/create",
-      productData,
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
+    const response = await axiosInstance.post(
+      `${API_BASE_URL}/product/create`,
+      productData
     );
     return response.data;
   } catch (error) {
@@ -20,16 +15,15 @@ export const createProduct = async (productData) => {
     throw error;
   }
 };
-
 // Mövcud məhsulu yeniləmək
 export const updateProduct = async (productData) => {
-    const response = await axiosInstance.put(
-      `${API_BASE_URL}/product/update`,
-      productData
-    );
-    console.log("Update API response:", response.data);
-    return response.data;
-  };
+  const response = await axiosInstance.put(
+    `${API_BASE_URL}/product/update`,
+    productData
+  );
+  console.log("Update API response:", response.data);
+  return response.data;
+};
 // Məhsul statusunu dəyişmək
 export const updateProductStatus = async (statusPayload) => {
   const response = await axiosInstance.patch(

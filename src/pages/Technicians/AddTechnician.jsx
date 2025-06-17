@@ -22,16 +22,26 @@ function AddTechnician({ onClose }) {
     surname: "",
     finCode: "",
     dateOfBirth: "",
-    phone: "+994",
+    phone: "(000)-000-00-00",
     genderStatus: "MAN",
     patronymic: "",
     email: "",
-    phone2: "+994",
-    phone3: "+994",
-    homePhone: "+994",
+    phone2: "(000)-000-00-00",
+    phone3: "(000)-000-00-00",
+    homePhone: "(000)-000-00-00",
     address: "",
-    permissions: [],
+    authorities: [],
   });
+
+  const authorityOptions = [
+    { value: "ADMIN", label: "Admin" },
+    { value: "DOCTOR", label: "Doctor" },
+    { value: "NURSE", label: "Nurse" },
+    { value: "RECEPTIONIST", label: "Receptionist" },
+    { value: "ACCOUNTANT", label: "Accountant" },
+    { value: "WAREHOUSE_MAN", label: "Warehouse Manager" },
+    { value: "USER", label: "User" },
+  ];
 
   const handleDeleteImage = (index) => {
     setFiles((prev) => prev.filter((_, i) => i !== index));
@@ -51,11 +61,32 @@ function AddTechnician({ onClose }) {
     fileInputRef.current.click();
   };
 
+  const formatPhoneNumber = (value) => {
+    if (!value) return value;
+    const phoneNumber = value.replace(/[^\d]/g, "");
+    if (phoneNumber.length < 4) return phoneNumber;
+    if (phoneNumber.length < 7)
+      return `(${phoneNumber.slice(0, 3)})-${phoneNumber.slice(3)}`;
+    return `(${phoneNumber.slice(0, 3)})-${phoneNumber.slice(
+      3,
+      6
+    )}-${phoneNumber.slice(6, 8)}-${phoneNumber.slice(8, 10)}`;
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
+    }));
+  };
+
+  const handlePhoneChange = (e) => {
+    const { name, value } = e.target;
+    const formattedValue = formatPhoneNumber(value);
+    setFormData((prev) => ({
+      ...prev,
+      [name]: formattedValue,
     }));
   };
 
@@ -66,18 +97,18 @@ function AddTechnician({ onClose }) {
     }));
   };
 
-  const handlePermissionChange = (e) => {
+  const handleAuthorityChange = (e) => {
     const { value, checked } = e.target;
     setFormData((prev) => {
       if (checked) {
         return {
           ...prev,
-          permissions: [...prev.permissions, value],
+          authorities: [...prev.authorities, value],
         };
       } else {
         return {
           ...prev,
-          permissions: prev.permissions.filter((perm) => perm !== value),
+          authorities: prev.authorities.filter((auth) => auth !== value),
         };
       }
     });
@@ -88,7 +119,6 @@ function AddTechnician({ onClose }) {
     setIsSubmitting(true);
 
     try {
-      // Profil şəkli URL yaratmaq
       const profileImage =
         files.length > 0
           ? files[0]
@@ -96,44 +126,29 @@ function AddTechnician({ onClose }) {
               formData.name
             )}+${encodeURIComponent(formData.surname)}`;
 
-      // API üçün məlumatları hazırlamaq
       const technicianData = {
         username: formData.username,
-        password: formData.password || undefined,
+        password: formData.password,
         name: formData.name,
         surname: formData.surname,
         finCode: formData.finCode,
-        dateOfBirth: formData.dateOfBirth || undefined,
+        dateOfBirth: formData.dateOfBirth,
         phone: formData.phone,
         genderStatus: formData.genderStatus,
         patronymic: formData.patronymic,
-        email: formData.email || undefined,
-        phone2: formData.phone2.replace("+994", "")
-          ? formData.phone2
-          : undefined,
-        phone3: formData.phone3.replace("+994", "")
-          ? formData.phone3
-          : undefined,
-        homePhone: formData.homePhone.replace("+994", "")
-          ? formData.homePhone
-          : undefined,
-        address: formData.address || undefined,
-        permissions:
-          formData.permissions.length > 0 ? formData.permissions : undefined,
+        email: formData.email,
+        phone2: formData.phone2 === "(000)-000-00-00" ? "" : formData.phone2,
+        phone3: formData.phone3 === "(000)-000-00-00" ? "" : formData.phone3,
+        homePhone:
+          formData.homePhone === "(000)-000-00-00" ? "" : formData.homePhone,
+        address: formData.address,
+        authorities: formData.authorities,
         profileImage,
       };
 
-      // Boş sahələri silmək
-      const payload = Object.fromEntries(
-        Object.entries(technicianData).filter(
-          ([_, value]) => value !== undefined
-        )
-      );
+      await addTechnician(technicianData);
 
-      await addTechnician(payload);
-
-      // Uğur mesajı göstərmək
-      toast.success("Texniki uğurla əlavə edildi!", {
+      toast.success("İşçi uğurla əlavə edildi!", {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -142,19 +157,17 @@ function AddTechnician({ onClose }) {
         draggable: true,
       });
 
-      // 1 saniyə sonra texniklər səhifəsinə yönləndirmək
       setTimeout(() => {
         navigate("/technicians");
       }, 1000);
 
-      // Modalı bağlamaq
       if (typeof onClose === "function") {
         onClose();
       }
     } catch (error) {
-      console.error("Texniki əlavə edilərkən xəta:", error);
+      console.error("İşçi əlavə edilərkən xəta:", error);
       toast.error(
-        `Xəta: ${error.response?.data?.message || "Texniki əlavə edilərkən xəta baş verdi"}`,
+        `Xəta: ${error.response?.data?.message || "İşçi əlavə edilərkən xəta baş verdi"}`,
         {
           position: "top-right",
           autoClose: 5000,
@@ -267,13 +280,16 @@ function AddTechnician({ onClose }) {
               />
             </div>
             <div className="leftPartInputData">
-              <p className="leftPartInputTitle">Şifrə</p>
+              <p className="leftPartInputTitle">
+                Şifrə <span className="requiredStar">*</span>
+              </p>
               <input
                 type="password"
                 className="addTechnicianInput"
                 name="password"
                 value={formData.password}
                 onChange={handleInputChange}
+                required
               />
             </div>
             <div className="leftPartInputData">
@@ -295,7 +311,7 @@ function AddTechnician({ onClose }) {
                 className="addTechnicianInput"
                 name="phone"
                 value={formData.phone}
-                onChange={handleInputChange}
+                onChange={handlePhoneChange}
                 required
               />
             </div>
@@ -309,7 +325,7 @@ function AddTechnician({ onClose }) {
                 className="addTechnicianInput"
                 name="phone2"
                 value={formData.phone2}
-                onChange={handleInputChange}
+                onChange={handlePhoneChange}
               />
             </div>
 
@@ -320,7 +336,7 @@ function AddTechnician({ onClose }) {
                 className="addTechnicianInput"
                 name="phone3"
                 value={formData.phone3}
-                onChange={handleInputChange}
+                onChange={handlePhoneChange}
               />
             </div>
 
@@ -331,7 +347,7 @@ function AddTechnician({ onClose }) {
                 className="addTechnicianInput"
                 name="homePhone"
                 value={formData.homePhone}
-                onChange={handleInputChange}
+                onChange={handlePhoneChange}
               />
             </div>
 
@@ -358,72 +374,19 @@ function AddTechnician({ onClose }) {
             </div>
 
             <div className="leftPartInputData">
-              <p className="leftPartInputTitle">İcazələri</p>
+              <p className="leftPartInputTitle">İcazələr</p>
               <div className="addTechnicianCheckboxGroup">
-                <label>
-                  <input
-                    type="checkbox"
-                    value="FULL_PERMISSION"
-                    onChange={handlePermissionChange}
-                  />{" "}
-                  TAM İCAZƏ
-                </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    value="RECEPTIONIST"
-                    onChange={handlePermissionChange}
-                  />{" "}
-                  RESEPSİONİST
-                </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    value="NURSE"
-                    onChange={handlePermissionChange}
-                  />{" "}
-                  TİBB BACISI
-                </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    value="DENTAL_TECHNICIAN"
-                    onChange={handlePermissionChange}
-                  />{" "}
-                  DİŞ TEXNİKLƏRİ
-                </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    value="FINANCIAL_REPORT"
-                    onChange={handlePermissionChange}
-                  />{" "}
-                  MALİYYƏ HESABAT
-                </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    value="WAREHOUSE"
-                    onChange={handlePermissionChange}
-                  />{" "}
-                  ANBAR
-                </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    value="DOCTOR_FULL"
-                    onChange={handlePermissionChange}
-                  />{" "}
-                  Həkim tam icazə
-                </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    value="DOCTOR_LIMITED"
-                    onChange={handlePermissionChange}
-                  />{" "}
-                  Həkim limitli
-                </label>
+                {authorityOptions.map((option) => (
+                  <label key={option.value}>
+                    <input
+                      type="checkbox"
+                      value={option.value}
+                      checked={formData.authorities.includes(option.value)}
+                      onChange={handleAuthorityChange}
+                    />
+                    {option.label}
+                  </label>
+                ))}
               </div>
             </div>
           </div>
@@ -447,7 +410,7 @@ function AddTechnician({ onClose }) {
               type="button"
             >
               <AddPhotoIcon />
-              <span>Müvafiq sənədləri yükləyin</span>
+              <span>Şəkil yüklə</span>
             </button>
 
             {files.length > 0 && (

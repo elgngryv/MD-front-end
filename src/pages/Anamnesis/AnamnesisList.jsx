@@ -9,24 +9,16 @@ import useAnamnesisListStore from "../../../stores/anamnesStore";
 
 function AnamnesisList() {
   const navigate = useNavigate();
-  const { name } = useParams(); // URL-dən anamnesis kateqoriya adı alırıq
+  const { name } = useParams();
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Zustand store-dan dataları və funksiyaları alırıq
-  const {
-    anamnesisList,
-    fetchAnamnesisList,
-    removeAnamnesis,
-    loading,
-    error,
-  } = useAnamnesisListStore();
+  const { anamnesisList, fetchAnamnesisList, removeAnamnesis, loading, error } =
+    useAnamnesisListStore();
 
-  // Komponent mount olduqda backenddən datanı yüklə
   useEffect(() => {
     fetchAnamnesisList();
   }, []);
 
-  // Axtarışa görə filterləmə
   const filteredData = anamnesisList.filter((row) =>
     row.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -77,16 +69,23 @@ function AnamnesisList() {
       </div>
 
       {loading && <p>Yüklənir...</p>}
-      {error && <p style={{ color: "red" }}>Xəta baş verdi: {error.message || error.toString()}</p>}
+      {error && (
+        <p style={{ color: "red" }}>
+          Xəta baş verdi: {error.message || error.toString()}
+        </p>
+      )}
 
       <div className="anamnesisPageTableWrapper">
         <table className="anamnesisPageTable">
           <thead>
             <tr>
-              <th>{anamnesisList.length === 0 ? "0" : `1-${anamnesisList.length}`}</th>
+              <th>
+                {anamnesisList.length === 0 ? "0" : `1-${anamnesisList.length}`}
+              </th>
               <th>
                 <span>
-                  <HiOutlineArrowsUpDown className="arrowIconsNow" /> Anamnezin adı
+                  <HiOutlineArrowsUpDown className="arrowIconsNow" /> Anamnezin
+                  adı
                 </span>
               </th>
               <th>
@@ -106,15 +105,20 @@ function AnamnesisList() {
                   <span
                     className={`statusBadge ${
                       row.status === "ACTIVE" ? "active" : "passive"
-                    }`}
-                  >
+                    }`}>
                     {row.status === "ACTIVE" ? "Aktiv" : "Passiv"}
                   </span>
                 </td>
                 <td>
                   <div className="anamnesisActionIcons">
-                    <FiEdit3 className="editBtn" onClick={() => handleEdit(row)} />
-                    <GoTrash className="deleteBtn" onClick={() => handleDelete(row)} />
+                    <FiEdit3
+                      className="editBtn"
+                      onClick={() => handleEdit(row)}
+                    />
+                    <GoTrash
+                      className="deleteBtn"
+                      onClick={() => handleDelete(row)}
+                    />
                   </div>
                 </td>
               </tr>

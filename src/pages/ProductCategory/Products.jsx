@@ -10,7 +10,7 @@ import { useProductStore } from "../../../stores/productStore";
 
 function Products() {
   const navigate = useNavigate();
-  const { name } = useParams(); // URL-dən kateqoriya adı
+  const { name } = useParams(); 
   const [searchTerm, setSearchTerm] = useState("");
   const { removeProduct } = useProductStore();
   const { products, fetchProducts, loading, error } = useProductStore();

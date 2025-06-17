@@ -20,7 +20,7 @@ const useRecipeStore = create((set) => ({
     set({ loading: true, error: null });
     try {
       const data = await readAllRecipes();
-      set({ recipes: data, loading: false });
+      set({ recipes: data.data || [], loading: false });
     } catch (err) {
       set({ error: err, loading: false });
     }
@@ -40,7 +40,7 @@ const useRecipeStore = create((set) => ({
     set({ loading: true, error: null });
     try {
       await createRecipe(recipeData);
-      await useRecipeStore.getState().fetchRecipes(); // Yaddaşı yenilə
+      await useRecipeStore.getState().fetchRecipes();
     } catch (err) {
       set({ error: err, loading: false });
     }
@@ -80,7 +80,7 @@ const useRecipeStore = create((set) => ({
     set({ loading: true, error: null });
     try {
       const result = await searchRecipes(params);
-      set({ recipes: result, loading: false });
+      set({ recipes: result.data || [], loading: false });
     } catch (err) {
       set({ error: err, loading: false });
     }
