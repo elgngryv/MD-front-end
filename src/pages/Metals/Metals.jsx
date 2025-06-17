@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
 
 // Icons
 import { FiDownload, FiEdit3 } from "react-icons/fi";
@@ -11,44 +11,61 @@ import { HiOutlineArrowsUpDown } from "react-icons/hi2";
 // Style
 import "../../assets/style/Metals/metals.css";
 
-// Libraries
-import { Link } from 'react-router-dom';
+// Store
+import useMetalStore from "../../../stores/metalsStore";
 
 function Metal() {
   const navigate = useNavigate();
+  const { metals, fetchMetals, deleteMetal, loading, error } = useMetalStore();
+
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
 
-  const tableData = [
-    { id: 1, name: "Deputat", status: "Aktiv" },
-    { id: 2, name: "Fəhlə", status: "Passiv" },
-    { id: 3, name: "Mühəndis", status: "Aktiv" },
-    { id: 4, name: "Texnik", status: "Passiv" },
-    { id: 5, name: "Operator", status: "Aktiv" },
-    { id: 6, name: "Menecer", status: "Aktiv" },
-    { id: 7, name: "Marketoloq", status: "Passiv" },
-    { id: 8, name: "Sürücü", status: "Aktiv" },
-  ];
+  useEffect(() => {
+    fetchMetals();
+  }, [fetchMetals]);
 
-  const filteredData = tableData.filter((row) =>
-    row.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const handleEdit = (row) => {
-    navigate(`/edit-metal/${row.id}`);
+  // Backend status -> UI label mapping
+  const statusLabels = {
+    ACTIVE: "Aktiv",
+    PASSIVE: "Passiv",
   };
 
-  const handleDelete = (row) => {
-    alert(`Silindi: ${row.name}`);
+  // Filtrlənmiş data
+  const filteredData = metals.filter((metal) => {
+    const name = metal.name?.toLowerCase() || "";
+    const search = searchTerm.toLowerCase();
+
+    const nameMatches = name.includes(search);
+
+    // statusFilter dəyərlərini backend statusları ilə eyniləşdiririk
+    const statusMatches = statusFilter ? metal.status === statusFilter : true;
+
+    return nameMatches && statusMatches;
+  });
+
+  const handleEdit = (metal) => {
+    navigate(`/edit-metal/${metal.id}`);
+  };
+
+  const handleDelete = async (metal) => {
+    if (window.confirm(`${metal.name} silinsin?`)) {
+      await deleteMetal(metal.id);
+    }
   };
 
   return (
     <div className="metalContainer">
       <div className="metalContainerTopPart">
         <div className="leftPart">
-          <select>
+          {/* Backend status dəyərlərini seçirik */}
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
             <option value="">Status</option>
-            <option value="Aktiv">Aktiv</option>
-            <option value="Passiv">Passiv</option>
+            <option value="ACTIVE">Aktiv</option>
+            <option value="PASSIVE">Passiv</option>
           </select>
           <div className="metalQuickSearch">
             <input
@@ -61,51 +78,79 @@ function Metal() {
           </div>
         </div>
         <div className="rightPart">
-          <Link className="addMetal" to={'/add-metal'}>
+          <Link className="addMetal" to={"/add-metal"}>
             <IoMdAdd className="addMetalIcon" /> Yenisini əlavə et
           </Link>
-          <Link className="exportmetal">
+          <button
+            className="exportmetal"
+            onClick={() => alert("Export funksiyası əlavə olunacaq")}
+          >
             <FiDownload className="exportmetalIcon" />
-          </Link>
+          </button>
         </div>
       </div>
+
+      {loading && <p>Yüklənir...</p>}
+      {error && (
+        <p style={{ color: "red" }}>
+          Xəta baş verdi: {error.message || error.toString()}
+        </p>
+      )}
 
       <div className="metalTableWrapper">
         <table className="metalTable">
           <thead>
             <tr>
               <th>{filteredData.length !== 0 ? `1-${filteredData.length}` : 0}</th>
-              <th className='MetalName'>
+              <th className="MetalName">
                 <span>
-                  <HiOutlineArrowsUpDown className='arrowIconsNow' /> Metalın adı
+                  <HiOutlineArrowsUpDown className="arrowIconsNow" /> Metalın adı
                 </span>
               </th>
               <th>
                 <span>
-                  <HiOutlineArrowsUpDown className='arrowIconsNow' /> Status
+                  <HiOutlineArrowsUpDown className="arrowIconsNow" /> Status
                 </span>
               </th>
               <th>Düzəliş</th>
             </tr>
           </thead>
           <tbody>
-            {filteredData.map((row, index) => (
-              <tr key={row.id}>
-                <td>{index + 1}</td>
-                <td className='MetalName'>{row.name}</td>
-                <td>
-                  <span className={`statusBadge ${row.status === "Aktiv" ? "active" : "passive"}`}>
-                    {row.status}
-                  </span>
-                </td>
-                <td>
-                  <div className="actionIcons">
-                    <FiEdit3 className="editBtn" onClick={() => handleEdit(row)} />
-                    <GoTrash className="deleteBtn" onClick={() => handleDelete(row)} />
-                  </div>
+            {filteredData.length === 0 ? (
+              <tr>
+                <td colSpan={4} style={{ textAlign: "center" }}>
+                  Məlumat tapılmadı
                 </td>
               </tr>
-            ))}
+            ) : (
+              filteredData.map((metal, index) => (
+                <tr key={metal.id}>
+                  <td>{index + 1}</td>
+                  <td className="MetalName">{metal.name}</td>
+                  <td>
+                    <span
+                      className={`statusBadge ${
+                        metal.status === "ACTIVE" ? "active" : "passive"
+                      }`}
+                    >
+                      {statusLabels[metal.status] || metal.status}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="actionIcons">
+                      <FiEdit3
+                        className="editBtn"
+                        onClick={() => handleEdit(metal)}
+                      />
+                      <GoTrash
+                        className="deleteBtn"
+                        onClick={() => handleDelete(metal)}
+                      />
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

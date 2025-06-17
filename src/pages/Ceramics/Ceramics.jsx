@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 
 // Icons
 import { FiDownload, FiEdit3 } from "react-icons/fi";
@@ -11,44 +11,63 @@ import { HiOutlineArrowsUpDown } from "react-icons/hi2";
 // Style
 import "../../assets/style/Ceramics/ceramics.css";
 
-// Libraries
-import { Link } from 'react-router-dom';
+// Store
+import useCeramicsStore from "../../../stores/ceramicStore";
 
 function Ceramics() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
 
-  const tableData = [
-    { id: 1, name: "Deputat", status: "Aktiv" },
-    { id: 2, name: "Fəhlə", status: "Passiv" },
-    { id: 3, name: "Mühəndis", status: "Aktiv" },
-    { id: 4, name: "Texnik", status: "Passiv" },
-    { id: 5, name: "Operator", status: "Aktiv" },
-    { id: 6, name: "Menecer", status: "Aktiv" },
-    { id: 7, name: "Marketoloq", status: "Passiv" },
-    { id: 8, name: "Sürücü", status: "Aktiv" },
-  ];
+  const { ceramics, fetchCeramics, deleteCeramic, loading, error } =
+    useCeramicsStore();
 
-  const filteredData = tableData.filter((row) =>
-    row.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  useEffect(() => {
+    fetchCeramics();
+  }, [fetchCeramics]);
+
+  const searchLower = searchTerm.toLowerCase();
+
+  const filteredData = Array.isArray(ceramics)
+    ? ceramics.filter(({ name, status }) => {
+        const nameLower = name ? name.toLowerCase() : "";
+        return (
+          nameLower.includes(searchLower) &&
+          (statusFilter ? status === statusFilter : true)
+        );
+      })
+    : [];
 
   const handleEdit = (row) => {
     navigate(`/edit-ceramic/${row.id}`);
   };
 
-  const handleDelete = (row) => {
-    alert(`Silindi: ${row.name}`);
+  const handleDelete = async (row) => {
+    if (window.confirm(`"${row.name}" silinsin?`)) {
+      try {
+        await deleteCeramic(row.id);
+        alert(`Silindi: ${row.name}`);
+      } catch (error) {
+        alert("Silinərkən xəta baş verdi");
+      }
+    }
+  };
+
+  const statusMap = {
+    ACTIVE: "Aktiv",
+    PASSIVE: "Passiv",
   };
 
   return (
     <div className="ceramicsContainer">
       <div className="ceramicsContainerTopPart">
         <div className="leftPart">
-          <select>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}>
             <option value="">Status</option>
-            <option value="Aktiv">Aktiv</option>
-            <option value="Passiv">Passiv</option>
+            <option value="ACTIVE">Aktiv</option>
+            <option value="PASSIVE">Passiv</option>
           </select>
           <div className="ceramicsQuickSearch">
             <input
@@ -61,51 +80,84 @@ function Ceramics() {
           </div>
         </div>
         <div className="rightPart">
-          <Link className="addceramics" to={'/add-ceramic'}>
+          <Link className="addceramics" to="/add-ceramic">
             <IoMdAdd className="addceramicsIcon" /> Yenisini əlavə et
           </Link>
-          <Link className="exportceramics">
+          <button
+            type="button"
+            className="exportceramics"
+            title="Excel-ə export et"
+            disabled={loading}
+            onClick={() => alert("Export funksiyası burada olacaq")}>
             <FiDownload className="exportceramicsIcon" />
-          </Link>
+          </button>
         </div>
       </div>
 
       <div className="ceramicsTableWrapper">
+        {loading && <p>Yüklənir...</p>}
+        {error && (
+          <p style={{ color: "red" }}>
+            Xəta: {error?.message || "Naməlum xəta baş verdi"}
+          </p>
+        )}
         <table className="ceramicsTable">
           <thead>
             <tr>
-              <th>{filteredData.length !== 0 ? `1-${filteredData.length}` : 0}</th>
-              <th className='ceramicsName'>
+              <th>
+                {filteredData.length !== 0 ? `1-${filteredData.length}` : 0}
+              </th>
+              <th className="ceramicsName">
                 <span>
-                  <HiOutlineArrowsUpDown className='arrowIconsNow' /> Keramikanın adı
+                  <HiOutlineArrowsUpDown className="arrowIconsNow" />{" "}
+                  Keramikanın adı
                 </span>
               </th>
               <th>
                 <span>
-                  <HiOutlineArrowsUpDown className='arrowIconsNow' /> Status
+                  <HiOutlineArrowsUpDown className="arrowIconsNow" /> Status
                 </span>
               </th>
               <th>Düzəliş</th>
             </tr>
           </thead>
           <tbody>
-            {filteredData.map((row, index) => (
-              <tr key={row.id}>
-                <td>{index + 1}</td>
-                <td className='ceramicsName'>{row.name}</td>
-                <td>
-                  <span className={`statusBadge ${row.status === "Aktiv" ? "active" : "passive"}`}>
-                    {row.status}
-                  </span>
-                </td>
-                <td>
-                  <div className="actionIcons">
-                    <FiEdit3 className="editBtn" onClick={() => handleEdit(row)} />
-                    <GoTrash className="deleteBtn" onClick={() => handleDelete(row)} />
-                  </div>
+            {filteredData.length === 0 ? (
+              <tr>
+                <td colSpan={4} style={{ textAlign: "center" }}>
+                  Məlumat tapılmadı
                 </td>
               </tr>
-            ))}
+            ) : (
+              filteredData.map((row, index) => (
+                <tr key={row.id}>
+                  <td>{index + 1}</td>
+                  <td className="ceramicsName">{row.name}</td>
+                  <td>
+                    <span
+                      className={`statusBadge ${
+                        row.status === "ACTIVE" ? "active" : "passive"
+                      }`}>
+                      {statusMap[row.status] || row.status}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="actionIcons">
+                      <FiEdit3
+                        className="editBtn"
+                        onClick={() => handleEdit(row)}
+                        title="Redaktə et"
+                      />
+                      <GoTrash
+                        className="deleteBtn"
+                        onClick={() => handleDelete(row)}
+                        title="Sil"
+                      />
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
