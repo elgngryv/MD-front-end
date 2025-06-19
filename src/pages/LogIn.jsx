@@ -37,24 +37,18 @@ function LogIn() {
     setLocalLoading(true);
 
     try {
-      const response = await axios.post(
-        "http://159.89.3.81:5555/api/v1/auth/login",
-        { username, password }
-      );
-
-      const tokenPair = response.data.tokenPair;
-      console.log("TokenPair:", tokenPair);
-
       const loginSuccess = await useAuthStore
         .getState()
         .login({ username, password });
 
-      console.log("Login Success:", loginSuccess);
-
       if (loginSuccess) {
+        console.log("Login Success ✅");
+
         setTimeout(() => {
           navigate("/patients");
         }, 800);
+      } else {
+        console.log("Login failed ❌");
       }
     } catch (error) {
       console.error("Login error:", error);

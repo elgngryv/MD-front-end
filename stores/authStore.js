@@ -19,7 +19,7 @@ const useAuthStore = create((set) => ({
         localStorage.setItem("token", token);
         localStorage.setItem("refreshToken", response.tokenPair.refreshToken);
         set({ user, token, loading: false });
-        return true; // Success
+        return true; 
       } else {
         throw new Error("No token received");
       }
@@ -28,7 +28,7 @@ const useAuthStore = create((set) => ({
         error: err.response?.data?.message || "Login failed",
         loading: false,
       });
-      return false; // Failure
+      return false; 
     }
   },
 

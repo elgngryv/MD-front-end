@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "../assets/style/image_uploader.css";
 
-const ProfileImage = ({ userId, mode }) => { // Correctly destructure props
+const ProfileImage = ({ userId, mode }) => { 
   const [image, setImage] = useState(null);
 
   const handleImageUpload = (event) => {
