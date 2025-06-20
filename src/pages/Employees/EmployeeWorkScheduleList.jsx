@@ -1,22 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import OrdinaryListHeader from "../../components/OrdinaryList/OrdinaryListHeader";
 import { FiEdit3 } from "react-icons/fi";
 import { GoTrash } from "react-icons/go";
-import useWorkersScheduleStore from "../../../stores/workersScheduleStore";
 import { HiOutlineArrowsUpDown } from "react-icons/hi2";
+import useWorkersScheduleStore from "../../../stores/workersScheduleStore";
 
 import "../../assets/style/EmployeesPage/employeeworkschedulelist.css";
-
-function LoadingSpinner() {
-  return (
-    <div className="flex-col gap-4 w-full flex items-center justify-center">
-      <div className="w-20 h-20 border-4 border-transparent text-blue-400 text-4xl animate-spin flex items-center justify-center border-t-blue-400 rounded-full">
-        <div className="w-16 h-16 border-4 border-transparent text-red-400 text-2xl animate-spin flex items-center justify-center border-t-red-400 rounded-full"></div>
-      </div>
-    </div>
-  );
-}
 
 const weekDays = [
   { key: "MONDAY", label: "Bazar ertəsi" },
@@ -31,24 +20,19 @@ const weekDays = [
 function EmployeeWorkScheduleList() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const {
-    schedules,
-    loading,
-    error,
-    fetchSchedules,
-    removeSchedule,
-  } = useWorkersScheduleStore();
+  const { schedules, loading, error, fetchSchedules, removeSchedule } = useWorkersScheduleStore();
 
   const [selectedDay, setSelectedDay] = useState("");
 
   useEffect(() => {
-    fetchSchedules();
+    fetchSchedules(); 
   }, [fetchSchedules]);
 
-  // Filtered schedules by selected day
-  const filteredSchedules = selectedDay
-    ? schedules.filter((s) => s.weekDay === selectedDay)
-    : schedules;
+  const filteredSchedules = schedules.filter((s) => {
+    const dayMatch = selectedDay ? s.weekDay === selectedDay : true;
+    const userMatch = id ? s.userId === id : true;
+    return dayMatch && userMatch;
+  });
 
   const handleEdit = (item) => {
     const scheduleId = typeof item === "object" ? item.id : item;
@@ -63,15 +47,20 @@ function EmployeeWorkScheduleList() {
 
   return (
     <div className="employeeWorkScheduleList">
-      <div className="ews-table-controls-bar" style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'24px 24px 0 24px'}}>
+      <div
+        className="ews-table-controls-bar"
+        style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "24px 24px 0 24px" }}
+      >
         <select
           className="ews-filter-select"
           value={selectedDay}
-          onChange={e => setSelectedDay(e.target.value)}
+          onChange={(e) => setSelectedDay(e.target.value)}
         >
           <option value="">Həftənin Günü</option>
           {weekDays.map((d) => (
-            <option key={d.key} value={d.key}>{d.label}</option>
+            <option key={d.key} value={d.key}>
+              {d.label}
+            </option>
           ))}
         </select>
         <Link to={"./add"} className="anamnesisList-add-new-button">
@@ -89,16 +78,24 @@ function EmployeeWorkScheduleList() {
                 </span>
               </th>
               <th>
-                <span><HiOutlineArrowsUpDown /> Həftənin Günü</span>
+                <span>
+                  <HiOutlineArrowsUpDown /> Həftənin Günü
+                </span>
               </th>
               <th>
-                <span><HiOutlineArrowsUpDown /> Kabinet</span>
+                <span>
+                  <HiOutlineArrowsUpDown /> Kabinet
+                </span>
               </th>
               <th>
-                <span><HiOutlineArrowsUpDown /> Başlama saatı</span>
+                <span>
+                  <HiOutlineArrowsUpDown /> Başlama saatı
+                </span>
               </th>
               <th>
-                <span><HiOutlineArrowsUpDown /> Bitış saatı</span>
+                <span>
+                  <HiOutlineArrowsUpDown /> Bitiş saatı
+                </span>
               </th>
               <th>
                 <span>Düzəliş</span>
@@ -118,7 +115,7 @@ function EmployeeWorkScheduleList() {
               filteredSchedules.map((row, index) => (
                 <tr key={row.id}>
                   <td>{index + 1}</td>
-                  <td>{weekDays.find(d => d.key === row.weekDay)?.label || row.weekDay}</td>
+                  <td>{weekDays.find((d) => d.key === row.weekDay)?.label || row.weekDay}</td>
                   <td>{row.room}</td>
                   <td>{formatTime(row.startTime)}</td>
                   <td>{formatTime(row.finishTime)}</td>
@@ -146,7 +143,6 @@ function EmployeeWorkScheduleList() {
 }
 
 function formatTime(timeStr) {
-  // timeStr can be string or object
   if (!timeStr) return "";
   if (typeof timeStr === "string") return timeStr.slice(0, 5);
   if (typeof timeStr === "object" && timeStr.hour !== undefined && timeStr.minute !== undefined) {
