@@ -222,6 +222,7 @@ import EditTeeth from "./pages/Teeth/EditTeeth";
 import AddOperationPicture from "./pages/Teeth/AddOperationPicture";
 import AddExaminationPicture from "./pages/Teeth/AddExaminationPicture";
 
+import InfoPermission from "./pages/PermissionsPage/InfoPermission";
 
 // Constants
 const roomOptions = [
@@ -586,7 +587,8 @@ const AnimatedRoutes = () => {
 
             <Route path="/permissions" element={<Permissions />} />
             <Route path="/add-permission" element={<AddPermission />} />
-            <Route path="/edit-permission" element={<EditPermission />} />
+            <Route path="/edit-permission/:id" element={<EditPermission />} />
+            <Route path="/permission-info/:id" element={<InfoPermission />} />
 
             <Route path="/blacklist" element={<Blacklist />} />
             <Route path="/blacklist-reasons" element={<BlacklistReasons />} />

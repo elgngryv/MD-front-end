@@ -1,0 +1,226 @@
+.permissionsContainer {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(44, 62, 80, 0.07);
+    margin: 32px auto;
+    position: relative;
+    width: 100%;
+    border-radius: 10px;
+    height: 100%;
+}
+
+.permissionsContainerTopPart {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding: 40px;
+}
+
+.leftPart {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.permissionsStatusSelect {
+    padding: 8px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #f7fafd;
+    font-size: 15px;
+    color: #222;
+    outline: none;
+    cursor: pointer;
+}
+
+.permissionsQuickSearch {
+    position: relative;
+}
+
+.permissionsQuickSearch input {
+    padding: 8px 12px 8px 36px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #f7fafd;
+    font-size: 15px;
+    color: #222;
+    outline: none;
+    width: 250px;
+}
+
+.searchPermissionIcon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #888;
+    font-size: 20px;
+}
+
+.rightPart {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.addPermission {
+    background: #fff;
+    border: 1px solid #155EEF !important;
+    color: #155EEF;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 18px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    transition: 0.5s ease;
+}
+
+.addPermission:hover {
+    background: #0d4bc4;
+    color: #fff;
+}
+
+.addPermissionIcon {
+    font-size: 18px;
+}
+
+.exportPermissions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    color: #155eef;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.exportPermissions:hover {
+    background: #f0f4ff;
+}
+
+.exportPermissionsIcon {
+    font-size: 20px;
+    color: #155eef;
+    cursor: pointer;
+}
+
+.permissionsTableWrapper {
+    overflow-x: auto;
+    border: 1px solid #e5e7eb;
+}
+
+.permissionsTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.permissionsTable th,
+.permissionsTable td {
+    padding: 12px 16px;
+    text-align: left;
+}
+
+.permissionsTable th {
+    background: #f7fafd;
+    color: #667085;
+    font-weight: 500;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.permissionsTable th span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.permissionsTable tbody tr:hover {
+    background: #f0f4ff;
+}
+
+.statusBadge {
+    padding: 4px 10px;
+    border-radius: 16px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.statusBadge.active {
+    background: #40BC2B;
+    color: #fff;
+}
+
+.statusBadge.passive {
+    background: #FD4A3D;
+    color: #fff;
+}
+
+.actionIcons {
+    display: flex;
+    gap: 12px;
+    cursor: pointer;
+}
+
+.editBtn {
+    color: #155eef;
+    font-size: 18px;
+}
+
+.ciInfoIcon {
+    color: #0d99ff;
+    font-size: 20px;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+.ciInfoIcon:hover {
+    color: #155eef;
+}
+
+.deleteBtn {
+    color: #ef4444;
+    font-size: 18px;
+}
+
+.permissionName{
+    width: 600px;
+}
+
+@media (max-width: 768px) {
+    .permissionsContainerTopPart {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 16px;
+    }
+    .rightPart {
+        width: 100%;
+        justify-content: flex-end;
+    }
+    .permissionsQuickSearch input {
+        width: 100%;
+    }
+    .permissionsContainer {
+        padding: 16px;
+    }
+    .permissionsTable th,
+    .permissionsTable td {
+        padding: 8px 10px;
+        font-size: 13px;
+    }
+    .addPermission,
+    .exportPermissions {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+}
+  
