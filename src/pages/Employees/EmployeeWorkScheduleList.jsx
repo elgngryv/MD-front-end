@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import OrdinaryListHeader from "../../components/OrdinaryList/OrdinaryListHeader";
 import { FiEdit3 } from "react-icons/fi";
 import { GoTrash } from "react-icons/go";
 import useWorkersScheduleStore from "../../../stores/workersScheduleStore";
+import { HiOutlineArrowsUpDown } from "react-icons/hi2";
 
 import "../../assets/style/EmployeesPage/employeeworkschedulelist.css";
 
@@ -17,155 +18,141 @@ function LoadingSpinner() {
   );
 }
 
+const weekDays = [
+  { key: "MONDAY", label: "Bazar ertəsi" },
+  { key: "TUESDAY", label: "Çərşənbə axşamı" },
+  { key: "WEDNESDAY", label: "Çərşənbə" },
+  { key: "THURSDAY", label: "Cümə axşamı" },
+  { key: "FRIDAY", label: "Cümə" },
+  { key: "SATURDAY", label: "Şənbə" },
+  { key: "SUNDAY", label: "Bazar" },
+];
+
 function EmployeeWorkScheduleList() {
   const navigate = useNavigate();
-
   const { id } = useParams();
-
   const {
     schedules,
     loading,
     error,
     fetchSchedules,
     removeSchedule,
-    searchSchedules,
   } = useWorkersScheduleStore();
 
   const [selectedDay, setSelectedDay] = useState("");
-
-  const days = [
-    { num: "1", backend: "MONDAY", label: "Bazar ertəsi" },
-    { num: "2", backend: "TUESDAY", label: "Çərşənbə axşamı" },
-    { num: "3", backend: "WEDNESDAY", label: "Çərşənbə" },
-    { num: "4", backend: "THURSDAY", label: "Cümə axşamı" },
-    { num: "5", backend: "FRIDAY", label: "Cümə" },
-    { num: "6", backend: "SATURDAY", label: "Şənbə" },
-    { num: "7", backend: "SUNDAY", label: "Bazar" },
-  ];
 
   useEffect(() => {
     fetchSchedules();
   }, [fetchSchedules]);
 
-  // Filtrlənmiş massiv: userId = URL parametri id olanların siyahısı
-  let filtered = schedules.filter(sched => String(sched.userId) === String(id));
+  // Filtered schedules by selected day
+  const filteredSchedules = selectedDay
+    ? schedules.filter((s) => s.weekDay === selectedDay)
+    : schedules;
 
-  // Əgər selectedDay seçilibsə, ona görə də filtrlə
-  if (selectedDay !== "") {
-    const dayObj = days.find((d) => d.num === selectedDay);
-    if (dayObj) {
-      filtered = filtered.filter(sched => sched.weekDay === dayObj.backend);
-    }
-  }
-
-  const editSchedule = (item) => {
+  const handleEdit = (item) => {
     const scheduleId = typeof item === "object" ? item.id : item;
     navigate(`/employees/work-schedule/${scheduleId}/edit`);
   };
 
-  const deleteSchedule = (schedule) => {
+  const handleDelete = (schedule) => {
     if (window.confirm("Qrafiki silmək istədiyinizə əminsiniz?")) {
       removeSchedule(schedule.id);
     }
   };
 
-  const icons = [
-    {
-      icon: FiEdit3,
-      action: editSchedule,
-      className: "edit",
-    },
-    {
-      icon: GoTrash,
-      action: deleteSchedule,
-      className: "delete",
-    },
-  ];
-
   return (
     <div className="employeeWorkScheduleList">
-      <OrdinaryListHeader
-        title="İş qrafiki"
-        addText="Yenisini əlavə et"
-        addLink={`/employees/work-schedule/${id}/add`}
-        exportLink="/employees/export"
-      />
-
-      <div className="employeeWorkScheduleListTopPart">
+      <div className="ews-table-controls-bar" style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'24px 24px 0 24px'}}>
         <select
-          className="daysOfWeekForList"
+          className="ews-filter-select"
           value={selectedDay}
-          onChange={(e) => setSelectedDay(e.target.value)}
+          onChange={e => setSelectedDay(e.target.value)}
         >
           <option value="">Həftənin Günü</option>
-          {days.map((d) => (
-            <option key={d.num} value={d.num}>
-              {d.label}
-            </option>
+          {weekDays.map((d) => (
+            <option key={d.key} value={d.key}>{d.label}</option>
           ))}
         </select>
+        <Link to={"./add"} className="anamnesisList-add-new-button">
+          <span>+</span> Yenisini əlavə et
+        </Link>
       </div>
-
-      {loading && <LoadingSpinner />}
-      {error && <p className="errorText">Xəta baş verdi: {error.message}</p>}
-
-      {!loading && filtered.length === 0 && <p>İş qrafiki tapılmadı.</p>}
-
-      {!loading && filtered.length > 0 && (
-        <div className="employeeWorkScheduleListTableWrapper">
-          <table className="employeeWorkScheduleListTable">
-            <thead>
+      <div className="ews-table-wrapper">
+        <table className="ews-table">
+          <thead>
+            <tr>
+              <th>
+                <span className="firstElementOfTHS">
+                  <HiOutlineArrowsUpDown />
+                  {filteredSchedules.length ? `1-${filteredSchedules.length}` : "0"}
+                </span>
+              </th>
+              <th>
+                <span><HiOutlineArrowsUpDown /> Həftənin Günü</span>
+              </th>
+              <th>
+                <span><HiOutlineArrowsUpDown /> Kabinet</span>
+              </th>
+              <th>
+                <span><HiOutlineArrowsUpDown /> Başlama saatı</span>
+              </th>
+              <th>
+                <span><HiOutlineArrowsUpDown /> Bitış saatı</span>
+              </th>
+              <th>
+                <span>Düzəliş</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
               <tr>
-                <th>ID</th>
-                <th>Həftənin Günü</th>
-                <th>Kabinet</th>
-                <th>Başlama saatı</th>
-                <th>Bitiş saatı</th>
-                <th>Düzəliş</th>
+                <td colSpan="6">Yüklənir...</td>
               </tr>
-            </thead>
-            <tbody>
-              {filtered.map((sched) => (
-                <tr key={sched.id}>
-                  <td>{sched.id}</td>
-                  <td>{formatWeekDay(sched.weekDay)}</td>
-                  <td>{sched.room}</td>
-                  <td>{formatTime(sched.startTime)}</td>
-                  <td>{formatTime(sched.finishTime)}</td>
-                  <td className="employeeScheduleIcons">
-                    {icons.map(({ icon: Icon, action, className }, idx) => (
-                      <Icon
-                        key={idx}
-                        className={className}
-                        onClick={() => action(sched)}
+            ) : filteredSchedules.length === 0 ? (
+              <tr>
+                <td colSpan="6">Heç bir qrafik tapılmadı.</td>
+              </tr>
+            ) : (
+              filteredSchedules.map((row, index) => (
+                <tr key={row.id}>
+                  <td>{index + 1}</td>
+                  <td>{weekDays.find(d => d.key === row.weekDay)?.label || row.weekDay}</td>
+                  <td>{row.room}</td>
+                  <td>{formatTime(row.startTime)}</td>
+                  <td>{formatTime(row.finishTime)}</td>
+                  <td>
+                    <div className="anamnesisList-action-icons">
+                      <FiEdit3
+                        className="anamnesisList-edit-button"
+                        onClick={() => handleEdit(row)}
                       />
-                    ))}
+                      <GoTrash
+                        className="anamnesisList-delete-button"
+                        onClick={() => handleDelete(row)}
+                      />
+                    </div>
                   </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+      {error && <p className="errorText">Xəta baş verdi: {error.message}</p>}
     </div>
   );
 }
 
-function formatWeekDay(day) {
-  const daysMap = {
-    MONDAY: "Bazar ertəsi",
-    TUESDAY: "Çərşənbə axşamı",
-    WEDNESDAY: "Çərşənbə",
-    THURSDAY: "Cümə axşamı",
-    FRIDAY: "Cümə",
-    SATURDAY: "Şənbə",
-    SUNDAY: "Bazar",
-  };
-  return daysMap[day] || day;
-}
-
 function formatTime(timeStr) {
-  return timeStr ? timeStr.slice(0, 5) : "";
+  // timeStr can be string or object
+  if (!timeStr) return "";
+  if (typeof timeStr === "string") return timeStr.slice(0, 5);
+  if (typeof timeStr === "object" && timeStr.hour !== undefined && timeStr.minute !== undefined) {
+    return `${String(timeStr.hour).padStart(2, "0")}:${String(timeStr.minute).padStart(2, "0")}`;
+  }
+  return "";
 }
 
 export default EmployeeWorkScheduleList;
