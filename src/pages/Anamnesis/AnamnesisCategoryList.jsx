@@ -6,7 +6,7 @@ import { GoTrash } from "react-icons/go";
 import { HiOutlineArrowsUpDown } from "react-icons/hi2";
 import { Link, useNavigate } from "react-router-dom";
 import useAnamnesisCategoryStore from "../../../stores/anamnesisCategoryStore";
-
+// Comment
 const AnamnesisList = () => {
   const navigate = useNavigate();
   const { categories, fetchCategories, loading } = useAnamnesisCategoryStore();
