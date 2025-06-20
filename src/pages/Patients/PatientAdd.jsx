@@ -103,9 +103,15 @@ const PatientAdd = () => {
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
+        const token = localStorage.getItem("token");
         const response = await axios.get(
-          "http://159.89.3.81:5555/api/v1/general-calendar/read-doctors"
-        ); 
+          "http://159.89.3.81:5555/api/v1/general-calendar/read-doctors",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
         setDoctors(response.data);
       } catch (error) {
         console.error("Doktorları alarkən xəta:", error);
@@ -147,10 +153,19 @@ const PatientAdd = () => {
     }
 
     try {
+      const token = localStorage.getItem("token");
+
       const response = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/patient/create`,
-        dataToSend
+        dataToSend,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
       );
+
       console.log("Əlavə olundu:", response.data);
       toast.success("Pasiyent uğurla əlavə olundu!");
     } catch (err) {
