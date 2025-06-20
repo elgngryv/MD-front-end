@@ -33,6 +33,15 @@ const useTeethStore = create((set) => ({
       set({ error, loading: false });
     }
   },
+  fetchToothById: async (id) => {
+    set({ loading: true });
+    try {
+      const data = await readToothById(id); // <-- API-dən fetch
+      set({ selectedTooth: data, loading: false });
+    } catch (error) {
+      set({ error, loading: false });
+    }
+  },
 
   addTooth: async (toothData) => {
     set({ loading: true });

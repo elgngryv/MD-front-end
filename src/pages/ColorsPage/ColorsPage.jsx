@@ -1,50 +1,67 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from "react";
 import { CiSearch } from "react-icons/ci";
 import { GoTrash } from "react-icons/go";
 import { FiEdit3 } from "react-icons/fi";
 import { HiArrowsUpDown } from "react-icons/hi2";
 import { FaPlus } from "react-icons/fa";
-import "../../assets/style/ColorsPage/colorspage.css"; // Updated import path
+import "../../assets/style/ColorsPage/colorspage.css";
 import { CiExport } from "react-icons/ci";
-import { Link } from "react-router-dom"; // Added Link for potential navigation
-import { useNavigate } from 'react-router-dom';
-
-const mockColorsItems = [
-  { id: 1, name: 'A1', status: 'Aktiv' },
-  { id: 2, name: 'A2', status: 'Aktiv' },
-  { id: 3, name: 'A3', status: 'Aktiv' },
-  { id: 4, name: 'A3,5', status: 'Aktiv' },
-  { id: 5, name: 'B1', status: 'Aktiv' },
-  { id: 6, name: 'B1', status: 'Aktiv' },
-  { id: 7, name: 'B1', status: 'Aktiv' },
-  { id: 8, name: 'B1', status: 'Aktiv' },
-  { id: 9, name: 'B1', status: 'Aktiv' },
-  { id: 10, name: 'B1', status: 'Passiv' },
-];
+import { Link, useNavigate } from "react-router-dom";
+import useColorStore from "../../../stores/colorStore";
 
 const statusOptions = [
   { value: "", label: "Status" },
-  { value: "Aktiv", label: "Aktiv" },
-  { value: "Passiv", label: "Passiv" },
+  { value: "ACTIVE", label: "Aktiv" },
+  { value: "PASSIVE", label: "Passiv" },
 ];
 
 const ColorsPage = () => {
-  const [status, setStatus] = useState("");
+  const navigate = useNavigate();
+
+  const colors = useColorStore((state) => state.colors);
+  const fetchColors = useColorStore((state) => state.fetchColors);
+  const updateStatus = useColorStore((state) => state.updateStatus);
+  const updateLocalStatus = useColorStore((state) => state.updateLocalStatus);
+  const removeColor = useColorStore((state) => state.removeColor);
+
+  const [status, setStatusFilter] = useState("");
   const [search, setSearch] = useState("");
 
-  const filteredColorsItems = mockColorsItems.filter(
+  useEffect(() => {
+    fetchColors();
+  }, []);
+
+  const filteredColors = colors.filter(
     (item) =>
       (status === "" || item.status === status) &&
-      item.name.toLowerCase().includes(search.toLowerCase())
+      (typeof item.name === "string" ? item.name.toLowerCase() : "").includes(
+        search.toLowerCase()
+      )
   );
 
-  const navigate = useNavigate()
   const handleEdit = (id) => {
-    navigate(`${id}/edit`); // Uncomment if you have react-router-dom navigate setup
+    navigate(`${id}/edit`);
   };
 
-  const handleDelete = (id) => {
-    console.log(`Delete color item with ID: ${id}`);
+  const handleDelete = async (id) => {
+    const confirm = window.confirm("Bu rəngi silmək istədiyinizə əminsiniz?");
+    if (!confirm) return;
+
+    try {
+      await removeColor(id);
+    } catch (error) {
+      console.error("Silinmə zamanı xəta:", error);
+    }
+  };
+
+  const handleStatusClick = async (id, currentStatus) => {
+    const newStatus = currentStatus === "ACTIVE" ? "PASSIVE" : "ACTIVE";
+    try {
+      await updateStatus(id, { status: newStatus });
+      updateLocalStatus(id, newStatus); // local yeniləmə
+    } catch (error) {
+      console.error("Status dəyişdirilə bilmədi:", error);
+    }
   };
 
   return (
@@ -55,8 +72,7 @@ const ColorsPage = () => {
             <select
               className="checklistStatusSelect"
               value={status}
-              onChange={(e) => setStatus(e.target.value)}
-            >
+              onChange={(e) => setStatusFilter(e.target.value)}>
               {statusOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
@@ -74,10 +90,13 @@ const ColorsPage = () => {
             </div>
           </div>
           <div className="rightPartOfTop">
-            <Link to={'add'} className="addNewChecklistItem">
+            <Link to={"add"} className="addNewChecklistItem">
               <FaPlus /> Yenisini əlavə et
             </Link>
-            <Link to={'export'} className="exportDataOfChecklist" title="Export">
+            <Link
+              to={"export"}
+              className="exportDataOfChecklist"
+              title="Export">
               <CiExport size={22} className="exportChecklistDataIcon" />
             </Link>
           </div>
@@ -87,7 +106,9 @@ const ColorsPage = () => {
           <table className="checklistTable">
             <thead>
               <tr>
-                <th><span>1-8</span></th>
+                <th>
+                  <span>#</span>
+                </th>
                 <th>
                   <span>
                     <HiArrowsUpDown className="tableArrowIcon" /> Rəngin adı
@@ -102,27 +123,40 @@ const ColorsPage = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredColorsItems.map((item, idx) => (
+              {filteredColors.map((item, idx) => (
                 <tr key={item.id}>
                   <td>{idx + 1}</td>
                   <td>{item.name}</td>
                   <td>
                     <span
-                      className={`status ${
-                        item.status === "Aktiv" ? "active" : "passive"
+                      className={`status cursor-pointer ${
+                        item.status === "ACTIVE" ? "active" : "passive"
                       }`}
-                    >
-                      {item.status}
+                      onClick={() => handleStatusClick(item.id, item.status)}>
+                      {item.status === "ACTIVE" ? "Aktiv" : "Passiv"}
                     </span>
                   </td>
                   <td>
                     <div className="icons flex gap-3 cursor-pointer">
-                      <FiEdit3 className="edit" onClick={() => handleEdit(item.id)} />
-                      <GoTrash className="delete" onClick={() => handleDelete(item.id)} />
+                      <FiEdit3
+                        className="edit"
+                        onClick={() => handleEdit(item.id)}
+                      />
+                      <GoTrash
+                        className="delete"
+                        onClick={() => handleDelete(item.id)}
+                      />
                     </div>
                   </td>
                 </tr>
               ))}
+              {filteredColors.length === 0 && (
+                <tr>
+                  <td colSpan="4" className="text-center py-4 text-gray-500">
+                    Nəticə tapılmadı.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

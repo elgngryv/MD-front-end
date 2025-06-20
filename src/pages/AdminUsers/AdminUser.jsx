@@ -27,7 +27,7 @@ const AdminUser = () => {
   const filteredUsers = workers
     .filter(
       (user) =>
-        Array.isArray(user.authorities) && user.authorities.includes("ADMIN")
+        Array.isArray(user.permissions) && user.permissions.includes("ADMIN")
     )
     .filter(
       (user) =>
@@ -125,7 +125,7 @@ const AdminUser = () => {
                   </td>
                   <td>{user.name}</td>
                   <td>{user.surname}</td>
-                  <td>{user.authorities?.join(", ") || "—"}</td>
+                  <td>{user.permissions?.join(", ") || "—"}</td>
                   <td>{user.phone || "—"}</td>
                   <td>
                     <span

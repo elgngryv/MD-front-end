@@ -44,4 +44,3 @@ const ColorDetail = () => {
 };
 
 export default ColorDetail;
-

@@ -3,12 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "../../assets/style/ColorsPage/addcolor.css";
 import { FaTimes, FaCheck } from "react-icons/fa";
+import useColorStore from "../../../stores/colorStore"
 
 function AddColor() {
   const navigate = useNavigate();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const addColor = useColorStore((state) => state.addColor);
+  const loading = useColorStore((state) => state.loading);
   const [formData, setFormData] = useState({
-    colorName: "",
+    name: "",
   });
 
   const handleInputChange = (e) => {
@@ -18,17 +20,18 @@ function AddColor() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
+
+    if (!formData.name.trim()) {
+      toast.error("Rəngin adını daxil edin");
+      return;
+    }
+
     try {
-      // API çağırışı burada olacaq (məsələn, rəngi serverə göndərmək)
-      setTimeout(() => {
-        setIsSubmitting(false);
-        toast.success("Rəng uğurla əlavə edildi");
-        navigate("/colors"); // Rənglər səhifəsinə yönləndirmə
-      }, 1000);
+      await addColor(formData);
+      toast.success("Rəng uğurla əlavə edildi");
+      navigate("/colors");
     } catch (error) {
       toast.error("Xəta baş verdi");
-      setIsSubmitting(false);
     }
   };
 
@@ -43,8 +46,8 @@ function AddColor() {
             <input
               type="text"
               className="addColorField"
-              name="colorName"
-              value={formData.colorName}
+              name="name"
+              value={formData.name}
               onChange={handleInputChange}
               required
             />
@@ -55,16 +58,16 @@ function AddColor() {
               type="button"
               className="addColorCancelBtn"
               onClick={() => navigate("/colors")}
-              disabled={isSubmitting}
+              disabled={loading}
             >
               <FaTimes /> İmtina et
             </button>
             <button
               type="submit"
               className="addColorSaveBtn"
-              disabled={isSubmitting}
+              disabled={loading}
             >
-              {isSubmitting ? "Yüklənir..." : <><FaCheck /> Yadda saxla</>}
+              {loading ? "Yüklənir..." : <><FaCheck /> Yadda saxla</>}
             </button>
           </div>
         </form>

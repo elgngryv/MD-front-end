@@ -281,7 +281,7 @@ const EmployeesList = () => {
                     <td>{emp.surname}</td>
                     <td>{emp.patronymic}</td>
                     <td>{emp.phone}</td>
-                    <td>{emp.authorities?.join(", ")}</td>
+                    <td>{emp.permissions?.join(", ")}</td>
                     <td>
                       <Link
                         className="employeeScheduleTableData"

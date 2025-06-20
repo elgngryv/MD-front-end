@@ -3,7 +3,7 @@ import '../../assets/style/Operations/addopertaion.css';
 import { useNavigate } from "react-router-dom";
 import { MdClose } from "react-icons/md";
 import { FaRegSave } from "react-icons/fa";
-import { FaManatSign } from "react-icons/fa6"; // Changed to FaManatSign for Manat symbol
+import { FaManatSign } from "react-icons/fa6"; 
 
 const AddOperation = () => {
   const navigate = useNavigate();

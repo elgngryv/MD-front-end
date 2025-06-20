@@ -27,9 +27,14 @@ function PatientsList() {
   const [search, setSearch] = useState(initialSearch);
   const navigate = useNavigate();
 
-  // Fetching data from the API
+  // Fetching data from the API with Authorization header
   useEffect(() => {
-    axios.get('http://159.89.3.81:5555/api/v1/patient/read')
+    const token = localStorage.getItem("token"); // Token-u localStorage-dan al
+    axios.get('http://159.89.3.81:5555/api/v1/patient/read', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
       .then((response) => {
         setData(response.data);
       })
@@ -37,12 +42,16 @@ function PatientsList() {
         console.error('Error fetching data:', error);
       });
   }, []);
-  // Salam
 
-  // Deleting a patient
+  // Deleting a patient with Authorization header
   const removePatient = async (id) => {
     try {
-      await axios.delete(`http://159.89.3.81:5555/api/v1/patient/delete/${id}`);
+      const token = localStorage.getItem("token");
+      await axios.delete(`http://159.89.3.81:5555/api/v1/patient/delete/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       setData(data.filter((item) => item.id !== id));
     } catch (error) {
       console.error('Error deleting patient:', error);
@@ -65,6 +74,7 @@ function PatientsList() {
       action: (row) => navigate(`patient/${row.id}/general`),
       className: "info"
     },
+    // Uncomment if you want edit functionality
     // {
     //   icon: FiEdit3,
     //   action: (row) => navigate(`patient/${row.id}`),

@@ -1,15 +1,33 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import useColorStore from "../../../stores/colorStore"; // store-un doğru yolu
 import "../../assets/style/ColorsPage/editcolor.css";
 import { FaTimes, FaCheck } from "react-icons/fa";
 
 function EditColor() {
   const navigate = useNavigate();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { id } = useParams(); // URL-dən rəngin id-si
+  const { fetchColorById, selectedColor, updateColor } = useColorStore();
+
   const [formData, setFormData] = useState({
     colorName: "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (id) {
+      fetchColorById(id);
+    }
+  }, [id, fetchColorById]);
+
+  useEffect(() => {
+    if (selectedColor) {
+      setFormData({
+        colorName: selectedColor.name || "",
+      });
+    }
+  }, [selectedColor]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -20,14 +38,13 @@ function EditColor() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      // API çağırışı burada olacaq (məsələn, rəngi yeniləmək)
-      setTimeout(() => {
-        setIsSubmitting(false);
-        toast.success("Rəng uğurla yeniləndi");
-        navigate("/colors"); // Rənglər səhifəsinə yönləndirmə
-      }, 1000);
+      await updateColor(id, { name: formData.colorName });
+      toast.success("Rəng uğurla yeniləndi");
+      navigate("/colors");
     } catch (error) {
       toast.error("Xəta baş verdi");
+      console.error(error);
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -47,6 +64,8 @@ function EditColor() {
               value={formData.colorName}
               onChange={handleInputChange}
               required
+              disabled={isSubmitting}
+              autoFocus
             />
           </div>
 
@@ -55,16 +74,20 @@ function EditColor() {
               type="button"
               className="editColorCancelBtn"
               onClick={() => navigate("/colors")}
-              disabled={isSubmitting}
-            >
+              disabled={isSubmitting}>
               <FaTimes /> İmtina et
             </button>
             <button
               type="submit"
               className="editColorSaveBtn"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Yüklənir..." : <><FaCheck /> Yadda saxla</>}
+              disabled={isSubmitting}>
+              {isSubmitting ? (
+                "Yüklənir..."
+              ) : (
+                <>
+                  <FaCheck /> Yadda saxla
+                </>
+              )}
             </button>
           </div>
         </form>
