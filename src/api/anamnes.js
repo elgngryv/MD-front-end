@@ -2,8 +2,10 @@ import axiosInstance from "./temp-axios-auth";
 
 const API_BASE_URL = import.meta.env.VITE_BASE_URL;
 
-export const createAnamnesis = (data) =>
-  axiosInstance.post(`${API_BASE_URL}/anamnesis-list/create`, data);
+export const createAnamnesis = (data) => {
+  console.log("Yollanan data:", data); // Debug
+  return axiosInstance.post(`${API_BASE_URL}/anamnesis-list/create`, data);
+};
 
 export const updateAnamnesis = (id, data) =>
   axiosInstance.put(`${API_BASE_URL}/anamnesis-list/update/${id}`, data);

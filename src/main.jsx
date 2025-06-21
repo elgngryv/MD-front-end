@@ -625,7 +625,7 @@ const AnimatedRoutes = () => {
             <Route path="/anamnesis/add" element={<AddAnamnesisCategory/>}/>
             <Route path="/anamnesis/edit/:name" element={<EditAnamnesisCategory/>}/> 
             <Route path="/anamnesis/anamnesis-details/:name" element={<AnamnesisList/>}/>
-            <Route path="/anamnesis/anamnesis-details/:name/add" element={<AddAnamnesis/>}/>
+            <Route path="/anamnesis/anamnesis-details/:id/add" element={<AddAnamnesis/>}/>
             <Route path="/anamnesis/anamnesis-details/:name/edit/:id" element={<EditAnamnesis/>}/>
 
             {/* Checklist Page Routes */}

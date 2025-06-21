@@ -14,7 +14,7 @@ function AddAnamnesis() {
   });
 
   const navigate = useNavigate();
-  const { id } = useParams(); // Bu ID - anamnesisCategoryId olacaq
+  const { id } = useParams(); // <-- Bu categoryId olacaq
   const { addAnamnesis } = useAnamnesisListStore();
 
   const handleChange = (e) => {
@@ -28,15 +28,22 @@ function AddAnamnesis() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const categoryId = Number(id);
+
+    if (isNaN(categoryId)) {
+      alert("Category ID düzgün deyil.");
+      return;
+    }
+
     const dataToSend = {
       ...formData,
-      anamnesisCategoryId: Number(id), // Burada ID-ni category ID kimi göndəririk
+      anamnesisCategoryId: categoryId,
     };
 
     try {
       await addAnamnesis(dataToSend);
       alert("Anamnez uğurla yaradıldı");
-      navigate("/anamnesis");
+      navigate(`/anamnesis`);
     } catch (error) {
       alert("Xəta baş verdi: " + (error?.message || "Bilinməyən xəta"));
     }
@@ -58,6 +65,7 @@ function AddAnamnesis() {
             required
           />
         </div>
+
         <div className="addAnamnesisInput">
           <p>Status</p>
           <select name="status" value={formData.status} onChange={handleChange}>
@@ -65,6 +73,7 @@ function AddAnamnesis() {
             <option value="INACTIVE">Passiv</option>
           </select>
         </div>
+
         <div className="addAnamnesisButtons">
           <button
             type="button"

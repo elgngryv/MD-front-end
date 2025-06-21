@@ -9,7 +9,8 @@ import useAnamnesisCategoryStore from "../../../stores/anamnesisCategoryStore";
 // Comment
 const AnamnesisList = () => {
   const navigate = useNavigate();
-  const { categories, fetchCategories, loading } = useAnamnesisCategoryStore();
+  const { categories, fetchCategories, deleteCategory, loading } =
+    useAnamnesisCategoryStore();
 
   useEffect(() => {
     fetchCategories();
@@ -18,7 +19,19 @@ const AnamnesisList = () => {
   const handleEdit = (id) => {
     navigate(`/anamnesis/edit/${id}`);
   };
+  const handleDelete = async (id, name) => {
+    const confirmed = window.confirm(
+      `${name} kateqoriyasını silmək istədiyinizə əminsiniz?`
+    );
+    if (!confirmed) return;
 
+    try {
+      await deleteCategory(id);
+      alert(`${name} uğurla silindi.`);
+    } catch (error) {
+      alert("Silinmə zamanı xəta baş verdi.");
+    }
+  };
   return (
     <div className="anamnesisList-container">
       <div className="anamnesisList-controls-section">
@@ -114,7 +127,7 @@ const AnamnesisList = () => {
                       />
                       <GoTrash
                         className="anamnesisList-delete-button"
-                        onClick={() => console.log("Delete", row.id)}
+                        onClick={() => handleDelete(row.id, row.name)}
                       />
                     </div>
                   </td>
