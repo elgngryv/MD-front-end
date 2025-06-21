@@ -25,17 +25,27 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
 
-  // Transform permissions to the required format
+  // Transform permissions to include both ID and name
   const permissionList = rawPermissions
     .filter(permission => permission.status === "ACTIVE")
     .map((permission) => ({
       label: permission.permissionName,
       value: permission.id.toString(),
+      name: permission.permissionName
     }));
 
   useEffect(() => {
     fetchPermissions();
   }, [fetchPermissions]);
+
+  // Convert permission names back to IDs when initializing form with existing data
+  const getDefaultPermissions = () => {
+    if (!userData || !userData.permissions) return [];
+    return userData.permissions.map(permissionName => {
+      const permission = rawPermissions.find(p => p.permissionName === permissionName);
+      return permission ? permission.id.toString() : permissionName;
+    });
+  };
 
   const validationSchema = yup.object().shape({
     username: yup
@@ -146,7 +156,10 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
   } = useForm({
     resolver: yupResolver(validationSchema),
     mode: "onBlur",
-    defaultValues: userData || {
+    defaultValues: userData ? {
+      ...userData,
+      permissions: getDefaultPermissions()
+    } : {
       username: "",
       password: "",
       name: "",
@@ -208,12 +221,21 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
   };
 
   const handleFormSubmit = (data) => {
-    const transformedData = Object.fromEntries(
-      Object.entries(data).map(([key, value]) => [
-        key,
-        value === "" ? null : value,
-      ])
-    );
+    // Transform permission IDs to names before submission
+    const permissionsWithNames = data.permissions.map(permissionId => {
+      const permission = rawPermissions.find(p => p.id.toString() === permissionId);
+      return permission ? permission.permissionName : permissionId;
+    });
+
+    const transformedData = {
+      ...Object.fromEntries(
+        Object.entries(data).map(([key, value]) => [
+          key,
+          value === "" ? null : value,
+        ])
+      ),
+      permissions: permissionsWithNames
+    };
 
     if (mode === "edit") {
       const updateData = Object.keys(transformedData).reduce((acc, key) => {
