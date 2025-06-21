@@ -105,7 +105,7 @@ const PatientAdd = () => {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(
-          "http://159.89.3.81:5555/api/v1/general-calendar/read-doctors",
+          "http://195.7.6.10:5555/api/v1/general-calendar/read-doctors",
           {
             headers: {
               Authorization: `Bearer ${token}`,

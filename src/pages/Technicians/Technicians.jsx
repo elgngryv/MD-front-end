@@ -11,12 +11,8 @@ import { GoTrash } from "react-icons/go";
 import useTechnicianStore from "../../../stores/technicianStore";
 
 function Technicians() {
-  const {
-    fetchTechnicians,
-    removeTechnician, 
-    exportToExcel,
-    searchTechs,
-  } = useTechnicianStore();
+  const { fetchTechnicians, removeTechnician, exportToExcel, searchTechs } =
+    useTechnicianStore();
 
   const [technicians, setTechnicians] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -179,7 +175,7 @@ function Technicians() {
                   <td>{tech.name}</td>
                   <td>{tech.surname}</td>
                   <td>{tech.patronymic}</td>
-                  <td>{tech.authorities?.join(", ")}</td>
+                  <td>{tech.permissions?.join(", ")}</td>
                   <td>{tech.phone}</td>
                   <td>
                     <Link

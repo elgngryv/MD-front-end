@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 // Icons
 import { CiSearch, CiCircleInfo } from "react-icons/ci";
@@ -11,7 +11,7 @@ import { FiEdit3 } from "react-icons/fi";
 import "../../assets/style/PatientsPage/patientslist.css";
 
 // Components
-import OrdinaryListHeader from '../../components/OrdinaryList/OrdinaryListHeader';
+import OrdinaryListHeader from "../../components/OrdinaryList/OrdinaryListHeader";
 
 const initialSearch = {
   name: "",
@@ -19,7 +19,7 @@ const initialSearch = {
   fin: "",
   phone: "",
   gender: "",
-  status: ""
+  status: "",
 };
 
 function PatientsList() {
@@ -30,16 +30,17 @@ function PatientsList() {
   // Fetching data from the API with Authorization header
   useEffect(() => {
     const token = localStorage.getItem("token"); // Token-u localStorage-dan al
-    axios.get('http://159.89.3.81:5555/api/v1/patient/read', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
+    axios
+      .get("http://195.7.6.10:5555/api/v1/patient/read", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
       .then((response) => {
         setData(response.data);
       })
       .catch((error) => {
-        console.error('Error fetching data:', error);
+        console.error("Error fetching data:", error);
       });
   }, []);
 
@@ -47,32 +48,33 @@ function PatientsList() {
   const removePatient = async (id) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://159.89.3.81:5555/api/v1/patient/delete/${id}`, {
+      await axios.delete(`http://195.7.6.10:5555/api/v1/patient/delete/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
       setData(data.filter((item) => item.id !== id));
     } catch (error) {
-      console.error('Error deleting patient:', error);
+      console.error("Error deleting patient:", error);
     }
   };
 
   // Filtering data based on search criteria
-  const filteredData = data.filter((item) =>
-    item.name.toLowerCase().includes(search.name.toLowerCase()) &&
-    item.surname.toLowerCase().includes(search.surname.toLowerCase()) &&
-    item.finCode.toLowerCase().includes(search.fin.toLowerCase()) &&
-    item.phone.toLowerCase().includes(search.phone.toLowerCase()) &&
-    (search.gender ? item.genderStatus === search.gender : true) &&
-    (search.status ? item.priceCategoryStatus === search.status : true)
+  const filteredData = data.filter(
+    (item) =>
+      item.name.toLowerCase().includes(search.name.toLowerCase()) &&
+      item.surname.toLowerCase().includes(search.surname.toLowerCase()) &&
+      item.finCode.toLowerCase().includes(search.fin.toLowerCase()) &&
+      item.phone.toLowerCase().includes(search.phone.toLowerCase()) &&
+      (search.gender ? item.genderStatus === search.gender : true) &&
+      (search.status ? item.priceCategoryStatus === search.status : true)
   );
 
   const icons = [
     {
       icon: CiCircleInfo,
       action: (row) => navigate(`patient/${row.id}/general`),
-      className: "info"
+      className: "info",
     },
     // Uncomment if you want edit functionality
     // {
@@ -83,13 +85,15 @@ function PatientsList() {
     {
       icon: GoTrash,
       action: (row) => {
-        const confirmed = window.confirm(`Silmək istədiyinizə əminsiniz? (${row.name})`);
+        const confirmed = window.confirm(
+          `Silmək istədiyinizə əminsiniz? (${row.name})`
+        );
         if (confirmed) {
           removePatient(row.id);
         }
       },
-      className: "delete"
-    }
+      className: "delete",
+    },
   ];
 
   return (
@@ -105,43 +109,47 @@ function PatientsList() {
           <div className="leftPart">
             <input
               type="text"
-              placeholder='Ad'
+              placeholder="Ad"
               value={search.name}
               onChange={(e) => setSearch({ ...search, name: e.target.value })}
             />
             <input
               type="text"
-              placeholder='Soyad'
+              placeholder="Soyad"
               value={search.surname}
-              onChange={(e) => setSearch({ ...search, surname: e.target.value })}
+              onChange={(e) =>
+                setSearch({ ...search, surname: e.target.value })
+              }
             />
             <input
               type="text"
-              placeholder='Fin kodu'
+              placeholder="Fin kodu"
               value={search.fin}
               onChange={(e) => setSearch({ ...search, fin: e.target.value })}
             />
             <input
               type="number"
-              placeholder='Mobil nömrə'
+              placeholder="Mobil nömrə"
               value={search.phone}
               onChange={(e) => setSearch({ ...search, phone: e.target.value })}
             />
-            <CiSearch className='searchIconBTN' />
+            <CiSearch className="searchIconBTN" />
           </div>
           <div className="rightPart">
             <select
               value={search.gender}
-              onChange={(e) => setSearch({ ...search, gender: e.target.value })}
-            >
+              onChange={(e) =>
+                setSearch({ ...search, gender: e.target.value })
+              }>
               <option value="">Cinsiyyət</option>
               <option value="MAN">Kişi</option>
               <option value="WOMAN">Qadın</option>
             </select>
             <select
               value={search.status}
-              onChange={(e) => setSearch({ ...search, status: e.target.value })}
-            >
+              onChange={(e) =>
+                setSearch({ ...search, status: e.target.value })
+              }>
               <option value="">Status</option>
               <option value="Vip">Vip</option>
               <option value="Standard">Standard</option>
@@ -168,7 +176,9 @@ function PatientsList() {
               {filteredData.map((item) => (
                 <tr key={item.id}>
                   <td>{item.id}</td>
-                  <td>{item.name} {item.surname}</td>
+                  <td>
+                    {item.name} {item.surname}
+                  </td>
                   <td>{item.finCode}</td>
                   <td>{item.genderStatus === "MAN" ? "Kişi" : "Qadın"}</td>
                   <td>{item.phone}</td>

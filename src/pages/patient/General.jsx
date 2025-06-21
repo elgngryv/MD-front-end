@@ -33,7 +33,7 @@ const General = () => {
     const fetchDoctors = async () => {
       try {
         const res = await axios.get(
-          "http://159.89.3.81:5555/api/v1/general-calendar/read-doctors"
+          "http://195.7.6.10:5555/api/v1/general-calendar/read-doctors"
         );
         setDoctors(res.data);
       } catch (err) {
@@ -235,14 +235,3 @@ const General = () => {
 };
 
 export default General;
-
-
-
-
-
-
-
-
-
-
-
