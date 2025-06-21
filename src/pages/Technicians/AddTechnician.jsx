@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -6,14 +6,17 @@ import "../../assets/style/Technicians/addtechnician.css";
 import AddPhotoIcon from "../../assets/icons/AddPhoto";
 import CloseIcon from "../../assets/icons/Close";
 import useTechnicianStore from "../../../stores/technicianStore";
+import usePermissionStore from "../../../stores/permissionStore";
 
 function AddTechnician({ onClose }) {
   const { addTechnician } = useTechnicianStore();
+  const { permissions: rawPermissions, fetchPermissions } = usePermissionStore();
   const navigate = useNavigate();
   const [files, setFiles] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
   const fileInputRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [permissionsLoading, setPermissionsLoading] = useState(true);
 
   const [formData, setFormData] = useState({
     username: "",
@@ -33,15 +36,26 @@ function AddTechnician({ onClose }) {
     authorities: [],
   });
 
-  const authorityOptions = [
-    { value: "ADMIN", label: "Admin" },
-    { value: "DOCTOR", label: "Doctor" },
-    { value: "NURSE", label: "Nurse" },
-    { value: "RECEPTIONIST", label: "Receptionist" },
-    { value: "ACCOUNTANT", label: "Accountant" },
-    { value: "WAREHOUSE_MAN", label: "Warehouse Manager" },
-    { value: "USER", label: "User" },
-  ];
+  // Transform permissions to the required format
+  const authorityOptions = rawPermissions
+    .filter(permission => permission.status === "ACTIVE")
+    .map((permission) => ({
+      value: permission.id.toString(),
+      label: permission.permissionName,
+    }));
+
+  useEffect(() => {
+    const loadPermissions = async () => {
+      try {
+        await fetchPermissions();
+        setPermissionsLoading(false);
+      } catch (error) {
+        console.error("Failed to fetch permissions:", error);
+        setPermissionsLoading(false);
+      }
+    };
+    loadPermissions();
+  }, [fetchPermissions]);
 
   const handleDeleteImage = (index) => {
     setFiles((prev) => prev.filter((_, i) => i !== index));
@@ -376,17 +390,23 @@ function AddTechnician({ onClose }) {
             <div className="leftPartInputData">
               <p className="leftPartInputTitle">İcazələr</p>
               <div className="addTechnicianCheckboxGroup">
-                {authorityOptions.map((option) => (
-                  <label key={option.value}>
-                    <input
-                      type="checkbox"
-                      value={option.value}
-                      checked={formData.authorities.includes(option.value)}
-                      onChange={handleAuthorityChange}
-                    />
-                    {option.label}
-                  </label>
-                ))}
+                {permissionsLoading ? (
+                  <div>İcazələr yüklənir...</div>
+                ) : authorityOptions.length === 0 ? (
+                  <div>İcazə tapılmadı</div>
+                ) : (
+                  authorityOptions.map((option) => (
+                    <label key={option.value}>
+                      <input
+                        type="checkbox"
+                        value={option.value}
+                        checked={formData.authorities.includes(option.value)}
+                        onChange={handleAuthorityChange}
+                      />
+                      {option.label}
+                    </label>
+                  ))
+                )}
               </div>
             </div>
           </div>

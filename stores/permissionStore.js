@@ -1,48 +1,52 @@
 import { create } from "zustand";
 import {
-  createPermission,
-  readPermission,
-  readPermissionById,
+  createPermission as apiCreatePermission,
+  fetchPermissions as apiFetchPermissions,
+  fetchPermissionById as apiFetchPermissionById,
 } from "../src/api/permission";
 
-const usePermissionStore = create((set, get) => ({
+const usePermissionStore = create((set) => ({
   permissions: [],
-  permissionInfo: null,
+  selectedPermission: null,
   loading: false,
   error: null,
 
-  create: async (data) => {
+  // ✅ Bütün icazələri gətir
+  fetchPermissions: async () => {
     set({ loading: true, error: null });
     try {
-      const result = await createPermission(data);
-      set({ loading: false });
-      await get().read({});
-      return result;
+      const data = await apiFetchPermissions();
+      set({ permissions: data, loading: false });
     } catch (error) {
-      set({ loading: false, error });
-      throw error;
+      set({
+        error: error.message || "İcazələri gətirə bilmədik",
+        loading: false,
+      });
     }
   },
 
-  // PUT ilə icazələri oxu
-  read: async (data) => {
+  // ✅ ID ilə icazə gətir
+  fetchPermissionById: async (id) => {
     set({ loading: true, error: null });
     try {
-      const permissions = await readPermission(data);
-      set({ permissions, loading: false });
+      const data = await apiFetchPermissionById(id);
+      set({ selectedPermission: data, loading: false });
     } catch (error) {
-      set({ loading: false, error });
+      set({ error: error.message || "ID tapılmadı", loading: false });
     }
   },
 
-  // Id-ə görə icazəni oxu
-  readById: async (id) => {
+  // ✅ Yeni permission yarat
+  createPermission: async (newPermission) => {
     set({ loading: true, error: null });
     try {
-      const info = await readPermissionById(id);
-      set({ permissionInfo: info, loading: false });
+      const created = await apiCreatePermission(newPermission);
+      set((state) => ({
+        permissions: [...state.permissions, created],
+        loading: false,
+      }));
     } catch (error) {
-      set({ loading: false, error });
+      set({ error: error.message || "Yaratmaqda xəta", loading: false });
     }
   },
 }));

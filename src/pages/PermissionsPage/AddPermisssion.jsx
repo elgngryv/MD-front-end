@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FiCheck } from "react-icons/fi";
 import { RxCross2 } from "react-icons/rx";
-import "../../assets/style/PermissionPage/addpermission.css"
+import usePermissionStore from "../../../stores/permissionStore";
+import "../../assets/style/PermissionPage/addpermission.css";
 
 const permissions = [
   {
@@ -26,51 +27,31 @@ const permissions = [
   {
     group: "ANBAR ƏMƏLİYYATLARI",
     items: [
-      "Klinikanın stoku",
-      "Kabinet/Obyekt stoku",
-      "Anbara maddəxil",
-      "Anbara sifariş",
-      "Anbardan maxaric",
-      "Anbardan daxilolmalar",
-      "Anbardan silinmə",
-      "Məhsul istifadəsi"
+      "Klinikanın stoku", "Kabinet/Obyekt stoku", "Anbara maddəxil", "Anbara sifariş",
+      "Anbardan maxaric", "Anbardan daxilolmalar", "Anbardan silinmə", "Məhsul istifadəsi"
     ]
   },
   {
     group: "TƏNZİMLƏMƏLƏR",
     items: [
-      "İcazələr",
-      "Admin istifadəçiləri",
-      "Texniklər",
-      "Randevu tipləri",
-      "Müayinə siyahısı",
-      "Əməliyyat növləri",
-      "Digər",
-      "Rənglər",
-      "İmplantlar",
-      "Qarnirlar",
-      "Sığorta şirkətləri",
-      "Qiymət kateqoriyaları",
-      "Kabinetlər",
-      "Digər obyektlər",
-      "Reseptlər",
-      "Tövsiyə edənlər",
-      "Anamnez siyahısı",
-      "Elmi dərəcələr",
-      "İxtisaslar",
-      "Məhsul kateqoriyaları",
-      "Qara siyahı səbəbləri",
-      "Ümumi tənzimləmələr"
+      "İcazələr", "Admin istifadəçiləri", "Texniklər", "Randevu tipləri", "Müayinə siyahısı",
+      "Əməliyyat növləri", "Digər", "Rənglər", "İmplantlar", "Qarnirlar", "Sığorta şirkətləri",
+      "Qiymət kateqoriyaları", "Kabinetlər", "Digər obyektlər", "Reseptlər", "Tövsiyə edənlər",
+      "Anamnez siyahısı", "Elmi dərəcələr", "İxtisaslar", "Məhsul kateqoriyaları",
+      "Qara siyahı səbəbləri", "Ümumi tənzimləmələr"
     ]
   }
 ];
+
 const actions = ["Oxuma", "Yaratma", "Redaktə", "Silmə", "Status", "Sıralama"];
 
 function AddPermission() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { createPermission } = usePermissionStore();
+
   const [name, setName] = useState("");
-  // permissions state: { [permissionName]: { [action]: boolean } }
+
   const [checked, setChecked] = useState(() => {
     const obj = {};
     permissions.forEach(group => {
@@ -84,17 +65,14 @@ function AddPermission() {
     return obj;
   });
 
-  // Sütun başlığı üçün: bütün item-lər checked-dirsə true, yoxsa false
   const isActionAllChecked = (action) => {
     return Object.keys(checked).every(item => checked[item][action]);
   };
 
-  // Row üçün: bütün action-lar checked-dirsə true, yoxsa false
   const isRowAllChecked = (item) => {
     return actions.every(action => checked[item][action]);
   };
 
-  // Sütun başlığındakı inputa basanda bütün item-lər üçün həmin action-u dəyiş
   const handleCheckAll = (action) => {
     const allChecked = isActionAllChecked(action);
     setChecked(prev => {
@@ -106,7 +84,6 @@ function AddPermission() {
     });
   };
 
-  // Row başındakı inputa basanda bütün action-ları dəyiş
   const handleCheckRow = (item) => {
     const allChecked = isRowAllChecked(item);
     setChecked(prev => ({
@@ -118,8 +95,6 @@ function AddPermission() {
     }));
   };
 
-  // Əgər hər hansı bir action/row dəyişərsə, başlıqlar avtomatik yenilənəcək (çünki state-dən oxunur)
-
   const handleCheck = (item, action) => {
     setChecked(prev => ({
       ...prev,
@@ -130,10 +105,43 @@ function AddPermission() {
     }));
   };
 
-  const handleSave = () => {
-    // Burada seçilmiş icazələri göndərə bilərsiniz
-    console.log("Saved ID:", id, "Yeni ad:", name, checked);
-    navigate("/permissions");
+  const handleSave = async () => {
+    const transformedPermissions = Object.keys(checked).reduce((acc, item) => {
+      const selectedActions = Object.keys(checked[item]).filter(
+        (action) => checked[item][action]
+      );
+
+      if (selectedActions.length > 0) {
+        acc.push({
+          moduleUrl: item,
+          actions: selectedActions.map(action => {
+            switch (action) {
+              case "Oxuma": return "READ";
+              case "Yaratma": return "CREATE";
+              case "Redaktə": return "UPDATE";
+              case "Silmə": return "DELETE";
+              case "Status": return "STATUS";
+              case "Sıralama": return "SORT";
+              default: return action.toUpperCase();
+            }
+          })
+        });
+      }
+
+      return acc;
+    }, []);
+
+    const newPermission = {
+      permissionName: name,
+      permissions: transformedPermissions
+    };
+
+    try {
+      await createPermission(newPermission);
+      navigate("/permissions");
+    } catch (error) {
+      console.error("İcazə yaratmaqda xəta:", error);
+    }
   };
 
   return (
@@ -151,18 +159,19 @@ function AddPermission() {
               required
             />
           </div>
-          <label style={{marginTop:20, fontWeight:'bold'}}>İcazələr</label>
+
+          <label style={{ marginTop: 20, fontWeight: 'bold' }}>İcazələr</label>
+
           <div className="permissionTableWrapper">
-            <table className='permissionTable' style={{width:'100%', borderCollapse:'collapse', background:'#f8f9fa'}}>
+            <table className='permissionTable'>
               <thead>
                 <tr>
-                  <th style={{padding:'8px', textAlign:'left'}}>İcazələr</th>
+                  <th>İcazələr</th>
                   {actions.map(action => (
-                    <th key={action} style={{padding:'8px', textAlign:'center'}}>
+                    <th key={action} style={{ textAlign: 'center' }}>
                       <input
                         type="checkbox"
                         checked={isActionAllChecked(action)}
-                        indeterminate={!isActionAllChecked(action) && Object.keys(checked).some(item => checked[item][action])}
                         onChange={() => handleCheckAll(action)}
                       />
                       <div>{action}</div>
@@ -171,27 +180,26 @@ function AddPermission() {
                 </tr>
               </thead>
               <tbody>
-                {permissions.map((group, idx) => (
-                  <React.Fragment key={group.group || 'main'}>
+                {permissions.map(group => (
+                  <React.Fragment key={group.group || "main"}>
                     {group.group && (
                       <tr>
-                        <td colSpan={actions.length+1} style={{fontWeight:'bold', fontSize:'14px',textAlign:'left',paddingLeft:'20px',color:'#155EEF', padding:'8px'}}>{group.group}</td>
+                        <td colSpan={actions.length + 1} className="groupHeader">{group.group}</td>
                       </tr>
                     )}
                     {group.items.map(item => (
                       <tr key={item}>
-                        <td style={{padding:'8px'}}>
+                        <td>
                           <input
                             type="checkbox"
                             checked={isRowAllChecked(item)}
-                            indeterminate={!isRowAllChecked(item) && actions.some(action => checked[item][action])}
                             onChange={() => handleCheckRow(item)}
-                            style={{marginRight:8}}
+                            style={{ marginRight: 8 }}
                           />
                           {item}
                         </td>
                         {actions.map(action => (
-                          <td key={action} style={{textAlign:'center'}}>
+                          <td key={action} style={{ textAlign: 'center' }}>
                             <input
                               type="checkbox"
                               checked={checked[item][action]}
@@ -206,6 +214,7 @@ function AddPermission() {
               </tbody>
             </table>
           </div>
+
           <div className="addPermissionActions">
             <button
               type="button"

@@ -14,14 +14,29 @@ import { Controller } from "react-hook-form";
 import CustomDropdown from "./CustomDropdown";
 
 import useWorkerStore from "../../stores/workerStore";
+import usePermissionStore from "../../stores/permissionStore";
 
 function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
   const { addWorker } = useWorkerStore();
+  const { permissions: rawPermissions, fetchPermissions, loading: permissionsLoading } = usePermissionStore();
   const [mode, setMode] = useState(initialMode);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const colorPickerRef = useRef(null);
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
+
+  // Transform permissions to the required format
+  const permissionList = rawPermissions
+    .filter(permission => permission.status === "ACTIVE")
+    .map((permission) => ({
+      label: permission.permissionName,
+      value: permission.id.toString(),
+    }));
+
+  useEffect(() => {
+    fetchPermissions();
+  }, [fetchPermissions]);
+
   const validationSchema = yup.object().shape({
     username: yup
       .string()
@@ -79,7 +94,7 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
         "phone2-format",
         "Telefon nömrəsini (000)-000-00-00 formatında daxil edin",
         function (value) {
-          if (!value) return true; // Allow empty/null values
+          if (!value) return true;
           return /^\(\d{3}\)-\d{3}-\d{2}-\d{2}$/.test(value);
         }
       ),
@@ -90,7 +105,7 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
         "homePhone-format",
         "Telefon nömrəsini (000)-000-00-00 formatında daxil edin",
         function (value) {
-          if (!value) return true; // Allow empty/null values
+          if (!value) return true;
           return /^\(\d{3}\)-\d{3}-\d{2}-\d{2}$/.test(value);
         }
       ),
@@ -101,7 +116,7 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
         "phone3-format",
         "Telefon nömrəsini (000)-000-00-00 formatında daxil edin",
         function (value) {
-          if (!value) return true; // Allow empty/null values
+          if (!value) return true;
           return /^\(\d{3}\)-\d{3}-\d{2}-\d{2}$/.test(value);
         }
       ),
@@ -193,7 +208,6 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
   };
 
   const handleFormSubmit = (data) => {
-    // Transform values here
     const transformedData = Object.fromEntries(
       Object.entries(data).map(([key, value]) => [
         key,
@@ -212,16 +226,6 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
       onSubmit(transformedData);
     }
   };
-
-  const permissionList = [
-    { label: "ADMIN", value: "ADMIN" },
-    { label: "DOCTOR", value: "DOCTOR" },
-    { label: "DOCTOR_FULL_PERMISSION", value: "DOCTOR_FULL_PERMISSION" },
-    { label: "ACCOUNTANT", value: "ACCOUNTANT" },
-    { label: "USER", value: "USER" },
-    { label: "WAREHOUSE_MAN", value: "WAREHOUSE_MAN" },
-    { label: "RECEPTION", value: "RECEPTION" },
-  ];
 
   return (
     <div className="main-form-container">
@@ -532,37 +536,51 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                 İcazələr <span className="text-red-500">*</span>
               </label>
               <div className="permissions-checklist">
-                <Controller
-                  name="permissions"
-                  control={control}
-                  render={({ field }) => (
-                    <>
-                      {permissionList.map((permission) => (
-                        <label key={permission.value}>
-                          <input
-                            type="checkbox"
-                            value={permission.value}
-                            checked={field.value.includes(permission.value)}
-                            onChange={(e) => {
-                              const isChecked = e.target.checked;
-                              if (isChecked) {
-                                field.onChange([permission.value]); // Set as single item array
-                              } else {
-                                field.onChange([]); // Clear if unchecked
-                              }
-                            }}
-                            disabled={mode === "view"}
-                          />
-                          {permission.label}
-                        </label>
-                      ))}
-                    </>
-                  )}
-                />
+                {permissionsLoading ? (
+                  <div className="text-sm text-gray-500">İcazələr yüklənir...</div>
+                ) : permissionList.length === 0 ? (
+                  <div className="text-sm text-gray-500">İcazə tapılmadı</div>
+                ) : (
+                  <Controller
+                    name="permissions"
+                    control={control}
+                    render={({ field }) => (
+                      <div className="grid grid-cols-2 gap-2">
+                        {permissionList.map((permission) => (
+                          <label key={permission.value} className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              value={permission.value}
+                              checked={field.value?.includes(permission.value)}
+                              onChange={(e) => {
+                                const isChecked = e.target.checked;
+                                const currentValues = field.value || [];
+                                if (isChecked) {
+                                  field.onChange([...currentValues, permission.value]);
+                                } else {
+                                  field.onChange(
+                                    currentValues.filter((val) => val !== permission.value)
+                                  );
+                                }
+                              }}
+                              disabled={mode === "view"}
+                              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <span>{permission.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  />
+                )}
               </div>
+              {errors.permissions && (
+                <p className="mt-1 text-sm text-red-600">{errors.permissions.message}</p>
+              )}
             </div>
           </div>
         </div>
+
         {Object.keys(errors).length > 0 && (
           <div className="error-summary">
             <ul>
@@ -574,6 +592,7 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
             </ul>
           </div>
         )}
+
         {mode !== "view" && (
           <div className="main-form-actions">
             <button type="submit" className="btn-submit">
