@@ -24,21 +24,15 @@ function LogIn() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [localLoading, setLocalLoading] = useState(false);
-
-  const [imageReady, setImageReady] = useState(false); // background hazır oldu
+  const [showSpinner, setShowSpinner] = useState(true);
 
   const { login, error } = useAuthStore();
   const navigate = useNavigate();
 
-  // Təkcə şəkil yüklənsə də, ya da 2 saniyə keçsə, imageReady true olacaq
   useEffect(() => {
-    const timer = setTimeout(() => setImageReady(true), 2000);
+    const timer = setTimeout(() => setShowSpinner(false), 1500);
     return () => clearTimeout(timer);
   }, []);
-
-  const handleImageLoad = () => {
-    setImageReady(true);
-  };
 
   const togglePasswordVisibility = () => {
     setPasswordShown(!passwordShown);
@@ -66,19 +60,18 @@ function LogIn() {
   };
 
   return (
-    <div className={`login-container ${imageReady ? "ready" : "loading"}`}>
+    <div className="login-container ready">
       <img
-      src={loginBg}
-      alt="login background"
-      className="login-bg-img"
-      loading="lazy"
-      onLoad={handleImageLoad}
-    />
+        src={loginBg}
+        alt="login background"
+        className="login-bg-img"
+        loading="lazy"
+      />
 
       <div className="background-overlay"></div>
       <TitleUpdater title={"LogIn"} />
 
-      {!imageReady && (
+      {showSpinner && (
         <div className="spinner-overlay">
           <div className="spinner"></div>
         </div>
