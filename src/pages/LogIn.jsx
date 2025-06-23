@@ -13,7 +13,7 @@ import { FaCheck } from "react-icons/fa";
 
 // Images
 import logo from "../assets/images/general/logos/logo.png";
-import loginBg from "../assets/images/login-page-images/login-background.jpeg";
+import loginBg from "../assets/images/login-page-images/login-background-now.jpg";
 
 // Zustand store
 import useAuthStore from "../../stores/authStore";
