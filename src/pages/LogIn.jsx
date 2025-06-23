@@ -68,11 +68,13 @@ function LogIn() {
   return (
     <div className={`login-container ${imageReady ? "ready" : "loading"}`}>
       <img
-        src={loginBg}
-        alt="login background"
-        className="login-bg-img"
-        onLoad={handleImageLoad}
-      />
+      src={loginBg}
+      alt="login background"
+      className="login-bg-img"
+      loading="lazy"
+      onLoad={handleImageLoad}
+    />
+
       <div className="background-overlay"></div>
       <TitleUpdater title={"LogIn"} />
 
