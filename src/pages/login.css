@@ -25,3 +25,21 @@
     transform: rotate(360deg);
   }
 }
+.login-bg-img {
+  position: absolute;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  z-index: 0;
+  pointer-events: none;
+  user-select: none;
+  transition: filter 0.6s ease, opacity 0.6s ease;
+  opacity: 0;
+  filter: blur(20px);
+}
+
+.login-bg-img.loaded {
+  opacity: 1;
+  filter: blur(0px);
+}

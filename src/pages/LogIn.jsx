@@ -14,7 +14,7 @@ import { FaCheck } from "react-icons/fa";
 
 // Images
 import logo from "../assets/images/general/logos/logo.png";
-import loginBg from "../assets/images/login-page-images/login-background.jpg";
+import loginBg from "../assets/images/login-page-images/login-background.jpeg";
 
 // Zustand store
 import useAuthStore from "../../stores/authStore";
@@ -25,6 +25,7 @@ function LogIn() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [localLoading, setLocalLoading] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false); // for blur effect
 
   const { login, error } = useAuthStore();
   const navigate = useNavigate();
@@ -44,7 +45,6 @@ function LogIn() {
 
       if (loginSuccess) {
         console.log("Login Success ✅");
-
         setTimeout(() => {
           navigate("/patients");
         }, 800);
@@ -60,12 +60,16 @@ function LogIn() {
 
   return (
     <div className="login-container">
-      <img src={loginBg} alt="login background" className="login-bg-img" />
+      <img
+        src={loginBg}
+        alt="login background"
+        className={`login-bg-img ${imgLoaded ? "loaded" : "loading"}`}
+        onLoad={() => setImgLoaded(true)}
+      />
       <TitleUpdater title={"LogIn"} />
 
-      {/* Fullscreen Loading Spinner */}
       {localLoading && (
-        <div className={`spinner-overlay ${localLoading ? "" : "hidden"}`}>
+        <div className={`spinner-overlay`}>
           <div className="spinner"></div>
         </div>
       )}
@@ -99,10 +103,7 @@ function LogIn() {
               required
             />
             {passwordShown ? (
-              <GoEyeClosed
-                className="eye-btn"
-                onClick={togglePasswordVisibility}
-              />
+              <GoEyeClosed className="eye-btn" onClick={togglePasswordVisibility} />
             ) : (
               <FiEye className="eye-btn" onClick={togglePasswordVisibility} />
             )}
