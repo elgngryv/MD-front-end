@@ -14,6 +14,7 @@ import { FaCheck } from "react-icons/fa";
 
 // Images
 import logo from "../assets/images/general/logos/logo.png";
+import loginBg from "../assets/images/login-page-images/login-background.webp";
 
 // Zustand store
 import useAuthStore from "../../stores/authStore";
@@ -59,6 +60,7 @@ function LogIn() {
 
   return (
     <div className="login-container">
+      <img src={loginBg} alt="login background" className="login-bg-img" />
       <TitleUpdater title={"LogIn"} />
 
       {/* Fullscreen Loading Spinner */}
