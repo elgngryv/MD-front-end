@@ -91,7 +91,7 @@ function LogIn() {
           <div className="username-part">
             <input
               type="text"
-              placeholder="İstifadəçinin adı"
+              placeholder="İstifadəçinin adıi"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
