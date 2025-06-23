@@ -14,7 +14,7 @@ import { FaCheck } from "react-icons/fa";
 
 // Images
 import logo from "../assets/images/general/logos/logo.png";
-import loginBg from "../assets/images/login-page-images/login-background.webp";
+import loginBg from "../assets/images/login-page-images/login-background.jpg";
 
 // Zustand store
 import useAuthStore from "../../stores/authStore";
