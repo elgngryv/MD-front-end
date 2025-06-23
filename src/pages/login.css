@@ -1,3 +1,42 @@
+.login-container {
+  position: relative;
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  overflow: hidden;
+  transition: all 0.5s ease;
+}
+
+.login-bg-img {
+  position: absolute;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover;
+  z-index: 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+.background-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(25px);
+  z-index: 1;
+  transition: all 0.8s ease;
+  opacity: 1;
+}
+
+/* Arxa qat açılır */
+.login-container.ready .background-overlay {
+  opacity: 0;
+  backdrop-filter: blur(0px);
+}
+
+/* Spinner */
 .spinner-overlay {
   position: fixed;
   top: 0;
@@ -24,22 +63,4 @@
   to {
     transform: rotate(360deg);
   }
-}
-.login-bg-img {
-  position: absolute;
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
-  object-fit: cover;
-  z-index: 0;
-  pointer-events: none;
-  user-select: none;
-  transition: filter 0.6s ease, opacity 0.6s ease;
-  opacity: 0;
-  filter: blur(20px);
-}
-
-.login-bg-img.loaded {
-  opacity: 1;
-  filter: blur(0px);
 }

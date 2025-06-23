@@ -1,7 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../assets/style/login.css";
-import axios from "axios";
 import "./login.css";
 
 // Components
@@ -25,10 +24,21 @@ function LogIn() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [localLoading, setLocalLoading] = useState(false);
-  const [imgLoaded, setImgLoaded] = useState(false); // for blur effect
+
+  const [imageReady, setImageReady] = useState(false); // background hazır oldu
 
   const { login, error } = useAuthStore();
   const navigate = useNavigate();
+
+  // Təkcə şəkil yüklənsə də, ya da 2 saniyə keçsə, imageReady true olacaq
+  useEffect(() => {
+    const timer = setTimeout(() => setImageReady(true), 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleImageLoad = () => {
+    setImageReady(true);
+  };
 
   const togglePasswordVisibility = () => {
     setPasswordShown(!passwordShown);
@@ -44,12 +54,9 @@ function LogIn() {
         .login({ username, password });
 
       if (loginSuccess) {
-        console.log("Login Success ✅");
         setTimeout(() => {
           navigate("/patients");
         }, 800);
-      } else {
-        console.log("Login failed ❌");
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -59,17 +66,18 @@ function LogIn() {
   };
 
   return (
-    <div className="login-container">
+    <div className={`login-container ${imageReady ? "ready" : "loading"}`}>
       <img
         src={loginBg}
         alt="login background"
-        className={`login-bg-img ${imgLoaded ? "loaded" : "loading"}`}
-        onLoad={() => setImgLoaded(true)}
+        className="login-bg-img"
+        onLoad={handleImageLoad}
       />
+      <div className="background-overlay"></div>
       <TitleUpdater title={"LogIn"} />
 
-      {localLoading && (
-        <div className={`spinner-overlay`}>
+      {!imageReady && (
+        <div className="spinner-overlay">
           <div className="spinner"></div>
         </div>
       )}
