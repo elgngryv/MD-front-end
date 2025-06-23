@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../assets/style/login.css";
+import axios from "axios";
 import "./login.css";
 
 // Components
@@ -24,15 +25,9 @@ function LogIn() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [localLoading, setLocalLoading] = useState(false);
-  const [showSpinner, setShowSpinner] = useState(true);
 
   const { login, error } = useAuthStore();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const timer = setTimeout(() => setShowSpinner(false), 1500);
-    return () => clearTimeout(timer);
-  }, []);
 
   const togglePasswordVisibility = () => {
     setPasswordShown(!passwordShown);
@@ -48,9 +43,13 @@ function LogIn() {
         .login({ username, password });
 
       if (loginSuccess) {
+        console.log("Login Success ✅");
+
         setTimeout(() => {
           navigate("/patients");
         }, 800);
+      } else {
+        console.log("Login failed ❌");
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -60,19 +59,13 @@ function LogIn() {
   };
 
   return (
-    <div className="login-container ready">
-      <img
-        src={loginBg}
-        alt="login background"
-        className="login-bg-img"
-        loading="lazy"
-      />
-
-      <div className="background-overlay"></div>
+    <div className="login-container">
+      <img src={loginBg} alt="login background" className="login-bg-img" />
       <TitleUpdater title={"LogIn"} />
 
-      {showSpinner && (
-        <div className="spinner-overlay">
+      {/* Fullscreen Loading Spinner */}
+      {localLoading && (
+        <div className={`spinner-overlay${localLoading ? "" : " hidden"}`}>
           <div className="spinner"></div>
         </div>
       )}
@@ -91,7 +84,7 @@ function LogIn() {
           <div className="username-part">
             <input
               type="text"
-              placeholder="İstifadəçinin adıi"
+              placeholder="İstifadəçinin adı"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
@@ -106,7 +99,10 @@ function LogIn() {
               required
             />
             {passwordShown ? (
-              <GoEyeClosed className="eye-btn" onClick={togglePasswordVisibility} />
+              <GoEyeClosed
+                className="eye-btn"
+                onClick={togglePasswordVisibility}
+              />
             ) : (
               <FiEye className="eye-btn" onClick={togglePasswordVisibility} />
             )}
@@ -114,7 +110,7 @@ function LogIn() {
         </div>
 
         <div className="remember-me" onClick={() => setRememberMe(!rememberMe)}>
-          <div className={`custom-checkbox ${rememberMe ? "checked" : ""}`}>
+          <div className={`custom-checkbox${rememberMe ? " checked" : ""}`}>
             {rememberMe && <FaCheck className="check-icon" />}
           </div>
           <label>Yadda saxla</label>
