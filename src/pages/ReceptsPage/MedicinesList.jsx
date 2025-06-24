@@ -31,7 +31,7 @@ function MedicinesList() {
 
   // Edit
   const handleEdit = (row) => {
-    navigate(`edit/${row.id}`);
+    navigate(`/recepts/${row.recipeId}/edit/${row.id}`);
   };
 
   // Delete

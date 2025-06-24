@@ -223,6 +223,7 @@ import AddOperationPicture from "./pages/Teeth/AddOperationPicture";
 import AddExaminationPicture from "./pages/Teeth/AddExaminationPicture";
 
 import InfoPermission from "./pages/PermissionsPage/InfoPermission";
+import EditMedicine from "./pages/ReceptsPage/EditMedicine";
 
 // Constants
 const roomOptions = [
@@ -322,8 +323,7 @@ const AnimatedRoutes = () => {
         <Routes location={location} key={location.pathname}>
           {/* Auth Routes */}
           <Route path="/" element={<LogIn />} />
-          <Route path="/login" element={<LogIn/>}/>
-
+          <Route path="/login" element={<LogIn />} />
 
           <Route element={<Layout />}>
             <Route path="/patients" element={<PatientsList />} />
@@ -670,7 +670,7 @@ const AnimatedRoutes = () => {
             <Route path="/recepts/edit/:id" element={<EditRecept />} />
             <Route path="/recepts/:id" element={<MedicinesList />} />
             <Route path="/recepts/:id/add" element={<AddMedicine />} />
-            <Route path="/recepts/:id/edit/:id" element={<AddMedicine />} />
+            <Route path="/recepts/:id/edit/:id" element={<EditMedicine />} />
             {/* Insurance Page Routes */}
             <Route path="/insurance" element={<InsuranceList />} />
             <Route path="/insurance/add" element={<AddInsurance />} />

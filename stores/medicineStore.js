@@ -103,9 +103,15 @@ const useMedicineStore = create((set) => ({
     set({ loading: true, error: null });
     try {
       const data = await readMedicineById(id);
-      set({ selectedMedicine: data, loading: false });
+      set({
+        selectedMedicine: data,
+        loading: false,
+      });
     } catch (error) {
-      set({ error, loading: false });
+      set({
+        error: error.response?.data || error,
+        loading: false,
+      });
     }
   },
 

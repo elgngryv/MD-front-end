@@ -13,49 +13,54 @@ import cancelButton from "../../assets/images/EmployeesPage/cancelProcess.png";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-// Static data
-const staticReceptsData = [
-  { id: "1", receptName: "Recept 1" },
-  { id: "2", receptName: "Recept 2" },
-  { id: "3", receptName: "Recept 3" },
-];
+// Store
+import useRecipeStore from "../../../stores/receptsStore";
 
 function EditRecept() {
   const [receptName, setReceptName] = useState("");
   const navigate = useNavigate();
   const { id } = useParams();
 
+  const {
+    selectedRecipe,
+    fetchRecipeById,
+    updateRecipeById,
+    loading,
+    error,
+  } = useRecipeStore();
+
   useEffect(() => {
-    // Find recept from static data
-    const recept = staticReceptsData.find(item => item.id === id);
-    if (recept) {
-      setReceptName(recept.receptName);
+    if (id) {
+      fetchRecipeById(id);
     }
   }, [id]);
+
+  useEffect(() => {
+    if (selectedRecipe) {
+      setReceptName(selectedRecipe.name || "");
+    }
+  }, [selectedRecipe]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!receptName.trim()) return;
+    if (!receptName.trim()) {
+      toast.warning("Reseptin adı boş ola bilməz!");
+      return;
+    }
 
     try {
-      // Static data update example
-      const updatedRecept = {
-        id,
-        receptName: receptName.trim(),
-      };
-
-      console.log("Updated Recept:", updatedRecept);
+      await updateRecipeById(id, { name: receptName.trim() });
       toast.success("Resept uğurla yeniləndi!");
       navigate("/recepts");
-    } catch (error) {
-      console.error("Resept yenilənərkən xəta:", error);
+    } catch (err) {
       toast.error("Resept yenilənərkən xəta baş verdi!");
     }
   };
 
   return (
     <div className="editReceptWrapper">
+      <ToastContainer />
       <form className="editReceptContainer" onSubmit={handleSubmit}>
         <div className="editReceptInput">
           <p>
@@ -66,6 +71,7 @@ function EditRecept() {
             placeholder="Reseptin adı"
             value={receptName}
             onChange={(e) => setReceptName(e.target.value)}
+            disabled={loading}
           />
         </div>
 
@@ -73,12 +79,18 @@ function EditRecept() {
           <button
             type="button"
             className="cancelFormCondition"
-            onClick={() => navigate("/recepts")}>
+            onClick={() => navigate("/recepts")}
+            disabled={loading}
+          >
             <img src={cancelButton} alt="cancel" />
             İmtina et
           </button>
 
-          <button type="submit" className="acceptFormCondition">
+          <button
+            type="submit"
+            className="acceptFormCondition"
+            disabled={loading}
+          >
             <img src={acceptButton} alt="accept" />
             Yadda saxla
           </button>

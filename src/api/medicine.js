@@ -50,7 +50,10 @@ export const readMedicine = async (recipeId) => {
 // ✔ Read by ID
 export const readMedicineById = async (id) => {
   const response = await axiosInstance.get(
-    `${API_BASE_URL}/medicine/read-by-id`
+    `${API_BASE_URL}/medicine/read-by-id`,
+    {
+      params: { id }, // Send ID as query parameter
+    }
   );
   return response.data;
 };
