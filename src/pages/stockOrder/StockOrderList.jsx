@@ -12,8 +12,6 @@ const StockOrder = () => {
   const { orders, error, fetchOrders } = useOrderFromWarehouseStore();
   const { workers, fetchWorkers } = useWorkerStore();
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filteredOrders, setFilteredOrders] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
 
   const categories = [
