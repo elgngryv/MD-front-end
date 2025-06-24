@@ -19,12 +19,12 @@ import axios from "axios";
 import useOrdersFromWarehouseStore from "../../../stores/orderFromWarehouseStore";
 import "../../assets/style/StockOrder/stockorderedit.css";
 
-const API_BASE_URL = "http://159.89.3.81:5555/api/v1";
+const API_BASE_URL = "http://195.7.6.10:5555/api/v1";
 
 const StockOrderEdit = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { register, handleSubmit, setValue, reset } = useForm();
+  const { register, handleSubmit, setValue, watch } = useForm();
   const { createOrder } = useOrdersFromWarehouseStore();
 
   const [products, setProducts] = useState([]);
@@ -52,75 +52,134 @@ const StockOrderEdit = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setIsLoading(true);
+
+        // Fetch categories
         const categoriesResponse = await axios.get(
-          `${API_BASE_URL}/product-category/read`
+          `${API_BASE_URL}/product-category/read`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
         );
-        setCategories(
-          categoriesResponse.data.map((cat) => ({
-            value: cat.id,
-            label: cat.name || cat.categoryName,
-          }))
-        );
+        const fetchedCategories = categoriesResponse.data.map((cat) => ({
+          value: cat.id,
+          label: cat.name || cat.categoryName,
+        }));
+        setCategories(fetchedCategories);
 
+        // Fetch products
         const productsResponse = await axios.get(
-          `${API_BASE_URL}/product/read`
+          `${API_BASE_URL}/product/read`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
         );
-        setProductsByCategory(
-          productsResponse.data.map((prod) => ({
-            value: prod.id,
-            label: prod.name || prod.productName,
-            categoryId: prod.categoryId || prod.productCategoryId,
-            price: prod.price,
-          }))
-        );
+        const fetchedProducts = productsResponse.data.map((prod) => ({
+          value: prod.id,
+          label: prod.name || prod.productName,
+          categoryId: prod.categoryId || prod.productCategoryId,
+          price: prod.price,
+        }));
+        setProductsByCategory(fetchedProducts);
 
+        // Fetch warehouse entries
         const warehouseEntriesResponse = await axios.get(
-          `${API_BASE_URL}/warehouse-entry/read`
+          `${API_BASE_URL}/warehouse-entry/read`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
         );
-        setWarehouseEntries(
-          warehouseEntriesResponse.data.map((entry) => ({
-            value: entry.id,
-            label: `Anbar girişi #${entry.id} - ${entry.date || "Tarixsiz"}`,
-          }))
-        );
+        const fetchedWarehouseEntries = warehouseEntriesResponse.data.map((entry) => ({
+          value: entry.id,
+          label: `Anbar girişi #${entry.id} - ${entry.date || "Tarixsiz"}`,
+        }));
+        setWarehouseEntries(fetchedWarehouseEntries);
 
+        // If in edit mode, fetch the order data
         if (mode === "edit" && id) {
           const orderResponse = await axios.get(
-            `${API_BASE_URL}/order-from-warehouse/info/${id}`
+            `${API_BASE_URL}/order-from-warehouse/info/${id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            }
           );
           const orderData = orderResponse.data;
 
+          // Set form values
           setValue("orderDate", orderData.date);
-          setValue("orderTime", orderData.time);
+
+          // --- FIX START ---
+          let formattedTime = "";
+          if (orderData.time) {
+            // Assuming orderData.time is an object like { hour: 10, minute: 30 }
+            // or a string like "10:30:00"
+            if (typeof orderData.time === 'object' && orderData.time !== null) {
+              const hour = String(orderData.time.hour).padStart(2, '0');
+              const minute = String(orderData.time.minute).padStart(2, '0');
+              formattedTime = `${hour}:${minute}`;
+            } else if (typeof orderData.time === 'string' && orderData.time.length >= 5) {
+                // If it's a string like "HH:mm:ss" or "HH:mm"
+                formattedTime = orderData.time.substring(0, 5); // Take only HH:mm
+            }
+          }
+          setValue("orderTime", formattedTime);
+          // --- FIX END ---
+
           setValue("room", orderData.room);
           setValue("note", orderData.description);
 
-          if (
-            Array.isArray(orderData.orderFromWarehouseProductRequests) &&
-            orderData.orderFromWarehouseProductRequests.length > 0
-          ) {
-            const formattedProducts =
-              orderData.orderFromWarehouseProductRequests.map((item) => {
-                const categoryObj = categories.find(
-                  (c) => c.value === item.categoryId
+          // Set products if they exist
+          if (orderData.orderFromWarehouseProductResponses?.length > 0) {
+            const formattedProducts = await Promise.all(
+              orderData.orderFromWarehouseProductResponses.map(async (item) => {
+                // Try to find matching product and category
+                const foundProduct = fetchedProducts.find(
+                  (p) => p.label === item.productName || p.label === item.productTitle
                 );
-                const productObj = productsByCategory.find(
-                  (p) => p.value === item.productId
+                const foundCategory = fetchedCategories.find(
+                  (c) => c.label === item.categoryName
                 );
+
+                // Fetch warehouse entry product details if needed
+                let warehouseEntryProduct = null;
+                if (item.warehouseEntryProductId) {
+                  try {
+                    const productResponse = await axios.get(
+                      `${API_BASE_URL}/warehouse-entry-product/info/${item.warehouseEntryProductId}`,
+                      {
+                        headers: {
+                          Authorization: `Bearer ${localStorage.getItem("token")}`,
+                        },
+                      }
+                    );
+                    warehouseEntryProduct = productResponse.data;
+                  } catch (error) {
+                    console.error("Error fetching warehouse entry product:", error);
+                  }
+                }
 
                 return {
-                  id: Date.now() + Math.random(),
-                  category: item.categoryId,
-                  name: item.productId,
+                  id: Date.now() + Math.random(), // Unique ID for React list key
+                  category: foundCategory?.value || "",
+                  name: foundProduct?.value || "",
                   quantity: item.quantity,
-                  price: productObj?.price || 0,
+                  price: foundProduct?.price || warehouseEntryProduct?.price || 0,
                   warehouseEntryId: item.warehouseEntryId,
                   warehouseEntryProductId: item.warehouseEntryProductId,
-                  categoryName: categoryObj?.label || "",
-                  productName: productObj?.label || "",
+                  categoryName: item.categoryName,
+                  productName: item.productName || item.productTitle,
+                  warehouseEntryProductName: warehouseEntryProduct?.productName || item.productName || item.productTitle,
                 };
-              });
-
+              })
+            );
             setProducts(formattedProducts);
           }
         }
@@ -138,16 +197,16 @@ const StockOrderEdit = () => {
     fetchData();
   }, [id, setValue]);
 
-  useEffect(() => {
-    reset();
-    setProducts([]);
-  }, [reset]);
-
   const handleProductChange = (field, value) => {
     setCurrentProduct((prev) => ({
       ...prev,
       [field]: value,
       ...(field === "category" ? { name: "" } : {}),
+      ...(field === "warehouseEntryId" ? {
+        warehouseEntryProductId: "",
+        category: "",
+        name: ""
+      } : {}),
     }));
   };
 
@@ -155,13 +214,15 @@ const StockOrderEdit = () => {
     setIsLoadingEntryProducts(true);
     try {
       const infoResponse = await axios.get(
-        `${API_BASE_URL}/warehouse-entry/info/${warehouseEntryId}`
+        `${API_BASE_URL}/warehouse-entry/info/${warehouseEntryId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
       );
-      if (
-        infoResponse.data &&
-        Array.isArray(infoResponse.data.warehouseEntryProducts) &&
-        infoResponse.data.warehouseEntryProducts.length > 0
-      ) {
+
+      if (infoResponse.data?.warehouseEntryProducts?.length > 0) {
         return infoResponse.data.warehouseEntryProducts.map((product) => ({
           id: product.id,
           value: product.id,
@@ -174,12 +235,15 @@ const StockOrderEdit = () => {
       }
 
       const fallbackResponse = await axios.get(
-        `${API_BASE_URL}/warehouse-entry-product/read-by-warehouse-entry/${warehouseEntryId}`
+        `${API_BASE_URL}/warehouse-entry-product/read-by-warehouse-entry/${warehouseEntryId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
       );
-      if (
-        Array.isArray(fallbackResponse.data) &&
-        fallbackResponse.data.length > 0
-      ) {
+
+      if (fallbackResponse.data?.length > 0) {
         return fallbackResponse.data.map((product) => ({
           id: product.id,
           value: product.id,
@@ -188,42 +252,6 @@ const StockOrderEdit = () => {
           categoryId: product.categoryId,
           quantity: product.quantity,
           price: product.price,
-        }));
-      }
-
-      const allProductsResponse = await axios.get(
-        `${API_BASE_URL}/warehouse-entry-product/read`
-      );
-      const filtered = allProductsResponse.data.filter(
-        (p) => p.warehouseEntryId === warehouseEntryId
-      );
-      if (filtered.length > 0) {
-        return filtered.map((product) => ({
-          id: product.id,
-          value: product.id,
-          label: `${product.productName || "Məhsul"} (ID: ${product.id})`,
-          productId: product.productId,
-          categoryId: product.categoryId,
-          quantity: product.quantity,
-          price: product.price,
-        }));
-      }
-
-      const productsApiResponse = await axios.get(
-        `${API_BASE_URL}/product/read`
-      );
-      if (
-        Array.isArray(productsApiResponse.data) &&
-        productsApiResponse.data.length > 0
-      ) {
-        return productsApiResponse.data.map((prod) => ({
-          id: `${warehouseEntryId}-${prod.id}`,
-          value: `${warehouseEntryId}-${prod.id}`,
-          label: `${prod.productName} (Anbar: ${warehouseEntryId})`,
-          productId: prod.id,
-          categoryId: prod.categoryId,
-          quantity: 100,
-          price: prod.price || 10,
         }));
       }
 
@@ -240,11 +268,8 @@ const StockOrderEdit = () => {
     try {
       const warehouseEntryId = option.value;
       handleProductChange("warehouseEntryId", warehouseEntryId);
-      handleProductChange("warehouseEntryProductId", "");
 
-      const entryProducts = await fetchWarehouseEntryProducts(
-        warehouseEntryId
-      );
+      const entryProducts = await fetchWarehouseEntryProducts(warehouseEntryId);
       setWarehouseEntryProducts(entryProducts);
 
       if (entryProducts.length === 0) {
@@ -265,14 +290,14 @@ const StockOrderEdit = () => {
       (p) => p.value === option.value
     );
     if (entryProduct) {
-      handleProductChange("warehouseEntryProductId", option.value);
-      if (entryProduct.categoryId && entryProduct.productId) {
-        handleProductChange("category", entryProduct.categoryId);
-        handleProductChange("name", entryProduct.productId);
-      }
-      if (entryProduct.price) {
-        handleProductChange("price", entryProduct.price);
-      }
+      setCurrentProduct(prev => ({
+        ...prev,
+        warehouseEntryProductId: option.value,
+        category: entryProduct.categoryId || prev.category,
+        name: entryProduct.productId || prev.name,
+        price: entryProduct.price || prev.price,
+        quantity: entryProduct.quantity || prev.quantity
+      }));
     }
   };
 
@@ -285,39 +310,29 @@ const StockOrderEdit = () => {
       const selectedWarehouseEntryProduct = warehouseEntryProducts.find(
         (prod) => prod.value === currentProduct.warehouseEntryProductId
       );
+
       if (!selectedWarehouseEntryProduct) {
         alert("Seçilmiş anbar məhsulu tapılmadı. Zəhmət olmasa yenidən seçin.");
         return;
       }
 
-      const categoryId =
-        currentProduct.category || selectedWarehouseEntryProduct.categoryId;
-      const productId =
-        currentProduct.name || selectedWarehouseEntryProduct.productId;
+      const categoryId = selectedWarehouseEntryProduct.categoryId;
+      const productId = selectedWarehouseEntryProduct.productId;
 
-      const selectedCategory = categories.find(
-        (c) => c.value === categoryId
-      );
-      const selectedProduct = productsByCategory.find(
-        (p) => p.value === productId
-      );
+      const selectedCategory = categories.find((c) => c.value === categoryId);
+      const selectedProduct = productsByCategory.find((p) => p.value === productId);
 
       const newProduct = {
         id: Date.now(),
         category: categoryId,
         name: productId,
         quantity: currentProduct.quantity,
-        price:
-          currentProduct.price ||
-          selectedWarehouseEntryProduct.price ||
-          0,
+        price: selectedWarehouseEntryProduct.price || 0,
         categoryName: selectedCategory?.label || "Unknown Category",
         productName: selectedProduct?.label || "Unknown Product",
         warehouseEntryId: currentProduct.warehouseEntryId,
-        warehouseEntryProductId:
-          currentProduct.warehouseEntryProductId,
-        warehouseEntryProductName:
-          selectedWarehouseEntryProduct?.label ||
+        warehouseEntryProductId: currentProduct.warehouseEntryProductId,
+        warehouseEntryProductName: selectedWarehouseEntryProduct?.label ||
           `Anbar məhsulu (ID: ${currentProduct.warehouseEntryProductId})`,
       };
 
@@ -346,21 +361,7 @@ const StockOrderEdit = () => {
       let timeString = "00:00:00";
       if (data.orderTime) {
         const [hour, minute] = data.orderTime.split(":");
-        timeString = `${hour.padStart(2, "0")}:${minute.padStart(
-          2,
-          "0"
-        )}:00`;
-      }
-
-      const invalidProducts = products.filter(
-        (p) => !p.warehouseEntryProductId
-      );
-      if (invalidProducts.length > 0) {
-        alert(
-          "Bəzi məhsulların anbar məhsulu ID-si yoxdur. Zəhmət olmasa məhsulları yenidən əlavə edin."
-        );
-        setIsSubmitting(false);
-        return;
+        timeString = `${hour.padStart(2, "0")}:${minute.padStart(2, "0")}:00`;
       }
 
       if (products.length === 0) {
@@ -370,18 +371,16 @@ const StockOrderEdit = () => {
       }
 
       const payload = {
+        id: Number(id),
         date: data.orderDate,
         time: timeString,
         room: data.room,
         orderFromWarehouseProductRequests: products.map((p) => ({
-          warehouseEntryId: Number.parseInt(p.warehouseEntryId, 10),
-          warehouseEntryProductId: Number.parseInt(
-            p.warehouseEntryProductId,
-            10
-          ),
-          categoryId: Number.parseInt(p.category, 10),
-          productId: Number.parseInt(p.name, 10),
-          quantity: Number.parseInt(p.quantity, 10),
+          warehouseEntryId: Number(p.warehouseEntryId),
+          warehouseEntryProductId: Number(p.warehouseEntryProductId),
+          categoryId: Number(p.category),
+          productId: Number(p.name),
+          quantity: Number(p.quantity),
         })),
         description: data.note,
       };
@@ -389,15 +388,17 @@ const StockOrderEdit = () => {
       console.log("Sending payload:", payload);
       setDebugInfo(JSON.stringify(payload, null, 2));
 
-      const apiUrl = `${API_BASE_URL}/order-from-warehouse/update/${id}`;
-      const response = await axios.put(apiUrl, payload, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      const response = await axios.put(
+        `${API_BASE_URL}/order-from-warehouse/update`,
+        payload,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
 
-      console.log("Başarılı cavab:", response.data);
       setApiResponse(JSON.stringify(response.data, null, 2));
       alert("Sifariş uğurla yeniləndi!");
       navigate("/stock/order");
@@ -408,13 +409,8 @@ const StockOrderEdit = () => {
         errorMessage += error.response.data.message;
       } else if (error.message) {
         errorMessage += error.message;
-      } else {
-        errorMessage += "Naməlum xəta";
       }
-      if (error.response?.status === 404) {
-        errorMessage +=
-          "\nAPI endpoint tapılmadı. Zəhmət olmasa API endpoint-in düzgün olduğunu yoxlayın.";
-      }
+
       alert(errorMessage);
       setApiResponse(
         JSON.stringify(error.response?.data || error.message, null, 2)
@@ -451,9 +447,7 @@ const StockOrderEdit = () => {
         .then((entryProducts) => {
           setWarehouseEntryProducts(entryProducts);
         })
-        .catch((error) => {
-          console.error("Error fetching warehouse entry products:", error);
-        });
+        .catch(console.error);
     }
 
     setProducts((prev) => prev.filter((p) => p.id !== product.id));
@@ -463,7 +457,12 @@ const StockOrderEdit = () => {
     if (window.confirm("Bu sifarişi silmək istədiyinizə əminsiniz?")) {
       try {
         await axios.delete(
-          `${API_BASE_URL}/order-from-warehouse/delete/${id}`
+          `${API_BASE_URL}/order-from-warehouse/delete/${id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
         );
         alert("Sifariş uğurla silindi!");
         navigate("/orders");
@@ -480,288 +479,229 @@ const StockOrderEdit = () => {
   if (isLoading) {
     return (
       <div className="stockOrderFormWrapper__loading">
-        <FontAwesomeIcon
-          icon={faSpinner}
-          spin
-          className="stockOrderFormWrapper__spinner"
-        />
-        <span className="stockOrderFormWrapper__loadingText">
-          Yüklənir...
-        </span>
+        <FontAwesomeIcon icon={faSpinner} spin className="stockOrderFormWrapper__spinner" />
+        <span className="stockOrderFormWrapper__loadingText">Yüklənir...</span>
       </div>
     );
   }
 
   return (
     <div className="stockOrderFormWrapper">
-      <form
-        onSubmit={handleSubmit(handleFormSubmit)}
-        className="stockOrderFormWrapper__form"
-      >
+      <form onSubmit={handleSubmit(handleFormSubmit)} className="stockOrderFormWrapper__form">
         <div className="stockOrderFormWrapper__row">
-          <label
-            htmlFor="orderDate"
-            className="stockOrderFormWrapper__label"
-          >
-            Sifariş tarixi{" "}
-            <span className="stockOrderFormWrapper__required">*</span>
+          <label htmlFor="orderDate" className="stockOrderFormWrapper__label">
+            Sifariş tarixi <span className="stockOrderFormWrapper__required">*</span>
           </label>
           <div className="stockOrderFormWrapper__inputContainer">
             <input
               id="orderDate"
               type="date"
               {...register("orderDate", { required: true })}
-              readOnly={mode === "view"}
               className="stockOrderFormWrapper__input"
+              key={`orderDate-${id}`}
             />
           </div>
         </div>
 
         <div className="stockOrderFormWrapper__row">
-          <label
-            htmlFor="orderTime"
-            className="stockOrderFormWrapper__label"
-          >
-            Saat{" "}
-            <span className="stockOrderFormWrapper__required">*</span>
+          <label htmlFor="orderTime" className="stockOrderFormWrapper__label">
+            Saat <span className="stockOrderFormWrapper__required">*</span>
           </label>
           <div className="stockOrderFormWrapper__inputContainer">
             <input
               id="orderTime"
               type="time"
               {...register("orderTime", { required: true })}
-              readOnly={mode === "view"}
               className="stockOrderFormWrapper__input"
+              key={`orderTime-${id}`}
             />
           </div>
         </div>
 
         <div className="stockOrderFormWrapper__row">
           <label htmlFor="room" className="stockOrderFormWrapper__label">
-            Otaq{" "}
-            <span className="stockOrderFormWrapper__required">*</span>
+            Otaq <span className="stockOrderFormWrapper__required">*</span>
           </label>
           <div className="stockOrderFormWrapper__inputContainer">
             <input
               id="room"
               type="text"
               {...register("room", { required: true })}
-              readOnly={mode === "view"}
               className="stockOrderFormWrapper__input"
+              key={`room-${id}`}
             />
           </div>
         </div>
 
         <div className="stockOrderFormWrapper__row">
           <label htmlFor="note" className="stockOrderFormWrapper__label">
-            Qeyd{" "}
-            <span className="stockOrderFormWrapper__required">*</span>
+            Qeyd <span className="stockOrderFormWrapper__required">*</span>
           </label>
           <div className="stockOrderFormWrapper__inputContainer">
             <textarea
               id="note"
               {...register("note", { required: true })}
-              readOnly={mode === "view"}
               className="stockOrderFormWrapper__textarea"
+              key={`note-${id}`}
             />
           </div>
         </div>
 
-        {mode !== "view" && (
-          <div className="stockOrderFormWrapper__productsSection">
-            <div className="stockOrderFormWrapper__row">
-              <label className="stockOrderFormWrapper__label">
-                Məhsullar
-              </label>
-              <div className="stockOrderFormWrapper__productsControls">
-                <div
-                  className="stockOrderFormWrapper__fieldGroup"
-                  style={{ minWidth: "200px" }}
-                >
+        <div className="stockOrderFormWrapper__productsSection">
+          <div className="stockOrderFormWrapper__row">
+            <label className="stockOrderFormWrapper__label">Məhsullar</label>
+            <div className="stockOrderFormWrapper__productsControls">
+              <div className="stockOrderFormWrapper__fieldGroup" style={{ minWidth: "200px" }}>
+                <label className="stockOrderFormWrapper__labelSmall">
+                  Anbar girişi <span className="stockOrderFormWrapper__required">*</span>
+                </label>
+                <CustomDropdown
+                  value={warehouseEntries.find(
+                    (entry) => entry.value === currentProduct.warehouseEntryId
+                  )}
+                  onChange={handleWarehouseEntryChange}
+                  options={warehouseEntries}
+                  placeholder="Anbar girişi seçin"
+                  className="stockOrderFormWrapper__dropdown"
+                />
+              </div>
+
+              {isLoadingEntryProducts ? (
+                <div className="stockOrderFormWrapper__fieldGroup">
+                  <label className="stockOrderFormWrapper__labelSmall">Anbar məhsulu</label>
+                  <div className="stockOrderFormWrapper__loadingSmall">
+                    <FontAwesomeIcon icon={faSpinner} spin className="stockOrderFormWrapper__spinnerSmall" />
+                    <span className="stockOrderFormWrapper__loadingTextSmall">Yüklənir...</span>
+                  </div>
+                </div>
+              ) : warehouseEntryProducts.length > 0 ? (
+                <div className="stockOrderFormWrapper__fieldGroup">
                   <label className="stockOrderFormWrapper__labelSmall">
-                    Anbar girişi{" "}
-                    <span className="stockOrderFormWrapper__required">
-                      *
-                    </span>
+                    Anbar məhsulu <span className="stockOrderFormWrapper__required">*</span>
                   </label>
                   <CustomDropdown
-                    value={warehouseEntries.find(
-                      (entry) =>
-                        entry.value ===
-                        currentProduct.warehouseEntryId
+                    value={warehouseEntryProducts.find(
+                      (product) => product.value === currentProduct.warehouseEntryProductId
                     )}
-                    onChange={handleWarehouseEntryChange}
-                    options={warehouseEntries}
-                    placeholder="Anbar girişi seçin"
+                    onChange={handleWarehouseEntryProductChange}
+                    options={warehouseEntryProducts}
+                    placeholder="Anbar məhsulu seçin"
                     className="stockOrderFormWrapper__dropdown"
                   />
                 </div>
-
-                {isLoadingEntryProducts ? (
-                  <div className="stockOrderFormWrapper__fieldGroup">
-                    <label className="stockOrderFormWrapper__labelSmall">
-                      Anbar məhsulu
-                    </label>
-                    <div className="stockOrderFormWrapper__loadingSmall">
-                      <FontAwesomeIcon
-                        icon={faSpinner}
-                        spin
-                        className="stockOrderFormWrapper__spinnerSmall"
-                      />
-                      <span className="stockOrderFormWrapper__loadingTextSmall">
-                        Yüklənir...
-                      </span>
-                    </div>
-                  </div>
-                ) : warehouseEntryProducts.length > 0 ? (
-                  <div className="stockOrderFormWrapper__fieldGroup">
-                    <label className="stockOrderFormWrapper__labelSmall">
-                      Anbar məhsulu{" "}
-                      <span className="stockOrderFormWrapper__required">
-                        *
-                      </span>
-                    </label>
-                    <CustomDropdown
-                      value={warehouseEntryProducts.find(
-                        (product) =>
-                          product.value ===
-                          currentProduct.warehouseEntryProductId
-                      )}
-                      onChange={handleWarehouseEntryProductChange}
-                      options={warehouseEntryProducts}
-                      placeholder="Anbar məhsulu seçin"
-                      className="stockOrderFormWrapper__dropdown"
-                    />
-                  </div>
-                ) : currentProduct.warehouseEntryId ? (
-                  <div className="stockOrderFormWrapper__fieldGroup">
-                    <label className="stockOrderFormWrapper__labelSmall">
-                      Anbar məhsulu
-                    </label>
-                    <div className="stockOrderFormWrapper__noProducts">
-                      Bu anbar girişi üçün məhsul tapılmadı!
-                    </div>
-                  </div>
-                ) : null}
-
+              ) : currentProduct.warehouseEntryId ? (
                 <div className="stockOrderFormWrapper__fieldGroup">
-                  <label className="stockOrderFormWrapper__labelSmall">
-                    Miqdar{" "}
-                    <span className="stockOrderFormWrapper__required">
-                      *
-                    </span>
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={currentProduct.quantity}
-                    onChange={(e) =>
-                      handleProductChange(
-                        "quantity",
-                        e.target.value
-                      )
-                    }
-                    className="stockOrderFormWrapper__inputSmall"
-                  />
+                  <label className="stockOrderFormWrapper__labelSmall">Anbar məhsulu</label>
+                  <div className="stockOrderFormWrapper__noProducts">
+                    Bu anbar girişi üçün məhsul tapılmadı!
+                  </div>
                 </div>
+              ) : null}
 
-                <div className="stockOrderFormWrapper__fieldGroup">
-                  <label className="stockOrderFormWrapper__labelSmall">
-                    &nbsp;
-                  </label>
-                  <button
-                    type="button"
-                    onClick={handleAddProduct}
-                    disabled={
-                      !currentProduct.warehouseEntryId ||
-                      !currentProduct.warehouseEntryProductId ||
-                      !currentProduct.quantity
-                    }
-                    className="stockOrderFormWrapper__buttonAdd"
-                  >
-                    <FontAwesomeIcon icon={faPlus} />
-                    Məhsul əlavə et
-                  </button>
-                </div>
+              <div className="stockOrderFormWrapper__fieldGroup">
+                <label className="stockOrderFormWrapper__labelSmall">
+                  Miqdar <span className="stockOrderFormWrapper__required">*</span>
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={currentProduct.quantity || ''}
+                  onChange={(e) => handleProductChange("quantity", e.target.value)}
+                  className="stockOrderFormWrapper__inputSmall"
+                />
+              </div>
+
+              <div className="stockOrderFormWrapper__fieldGroup">
+                <label className="stockOrderFormWrapper__labelSmall">&nbsp;</label>
+                <button
+                  type="button"
+                  onClick={handleAddProduct}
+                  disabled={
+                    !currentProduct.warehouseEntryId ||
+                    !currentProduct.warehouseEntryProductId ||
+                    !currentProduct.quantity
+                  }
+                  className="stockOrderFormWrapper__buttonAdd"
+                >
+                  <FontAwesomeIcon icon={faPlus} />
+                  Məhsul əlavə et
+                </button>
               </div>
             </div>
-
-            <div className="stockOrderFormWrapper__row stockOrderFormWrapper__tableRow">
-              <ListWithSubtotal
-                columns={[
-                  { key: "categoryName", label: "Kategoriya" },
-                  { key: "productName", label: "Məhsul" },
-                  { key: "quantity", label: "Miqdar" },
-                  { key: "price", label: "Qiymət" },
-                  {
-                    key: "warehouseEntryProductName",
-                    label: "Anbar məhsulu",
-                  },
-                ]}
-                data={products}
-                subtotalColumns={["price"]}
-                enableEdit={mode !== "view"}
-                enableDelete={mode !== "view"}
-                handleEdit={handleEditProduct}
-                handleDelete={handleDeleteProduct}
-                className="stockOrderFormWrapper__list"
-              />
-            </div>
           </div>
-        )}
+
+          <div className="stockOrderFormWrapper__row stockOrderFormWrapper__tableRow">
+            <ListWithSubtotal
+              columns={[
+                { key: "categoryName", label: "Kategoriya" },
+                { key: "productName", label: "Məhsul" },
+                { key: "quantity", label: "Miqdar" },
+                { key: "price", label: "Qiymət" },
+                { key: "warehouseEntryProductName", label: "Anbar məhsulu" },
+              ]}
+              data={products}
+              subtotalColumns={["price"]}
+              enableEdit={true}
+              enableDelete={true}
+              handleEdit={handleEditProduct}
+              handleDelete={handleDeleteProduct}
+              className="stockOrderFormWrapper__list"
+            />
+          </div>
+        </div>
 
         {apiResponse && (
           <div className="stockOrderFormWrapper__debug">
-            <h3 className="stockOrderFormWrapper__debugTitle">
-              API Cavabı:
-            </h3>
-            <pre className="stockOrderFormWrapper__debugPre">
-              {apiResponse}
-            </pre>
+            <h3 className="stockOrderFormWrapper__debugTitle">API Cavabı:</h3>
+            <pre className="stockOrderFormWrapper__debugPre">{apiResponse}</pre>
           </div>
         )}
 
         <div className="stockOrderFormWrapper__row">
-          <label className="stockOrderFormWrapper__label">
-            Sənədlər
-          </label>
+          <label className="stockOrderFormWrapper__label">Sənədlər</label>
           <div className="stockOrderFormWrapper__inputContainer">
             <MultiFileForm mode={mode} />
           </div>
         </div>
 
-        {mode !== "view" && (
-          <div className="stockOrderFormWrapper__actions">
-            <button
-              type="button"
-              onClick={() => navigate(-1)}
-              className="stockOrderFormWrapper__buttonCancel"
-            >
-              <FontAwesomeIcon icon={faXmark} />
-              Ləğv et
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting || products.length === 0}
-              className="stockOrderFormWrapper__buttonSave"
-            >
-              {isSubmitting ? (
-                <>
-                  <FontAwesomeIcon icon={faSpinner} spin />
-                  Göndərilir...
-                </>
-              ) : (
-                <>
-                  <FontAwesomeIcon icon={faCheck} />
-                  Yadda saxla
-                </>
-              )}
-            </button>
-          </div>
-        )}
-      </form>
+        <div className="stockOrderFormWrapper__actions">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="stockOrderFormWrapper__buttonCancel"
+          >
+            <FontAwesomeIcon icon={faXmark} />
+            Ləğv et
+          </button>
+          <button
+            type="button"
+            onClick={handleDelete}
+            className="stockOrderFormWrapper__buttonDelete"
+          >
+            <FontAwesomeIcon icon={faXmark} />
+            Sil
+          </button>
+          <button
+            type="submit"
+            disabled={isSubmitting || products.length === 0}
+            className="stockOrderFormWrapper__buttonSave"
+          >
+            {isSubmitting ? (
+              <>
+                <FontAwesomeIcon icon={faSpinner} spin />
+                Göndərilir...
+              </>
+            ) : (
+              <>
+                <FontAwesomeIcon icon={faCheck} />
+                Yadda saxla
+              </>
+            )}
+          </button>
         </div>
-    );
+      </form>
+    </div>
+  );
 };
 
 export default StockOrderEdit;

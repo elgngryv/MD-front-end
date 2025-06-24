@@ -9,6 +9,38 @@
     border: 1px solid #e2e8f0;
     border-radius: 8px;
   }
+  .stockOrderFormWrapper__topPartIcons{
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    width: 100%;
+  
+  }
+
+  .stockOrderFormWrapper__infoIcon{
+    width: 24px;
+    height: 24px;
+    color: #155eef;
+    &:hover{
+      cursor: pointer;
+    }
+  }
+
+    .stockOrderFormWrapper__buttonDelete{
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      width: 160px;
+      height: 45px;
+      border: 1px solid #e53e3e;
+      background-color: #fff;
+      color: #e53e3e;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
   
   .stockOrderFormWrapper__title {
     font-size: 1.5rem;

@@ -133,7 +133,6 @@ function PatientsList() {
               value={search.phone}
               onChange={(e) => setSearch({ ...search, phone: e.target.value })}
             />
-            <CiSearch className="searchIconBTN" />
           </div>
           <div className="rightPart">
             <select

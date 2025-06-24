@@ -9,23 +9,25 @@ import {
   faCheck,
   faPlus,
   faSpinner,
+  faEye,
 } from "@fortawesome/free-solid-svg-icons";
 import ListWithSubtotal from "../../components/list/ListwithSubtotal";
 import EditIcon from "../../assets/icons/Edit";
 import DeleteIcon from "../../assets/icons/delete";
-import { useNavigate, useParams } from "react-router-dom";
+import InfoButton from "../../assets/icons/Info"; // Add this import
+import { useNavigate, useParams, Link } from "react-router-dom";
 import MultiFileForm from "../../components/MultiFileForm";
 import axios from "axios";
 import useOrdersFromWarehouseStore from "../../../stores/orderFromWarehouseStore";
 import "../../assets/style/StockOrder/stockorderdetail.css";
-import { Link } from "react-router-dom";
-const API_BASE_URL = "http://159.89.3.81:5555/api/v1";
+
+const API_BASE_URL = "http://195.7.6.10:5555/api/v1";
 
 const StockOrderDetail = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const { register, handleSubmit, setValue, reset } = useForm();
-  const { createOrder } = useOrdersFromWarehouseStore();
+  // const { createOrder } = useOrdersFromWarehouseStore(); // This line seems unused for 'info' mode
 
   const [products, setProducts] = useState([]);
   const [currentProduct, setCurrentProduct] = useState({
@@ -47,14 +49,49 @@ const StockOrderDetail = () => {
   const [debugInfo, setDebugInfo] = useState(null);
   const [apiResponse, setApiResponse] = useState(null);
 
-  const mode = "info";
+  // Determine mode based on if an ID is present in the URL
+  const mode = id ? "info" : "create"; // 'info' for view/edit, 'create' for new
+
+  // Function to get the authorization headers
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      console.error("Authentication token not found in localStorage.");
+      // Optionally, redirect to login page if token is missing
+      // navigate('/login'); // Uncomment if you want immediate redirect
+      return {};
+    }
+    return {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    };
+  };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const categoriesResponse = await axios.get(
-          `${API_BASE_URL}/product-category/read`
-        );
+        const authHeaders = getAuthHeaders();
+        // If no token and we are in info mode, it means user is unauthorized to fetch data
+        if (Object.keys(authHeaders).length === 0 && mode === "info") {
+          setIsLoading(false);
+          alert("Giriş tokeni tapılmadı. Zəhmət olmasa yenidən daxil olun.");
+          navigate("/login"); // Redirect to login page
+          return;
+        }
+
+        // Fetch static data (categories, products, warehouse entries) first
+        const [
+          categoriesResponse,
+          productsResponse,
+          warehouseEntriesResponse,
+        ] = await Promise.all([
+          axios.get(`${API_BASE_URL}/product-category/read`, authHeaders),
+          axios.get(`${API_BASE_URL}/product/read`, authHeaders),
+          axios.get(`${API_BASE_URL}/warehouse-entry/read`, authHeaders),
+        ]);
+
         setCategories(
           categoriesResponse.data.map((cat) => ({
             value: cat.id,
@@ -62,9 +99,6 @@ const StockOrderDetail = () => {
           }))
         );
 
-        const productsResponse = await axios.get(
-          `${API_BASE_URL}/product/read`
-        );
         setProductsByCategory(
           productsResponse.data.map((prod) => ({
             value: prod.id,
@@ -74,9 +108,6 @@ const StockOrderDetail = () => {
           }))
         );
 
-        const warehouseEntriesResponse = await axios.get(
-          `${API_BASE_URL}/warehouse-entry/read`
-        );
         setWarehouseEntries(
           warehouseEntriesResponse.data.map((entry) => ({
             value: entry.id,
@@ -84,78 +115,123 @@ const StockOrderDetail = () => {
           }))
         );
 
+        // If in 'info' mode and 'id' is present, fetch specific order details
         if (mode === "info" && id) {
           const orderResponse = await axios.get(
-            `${API_BASE_URL}/order-from-warehouse/info/${id}`
+            `${API_BASE_URL}/order-from-warehouse/info/${id}`,
+            authHeaders
           );
           const orderData = orderResponse.data;
 
+          // Populate main form fields
           setValue("orderDate", orderData.date);
           setValue("orderTime", orderData.time);
           setValue("room", orderData.room);
           setValue("note", orderData.description);
+          const fetchedCategories = categoriesResponse.data.map((cat) => ({
+            value: cat.id,
+            label: cat.name || cat.categoryName,
+          }));
+          setCategories(fetchedCategories);
+          const fetchedProducts = productsResponse.data.map((prod) => ({
+            value: prod.id,
+            label: prod.name || prod.productName,
+            categoryId: prod.categoryId || prod.productCategoryId,
+            price: prod.price,
+          }));
+          setProductsByCategory(fetchedProducts)
 
-          if (
-            Array.isArray(orderData.orderFromWarehouseProductRequests) &&
-            orderData.orderFromWarehouseProductRequests.length > 0
-          ) {
-            const formattedProducts =
-              orderData.orderFromWarehouseProductRequests.map((item) => {
-                const categoryObj = categories.find(
-                  (c) => c.value === item.categoryId
+          // Populate the products list (important for "Məhsullar" section)
+          if (orderData.orderFromWarehouseProductResponses?.length > 0) {
+            const formattedProducts = await Promise.all(
+              orderData.orderFromWarehouseProductResponses.map(async (item) => {
+                // Try to find matching product and category
+                const foundProduct = fetchedProducts.find(
+                  (p) => p.label === item.productName || p.label === item.productTitle
                 );
-                const productObj = productsByCategory.find(
-                  (p) => p.value === item.productId
+                const foundCategory = fetchedCategories.find(
+                  (c) => c.label === item.categoryName
                 );
+
+                // Fetch warehouse entry product details if needed
+                let warehouseEntryProduct = null;
+                if (item.warehouseEntryProductId) {
+                  try {
+                    const productResponse = await axios.get(
+                      `${API_BASE_URL}/warehouse-entry-product/info/${item.warehouseEntryProductId}`,
+                      {
+                        headers: {
+                          Authorization: `Bearer ${localStorage.getItem("token")}`,
+                        },
+                      }
+                    );
+                    warehouseEntryProduct = productResponse.data;
+                  } catch (error) {
+                    console.error("Error fetching warehouse entry product:", error);
+                  }
+                }
 
                 return {
-                  id: Date.now() + Math.random(),
-                  category: item.categoryId,
-                  name: item.productId,
+                  id: Date.now() + Math.random(), // Unique ID for React list key
+                  category: foundCategory?.value || "",
+                  name: foundProduct?.value || "",
                   quantity: item.quantity,
-                  price: productObj?.price || 0,
+                  price: foundProduct?.price || warehouseEntryProduct?.price || 0,
                   warehouseEntryId: item.warehouseEntryId,
                   warehouseEntryProductId: item.warehouseEntryProductId,
-                  categoryName: categoryObj?.label || "",
-                  productName: productObj?.label || "",
+                  categoryName: item.categoryName,
+                  productName: item.productName || item.productTitle,
+                  warehouseEntryProductName: warehouseEntryProduct?.productName || item.productName || item.productTitle,
                 };
-              });
-
+              })
+            );
             setProducts(formattedProducts);
           }
+
         }
       } catch (error) {
-        console.error("Error fetching data:", error);
-        alert(
-          "Məlumatları yükləyərkən xəta baş verdi: " +
-            (error.response?.data?.message || error.message)
-        );
+        console.error("Məlumatları gətirərkən xəta baş verdi:", error);
+        let errorMessage = "Məlumatları yükləyərkən xəta baş verdi: ";
+        if (error.response?.status === 401) {
+          errorMessage +=
+            "Giriş səlahiyyəti yoxdur. Zəhmət olmasa yenidən daxil olun.";
+          navigate("/login"); // Redirect to login on 401
+        } else {
+          errorMessage += error.response?.data?.message || error.message;
+        }
+        alert(errorMessage);
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchData();
-  }, [id, setValue]);
+  }, [id, setValue, navigate]); // Dependencies for useEffect
 
   useEffect(() => {
-    reset();
-    setProducts([]);
-  }, [reset]);
+    // Reset form and products only if in create mode or initial load (not on ID change for info mode)
+    if (!id) {
+      reset();
+      setProducts([]);
+    }
+  }, [reset, id]);
 
   const handleProductChange = (field, value) => {
     setCurrentProduct((prev) => ({
       ...prev,
       [field]: value,
-      ...(field === "category" ? { name: "" } : {}),
+      ...(field === "category" ? { name: "" } : {}), // Reset product name when category changes
     }));
   };
 
   const fetchWarehouseEntryProducts = async (warehouseEntryId) => {
-    setIsLoadingEntryProducts(false);
+    setIsLoadingEntryProducts(true);
     try {
+      const authHeaders = getAuthHeaders();
+      // Try fetching from the info endpoint first
       const infoResponse = await axios.get(
-        `${API_BASE_URL}/warehouse-entry/info/${warehouseEntryId}`
+        `${API_BASE_URL}/warehouse-entry/info/${warehouseEntryId}`,
+        authHeaders
       );
       if (
         infoResponse.data &&
@@ -173,8 +249,10 @@ const StockOrderDetail = () => {
         }));
       }
 
+      // Fallback to read-by-warehouse-entry if info endpoint doesn't contain product details
       const fallbackResponse = await axios.get(
-        `${API_BASE_URL}/warehouse-entry-product/read-by-warehouse-entry/${warehouseEntryId}`
+        `${API_BASE_URL}/warehouse-entry-product/read-by-warehouse-entry/${warehouseEntryId}`,
+        authHeaders
       );
       if (
         Array.isArray(fallbackResponse.data) &&
@@ -191,45 +269,40 @@ const StockOrderDetail = () => {
         }));
       }
 
+      // Final fallback if no specific entry products are found, try to map from all products
       const allProductsResponse = await axios.get(
-        `${API_BASE_URL}/warehouse-entry-product/read`
-      );
-      const filtered = allProductsResponse.data.filter(
-        (p) => p.warehouseEntryId === warehouseEntryId
-      );
-      if (filtered.length > 0) {
-        return filtered.map((product) => ({
-          id: product.id,
-          value: product.id,
-          label: `${product.productName || "Məhsul"} (ID: ${product.id})`,
-          productId: product.productId,
-          categoryId: product.categoryId,
-          quantity: product.quantity,
-          price: product.price,
-        }));
-      }
-
-      const productsApiResponse = await axios.get(
-        `${API_BASE_URL}/product/read`
+        `${API_BASE_URL}/product/read`,
+        authHeaders
       );
       if (
-        Array.isArray(productsApiResponse.data) &&
-        productsApiResponse.data.length > 0
+        Array.isArray(allProductsResponse.data) &&
+        allProductsResponse.data.length > 0
       ) {
-        return productsApiResponse.data.map((prod) => ({
-          id: `${warehouseEntryId}-${prod.id}`,
+        // Filter products that belong to the current warehouse entry based on product IDs (if warehouse entry has associated products)
+        // This part needs a bit more clarity on how a product from product/read relates to a specific warehouse entry.
+        // For simplicity, here it just lists all products, assuming they *could* be in this warehouse entry.
+        return allProductsResponse.data.map((prod) => ({
+          id: `${warehouseEntryId}-${prod.id}`, // Unique ID for this context
           value: `${warehouseEntryId}-${prod.id}`,
-          label: `${prod.productName} (Anbar: ${warehouseEntryId})`,
+          label: `${prod.name || prod.productName} (Anbar: ${warehouseEntryId})`,
           productId: prod.id,
           categoryId: prod.categoryId,
-          quantity: 100,
-          price: prod.price || 10,
+          quantity: 100, // Placeholder quantity if not from warehouse entry
+          price: prod.price || 0,
         }));
       }
 
       return [];
     } catch (error) {
-      console.error("Error fetching warehouse entry products:", error);
+      console.error("Anbar giriş məhsullarını gətirərkən xəta:", error);
+      let errorMessage = "Anbar girişi məlumatlarını yükləyərkən xəta baş verdi: ";
+      if (error.response?.status === 401) {
+        errorMessage += "Giriş səlahiyyəti yoxdur. Zəhmət olmasa yenidən daxil olun.";
+        navigate("/login"); // Redirect to login on 401
+      } else {
+        errorMessage += error.response?.data?.message || error.message;
+      }
+      alert(errorMessage);
       return [];
     } finally {
       setIsLoadingEntryProducts(false);
@@ -240,23 +313,20 @@ const StockOrderDetail = () => {
     try {
       const warehouseEntryId = option.value;
       handleProductChange("warehouseEntryId", warehouseEntryId);
-      handleProductChange("warehouseEntryProductId", "");
+      handleProductChange("warehouseEntryProductId", ""); // Reset product when warehouse entry changes
+      handleProductChange("category", ""); // Reset category
+      handleProductChange("name", ""); // Reset product name
+      handleProductChange("price", ""); // Reset price
 
-      const entryProducts = await fetchWarehouseEntryProducts(
-        warehouseEntryId
-      );
+      const entryProducts = await fetchWarehouseEntryProducts(warehouseEntryId);
       setWarehouseEntryProducts(entryProducts);
 
       if (entryProducts.length === 0) {
         alert("Bu anbar girişi üçün məhsul tapılmadı!");
       }
     } catch (error) {
-      console.error("Error handling warehouse entry change:", error);
+      console.error("Anbar giriş dəyişikliyini idarə edərkən xəta:", error);
       setWarehouseEntryProducts([]);
-      alert(
-        "Anbar girişi məlumatlarını yükləyərkən xəta baş verdi: " +
-          (error.response?.data?.message || error.message)
-      );
     }
   };
 
@@ -265,14 +335,14 @@ const StockOrderDetail = () => {
       (p) => p.value === option.value
     );
     if (entryProduct) {
-      handleProductChange("warehouseEntryProductId", option.value);
-      if (entryProduct.categoryId && entryProduct.productId) {
-        handleProductChange("category", entryProduct.categoryId);
-        handleProductChange("name", entryProduct.productId);
-      }
-      if (entryProduct.price) {
-        handleProductChange("price", entryProduct.price);
-      }
+      setCurrentProduct((prev) => ({
+        ...prev,
+        warehouseEntryProductId: option.value,
+        category: entryProduct.categoryId,
+        name: entryProduct.productId,
+        price: entryProduct.price,
+        warehouseEntryProductName: entryProduct.label,
+      }));
     }
   };
 
@@ -280,20 +350,21 @@ const StockOrderDetail = () => {
     if (
       currentProduct.warehouseEntryId &&
       currentProduct.warehouseEntryProductId &&
-      currentProduct.quantity
+      currentProduct.quantity &&
+      currentProduct.category && // Ensure category is selected/derived
+      currentProduct.name // Ensure product name is selected/derived
     ) {
       const selectedWarehouseEntryProduct = warehouseEntryProducts.find(
         (prod) => prod.value === currentProduct.warehouseEntryProductId
       );
+
       if (!selectedWarehouseEntryProduct) {
         alert("Seçilmiş anbar məhsulu tapılmadı. Zəhmət olmasa yenidən seçin.");
         return;
       }
 
-      const categoryId =
-        currentProduct.category || selectedWarehouseEntryProduct.categoryId;
-      const productId =
-        currentProduct.name || selectedWarehouseEntryProduct.productId;
+      const categoryId = currentProduct.category;
+      const productId = currentProduct.name;
 
       const selectedCategory = categories.find(
         (c) => c.value === categoryId
@@ -303,25 +374,20 @@ const StockOrderDetail = () => {
       );
 
       const newProduct = {
-        id: Date.now(),
+        id: Date.now(), // Unique ID for list rendering
         category: categoryId,
         name: productId,
         quantity: currentProduct.quantity,
-        price:
-          currentProduct.price ||
-          selectedWarehouseEntryProduct.price ||
-          0,
-        categoryName: selectedCategory?.label || "Unknown Category",
-        productName: selectedProduct?.label || "Unknown Product",
+        price: currentProduct.price, // Use currentProduct.price which is populated from selectedWarehouseEntryProduct
+        categoryName: selectedCategory?.label || "Naməlum Kategoriya",
+        productName: selectedProduct?.label || "Naməlum Məhsul",
         warehouseEntryId: currentProduct.warehouseEntryId,
-        warehouseEntryProductId:
-          currentProduct.warehouseEntryProductId,
-        warehouseEntryProductName:
-          selectedWarehouseEntryProduct?.label ||
-          `Anbar məhsulu (ID: ${currentProduct.warehouseEntryProductId})`,
+        warehouseEntryProductId: currentProduct.warehouseEntryProductId,
+        warehouseEntryProductName: selectedWarehouseEntryProduct?.label || `Anbar məhsulu (ID: ${currentProduct.warehouseEntryProductId})`,
       };
 
       setProducts((prev) => [...prev, newProduct]);
+      // Reset current product fields after adding
       setCurrentProduct({
         category: "",
         name: "",
@@ -331,10 +397,10 @@ const StockOrderDetail = () => {
         warehouseEntryProductId: "",
         warehouseEntryProductName: "",
       });
-      setWarehouseEntryProducts([]);
+      setWarehouseEntryProducts([]); // Clear warehouse entry products after adding
     } else {
       alert(
-        "Zəhmət olmasa anbar girişini, anbar məhsulunu və miqdarı daxil edin"
+        "Zəhmət olmasa anbar girişini, anbar məhsulunu, miqdarı, kateqoriyanı və məhsulu daxil edin."
       );
     }
   };
@@ -342,29 +408,34 @@ const StockOrderDetail = () => {
   const handleFormSubmit = async (data) => {
     try {
       setIsSubmitting(true);
+      const authHeaders = getAuthHeaders();
+
+      if (Object.keys(authHeaders).length === 0) {
+        alert("Giriş tokeni tapılmadı. Zəhmət olmasa yenidən daxil olun.");
+        navigate("/login");
+        return;
+      }
 
       let timeString = "00:00:00";
       if (data.orderTime) {
         const [hour, minute] = data.orderTime.split(":");
-        timeString = `${hour.padStart(2, "0")}:${minute.padStart(
-          2,
-          "0"
-        )}:00`;
+        timeString = `${hour.padStart(2, "0")}:${minute.padStart(2, "0")}:00`;
       }
 
-      const invalidProducts = products.filter(
-        (p) => !p.warehouseEntryProductId
-      );
-      if (invalidProducts.length > 0) {
-        alert(
-          "Bəzi məhsulların anbar məhsulu ID-si yoxdur. Zəhmət olmasa məhsulları yenidən əlavə edin."
-        );
+      // Validate products list before submission
+      if (products.length === 0) {
+        alert("Zəhmət olmasa ən azı bir məhsul əlavə edin.");
         setIsSubmitting(false);
         return;
       }
 
-      if (products.length === 0) {
-        alert("Zəhmət olmasa ən azı bir məhsul əlavə edin.");
+      const invalidProducts = products.filter(
+        (p) => !p.warehouseEntryProductId || !p.category || !p.name || !p.quantity
+      );
+      if (invalidProducts.length > 0) {
+        alert(
+          "Bəzi məhsulların anbar məhsulu, kateqoriyası, məhsul ID-si və ya miqdarı yoxdur. Zəhmət olmasa siyahını yoxlayın."
+        );
         setIsSubmitting(false);
         return;
       }
@@ -386,25 +457,24 @@ const StockOrderDetail = () => {
         description: data.note,
       };
 
-      console.log("Sending payload:", payload);
+      console.log("Göndərilən yük:", payload);
       setDebugInfo(JSON.stringify(payload, null, 2));
 
       const apiUrl = `${API_BASE_URL}/order-from-warehouse/update/${id}`;
-      const response = await axios.put(apiUrl, payload, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+      const response = await axios.put(apiUrl, payload, authHeaders);
 
-      console.log("Başarılı cavab:", response.data);
+      console.log("Uğurlu cavab:", response.data);
       setApiResponse(JSON.stringify(response.data, null, 2));
       alert("Sifariş uğurla yeniləndi!");
       navigate("/stock/order");
     } catch (error) {
       console.error("Xəta baş verdi:", error);
       let errorMessage = "Xəta baş verdi: ";
-      if (error.response?.data?.message) {
+      if (error.response?.status === 401) {
+        errorMessage +=
+          "Giriş səlahiyyəti yoxdur. Zəhmət olmasa yenidən daxil olun.";
+        navigate("/login"); // Redirect to login on 401
+      } else if (error.response?.data?.message) {
         errorMessage += error.response.data.message;
       } else if (error.message) {
         errorMessage += error.message;
@@ -424,55 +494,64 @@ const StockOrderDetail = () => {
     }
   };
 
-  const getFilteredProducts = () => {
-    if (!currentProduct.category) return productsByCategory;
-    return productsByCategory.filter(
-      (product) => product.categoryId === currentProduct.category
-    );
+  const handleDeleteProduct = (idToRemove) => {
+    setProducts((prev) => prev.filter((product) => product.id !== idToRemove));
   };
 
-  const handleDeleteProduct = (id) => {
-    setProducts((prev) => prev.filter((product) => product.id !== id));
-  };
-
-  const handleEditProduct = (product) => {
+  const handleEditProduct = (productToEdit) => {
+    // Set current product for editing
     setCurrentProduct({
-      category: product.category,
-      name: product.name,
-      quantity: product.quantity,
-      price: product.price,
-      warehouseEntryId: product.warehouseEntryId,
-      warehouseEntryProductId: product.warehouseEntryProductId,
-      warehouseEntryProductName: product.warehouseEntryProductName,
+      category: productToEdit.category,
+      name: productToEdit.name,
+      quantity: productToEdit.quantity,
+      price: productToEdit.price,
+      warehouseEntryId: productToEdit.warehouseEntryId,
+      warehouseEntryProductId: productToEdit.warehouseEntryProductId,
+      warehouseEntryProductName: productToEdit.warehouseEntryProductName,
     });
 
-    if (product.warehouseEntryId) {
-      fetchWarehouseEntryProducts(product.warehouseEntryId)
+    // Fetch warehouse entry products for the selected warehouse entry
+    if (productToEdit.warehouseEntryId) {
+      fetchWarehouseEntryProducts(productToEdit.warehouseEntryId)
         .then((entryProducts) => {
           setWarehouseEntryProducts(entryProducts);
         })
         .catch((error) => {
-          console.error("Error fetching warehouse entry products:", error);
+          console.error("Anbar giriş məhsullarını gətirərkən xəta:", error);
         });
     }
 
-    setProducts((prev) => prev.filter((p) => p.id !== product.id));
+    // Remove the product from the list so it can be re-added or modified
+    setProducts((prev) => prev.filter((p) => p.id !== productToEdit.id));
   };
 
   const handleDelete = async () => {
     if (window.confirm("Bu sifarişi silmək istədiyinizə əminsiniz?")) {
       try {
+        const authHeaders = getAuthHeaders();
+        if (Object.keys(authHeaders).length === 0) {
+          alert("Giriş tokeni tapılmadı. Zəhmət olmasa yenidən daxil olun.");
+          navigate("/login");
+          return;
+        }
+
         await axios.delete(
-          `${API_BASE_URL}/order-from-warehouse/delete/${id}`
+          `${API_BASE_URL}/order-from-warehouse/delete/${id}`,
+          authHeaders
         );
         alert("Sifariş uğurla silindi!");
-        navigate("/orders");
+        navigate("/stock/order"); // Redirect to the main orders list
       } catch (error) {
         console.error("Silinmə zamanı xəta:", error);
-        alert(
-          "Silinmə zamanı xəta baş verdi: " +
-            (error.response?.data?.message || error.message)
-        );
+        let errorMessage = "Silinmə zamanı xəta baş verdi: ";
+        if (error.response?.status === 401) {
+          errorMessage +=
+            "Giriş səlahiyyəti yoxdur. Zəhmət olmasa yenidən daxil olun.";
+          navigate("/login"); // Redirect to login on 401
+        } else {
+          errorMessage += error.response?.data?.message || error.message;
+        }
+        alert(errorMessage);
       }
     }
   };
@@ -485,28 +564,34 @@ const StockOrderDetail = () => {
           spin
           className="stockOrderDetail__spinner"
         />
-        <span className="stockOrderDetail__loadingText">
-          Yüklənir...
-        </span>
+        <span className="stockOrderDetail__loadingText">Yüklənir...</span>
       </div>
     );
   }
 
   return (
     <div className="stockOrderDetailWrapper">
-        <div className="stockOrderTopPartIcons">
-            <Link to={`/stock/order/edit/${id}`}><EditIcon  className="stockOrderTopPartIcons__editIcon" /></Link>
-            <Link ><DeleteIcon onClick={handleDelete} className="stockOrderTopPartIcons__deleteIcon" /></Link>
-        </div>
+      <div className="stockOrderTopPartIcons">
+        {/* Only show edit/delete icons if in 'info' mode and an ID exists */}
+        {mode === "info" && id && (
+          <>
+            <Link to={`/stock/order/edit/${id}`}>
+              <EditIcon className="stockOrderTopPartIcons__editIcon" />
+            </Link>
+            <Link to="#" onClick={handleDelete}>
+              <DeleteIcon className="stockOrderTopPartIcons__deleteIcon" />
+            </Link>
+            {/* Add InfoButton here */}
+          
+          </>
+        )}
+      </div>
       <form
         onSubmit={handleSubmit(handleFormSubmit)}
         className="stockOrderDetail__form"
       >
         <div className="stockOrderDetail__row">
-          <label
-            htmlFor="orderDate"
-            className="stockOrderDetail__label"
-          >
+          <label htmlFor="orderDate" className="stockOrderDetail__label">
             Sifariş tarixi{" "}
             <span className="stockOrderDetail__required">*</span>
           </label>
@@ -515,26 +600,22 @@ const StockOrderDetail = () => {
               id="orderDate"
               type="date"
               {...register("orderDate", { required: true })}
-              readOnly={mode === "info"}
+              // readOnly={mode === "info"} // Allow editing in 'info' mode for this form
               className="stockOrderDetail__input"
             />
           </div>
         </div>
 
         <div className="stockOrderDetail__row">
-          <label
-            htmlFor="orderTime"
-            className="stockOrderDetail__label"
-          >
-            Saat{" "}
-            <span className="stockOrderDetail__required">*</span>
+          <label htmlFor="orderTime" className="stockOrderDetail__label">
+            Saat <span className="stockOrderDetail__required">*</span>
           </label>
           <div className="stockOrderDetail__inputContainer">
             <input
               id="orderTime"
               type="time"
               {...register("orderTime", { required: true })}
-              readOnly={mode === "info"}
+              // readOnly={mode === "info"} // Allow editing in 'info' mode for this form
               className="stockOrderDetail__input"
             />
           </div>
@@ -542,15 +623,14 @@ const StockOrderDetail = () => {
 
         <div className="stockOrderDetail__row">
           <label htmlFor="room" className="stockOrderDetail__label">
-            Otaq{" "}
-            <span className="stockOrderDetail__required">*</span>
+            Otaq <span className="stockOrderDetail__required">*</span>
           </label>
           <div className="stockOrderDetail__inputContainer">
             <input
               id="room"
               type="text"
               {...register("room", { required: true })}
-              readOnly={mode === "info"}
+              // readOnly={mode === "info"} // Allow editing in 'info' mode for this form
               className="stockOrderDetail__input"
             />
           </div>
@@ -558,211 +638,85 @@ const StockOrderDetail = () => {
 
         <div className="stockOrderDetail__row">
           <label htmlFor="note" className="stockOrderDetail__label">
-            Qeyd{" "}
-            <span className="stockOrderDetail__required">*</span>
+            Qeyd <span className="stockOrderDetail__required">*</span>
           </label>
           <div className="stockOrderDetail__inputContainer">
             <textarea
               id="note"
               {...register("note", { required: true })}
-              readOnly={mode === "info"}
+              // readOnly={mode === "info"} // Allow editing in 'info' mode for this form
               className="stockOrderDetail__textarea"
             />
           </div>
         </div>
 
-        {mode === "info" && (
-          <div className="stockOrderDetail__productsSection">
-            <div className="stockOrderDetail__row">
-              <label className="stockOrderDetail__label">
-                Məhsullar
-              </label>
-              <div className="stockOrderDetail__productsControls">
-                <div
-                  className="stockOrderDetail__fieldGroup"
-                  style={{ minWidth: "200px" }}
-                >
-                  <label className="stockOrderDetail__labelSmall">
-                    Anbar girişi{" "}
-                    <span className="stockOrderDetail__required">
-                      *
-                    </span>
-                  </label>
-                  <CustomDropdown
-                    value={warehouseEntries.find(
-                      (entry) =>
-                        entry.value ===
-                        currentProduct.warehouseEntryId
-                    )}
-                    onChange={handleWarehouseEntryChange}
-                    options={warehouseEntries}
-                    placeholder="Anbar girişi seçin"
-                    className="stockOrderDetail__dropdown"
-                  />
-                </div>
-
-                {isLoadingEntryProducts ? (
-                  <div className="stockOrderDetail__fieldGroup">
-                    <label className="stockOrderDetail__labelSmall">
-                      Anbar məhsulu
-                    </label>
-                    <div className="stockOrderDetail__loadingSmall">
-                      <FontAwesomeIcon
-                        icon={faSpinner}
-                        spin
-                        className="stockOrderDetail__spinnerSmall"
-                      />
-                      <span className="stockOrderDetail__loadingTextSmall">
-                        Yüklənir...
-                      </span>
-                    </div>
-                  </div>
-                ) : warehouseEntryProducts.length > 0 ? (
-                  <div className="stockOrderDetail__fieldGroup">
-                    <label className="stockOrderDetail__labelSmall">
-                      Anbar məhsulu{" "}
-                      <span className="stockOrderDetail__required">
-                        *
-                      </span>
-                    </label>
-                    <CustomDropdown
-                      value={warehouseEntryProducts.find(
-                        (product) =>
-                          product.value ===
-                          currentProduct.warehouseEntryProductId
-                      )}
-                      onChange={handleWarehouseEntryProductChange}
-                      options={warehouseEntryProducts}
-                      placeholder="Anbar məhsulu seçin"
-                      className="stockOrderDetail__dropdown"
-                    />
-                  </div>
-                ) : currentProduct.warehouseEntryId ? (
-                  <div className="stockOrderDetail__fieldGroup">
-                    <label className="stockOrderDetail__labelSmall">
-                      Anbar məhsulu
-                    </label>
-                    <div className="stockOrderDetail__noProducts">
-                      Bu anbar girişi üçün məhsul tapılmadı!
-                    </div>
-                  </div>
-                ) : null}
-
-                <div className="stockOrderDetail__fieldGroup">
-                  <label className="stockOrderDetail__labelSmall">
-                    Miqdar{" "}
-                    <span className="stockOrderDetail__required">
-                      *
-                    </span>
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={currentProduct.quantity}
-                    onChange={(e) =>
-                      handleProductChange(
-                        "quantity",
-                        e.target.value
-                      )
-                    }
-                    className="stockOrderDetail__inputSmall"
-                  />
-                </div>
-
-                <div className="stockOrderDetail__fieldGroup">
-                  <label className="stockOrderDetail__labelSmall">
-                    &nbsp;
-                  </label>
-                  <button
-                    type="button"
-                    onClick={handleAddProduct}
-                    disabled={
-                      !currentProduct.warehouseEntryId ||
-                      !currentProduct.warehouseEntryProductId ||
-                      !currentProduct.quantity
-                    }
-                    className="stockOrderDetail__buttonAdd"
-                  >
-                    <FontAwesomeIcon icon={faPlus} />
-                    Məhsul əlavə et
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="stockOrderDetail__row stockOrderDetail__tableRow">
-              <ListWithSubtotal
-                columns={[
-                  { key: "categoryName", label: "Kategoriya" },
-                  { key: "productName", label: "Məhsul" },
-                  { key: "quantity", label: "Miqdar" },
-                  { key: "price", label: "Qiymət" },
-                  {
-                    key: "warehouseEntryProductName",
-                    label: "Anbar məhsulu",
-                  },
-                ]}
-                data={products}
-                subtotalColumns={["price"]}
-                enableEdit={mode !== "info"}
-                enableDelete={mode !== "info"}
-                handleEdit={handleEditProduct}
-                handleDelete={handleDeleteProduct}
-                className="stockOrderDetail__list"
-              />
-            </div>
+        <div className="stockOrderDetail__productsSection">
+          <div className="stockOrderDetail__row">
+            <label className="stockOrderDetail__label">Məhsullar</label>
+       
           </div>
-        )}
+
+          <div className="stockOrderFormWrapper__row stockOrderFormWrapper__tableRow">
+            <ListWithSubtotal
+              columns={[
+                { key: "categoryName", label: "Kategoriya" },
+                { key: "productName", label: "Məhsul" },
+                { key: "quantity", label: "Miqdar" },
+                { key: "price", label: "Qiymət" },
+                { key: "warehouseEntryProductName", label: "Anbar məhsulu" },
+              ]}
+              data={products}
+              subtotalColumns={["price"]}
+              enableEdit={true}
+              enableDelete={true}
+              handleEdit={handleEditProduct}
+              handleDelete={handleDeleteProduct}
+              className="stockOrderFormWrapper__list"
+            />
+          </div>
+        </div>
 
         {apiResponse && (
           <div className="stockOrderDetail__debug">
-            <h3 className="stockOrderDetail__debugTitle">
-              API Cavabı:
-            </h3>
-            <pre className="stockOrderDetail__debugPre">
-              {apiResponse}
-            </pre>
+            <h3 className="stockOrderDetail__debugTitle">API Cavabı:</h3>
+            <pre className="stockOrderDetail__debugPre">{apiResponse}</pre>
           </div>
         )}
 
         <div className="stockOrderDetail__row">
-          <label className="stockOrderDetail__label">
-            Sənədlər
-          </label>
+          <label className="stockOrderDetail__label">Sənədlər</label>
           <div className="stockOrderDetail__inputContainer">
             <MultiFileForm mode={mode} />
           </div>
         </div>
 
-        {mode !== "info" && (
-          <div className="stockOrderDetail__actions">
-            <button
-              type="button"
-              onClick={() => navigate(-1)}
-              className="stockOrderDetail__buttonCancel"
-            >
-              <FontAwesomeIcon icon={faXmark} />
-              Ləğv et
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting || products.length === 0}
-              className="stockOrderDetail__buttonSave"
-            >
-              {isSubmitting ? (
-                <>
-                  <FontAwesomeIcon icon={faSpinner} spin />
-                  Göndərilir...
-                </>
-              ) : (
-                <>
-                  <FontAwesomeIcon icon={faCheck} />
-                  Yadda saxla
-                </>
-              )}
-            </button>
-          </div>
-        )}
+        <div className="stockOrderDetail__actions">
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="stockOrderDetail__buttonCancel"
+          >
+            <FontAwesomeIcon icon={faXmark} />
+            Ləğv et
+          </button>
+          <button
+            type="submit"
+            disabled={isSubmitting || products.length === 0}
+            className="stockOrderDetail__buttonSave"
+          >
+            {isSubmitting ? (
+              <>
+                <FontAwesomeIcon icon={faSpinner} spin />
+                Göndərilir...
+              </>
+            ) : (
+              <>
+                <FontAwesomeIcon icon={faCheck} />
+                Yadda saxla
+              </>
+            )}
+          </button>
+        </div>
       </form>
     </div>
   );
