@@ -38,9 +38,13 @@ export const searchMedicine = async (params) => {
 };
 
 // ✔ Read all
-export const readMedicine = async () => {
-  const response = await axiosInstance.get(`${API_BASE_URL}/medicine/read`);
-  return response.data;
+export const readMedicine = async (recipeId) => {
+  const response = await axiosInstance.get(`${API_BASE_URL}/medicine/search`, {
+    params: {
+      recipeId: recipeId,
+    },
+  });
+  return response.data.data;
 };
 
 // ✔ Read by ID

@@ -13,8 +13,8 @@ function AddMedicine() {
   });
 
   const navigate = useNavigate();
-  const { id } = useParams(); // URL-dən id alırıq
-  const { addMedicine } = useMedicineStore(); // Zustand store-dan add funksiyası
+  const { id } = useParams(); 
+  const { addMedicine } = useMedicineStore(); 
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -43,8 +43,8 @@ function AddMedicine() {
       console.log("Göndərilən payload:", payload);
       await addMedicine(payload);
       alert("Dərman uğurla əlavə edildi");
-      setFormData({ name: "", description: "" }); // Formu sıfırla
-      navigate(-1); // Əvvəlki səhifəyə geri dön
+      setFormData({ name: "", description: "" });
+      navigate(-1);
     } catch (error) {
       alert("Xəta baş verdi: " + error.message);
     }

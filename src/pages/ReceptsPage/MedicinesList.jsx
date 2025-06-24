@@ -10,7 +10,7 @@ import useMedicineStore from "../../../stores/medicineStore";
 
 function MedicinesList() {
   const navigate = useNavigate();
-  const { id: recipeId } = useParams();
+  const { id } = useParams();
 
   const { medicines, fetchMedicines, removeMedicine, downloadExcel } =
     useMedicineStore();
@@ -19,10 +19,10 @@ function MedicinesList() {
 
   // Get data on mount
   useEffect(() => {
-    if (recipeId) {
-      fetchMedicines(Number(recipeId));
+    if (id) {
+      fetchMedicines(Number(id));
     }
-  }, [recipeId]);
+  }, [id]);
 
   // Filter
   const filteredData = medicines.filter((row) =>

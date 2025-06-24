@@ -6,17 +6,23 @@ import { HiOutlineArrowsUpDown } from "react-icons/hi2";
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import useRecipeStore from "../../../stores/receptsStore";
+import useMedicineStore from "../../../stores/medicineStore";
 
 function ReceptsList() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const { recipes, fetchRecipes, deleteRecipeById, exportExcel } =
     useRecipeStore();
+  const { medicines, fetchMedicines } = useMedicineStore();
 
   useEffect(() => {
     fetchRecipes();
+    fetchMedicines();
   }, []);
 
+  const getMedicineCount = (recipeId) => {
+    return medicines.filter((m) => m.recipeId === recipeId).length;
+  };
   const handleEdit = (id) => {
     navigate(`/recepts/edit/${id}`);
   };
@@ -110,7 +116,7 @@ function ReceptsList() {
                 <td>{row.name}</td>
                 <td>
                   <Link to={`/recepts/${row.id}`}>
-                    Dərmanlar({row.medicinesCount || 0})
+                    Dərmanlar({getMedicineCount(row.id)})
                   </Link>
                 </td>
                 <td>
