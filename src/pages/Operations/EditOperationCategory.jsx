@@ -1,80 +1,91 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import '../../assets/style/Operations/editoperationcategory.css';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { IoCheckmarkOutline } from "react-icons/io5"; // Check icon
-import { RxCross2 } from "react-icons/rx"; // Cross icon
-import { FaPercentage } from "react-icons/fa"; // Percentage icon
-
-const insuranceCompanies = [
-  { name: "A sığorta", key: "aSigorta" },
-  { name: "A-Group Sığorta", key: "aGroupSigorta" },
-  { name: "ABC Sığorta", key: "abcSigorta" },
-  { name: "ATA Sığorta", key: "ataSigorta" },
-  { name: "Ataşgah Sığorta", key: "atasgahSigorta" },
-  { name: "Meqa Sığorta", key: "meqaSigorta" },
-  { name: "PAŞA Sığorta", key: "pasaSigorta" },
-  { name: "Sənaye Sığorta", key: "sanayeSigorta" },
-];
-
-// Static data for example (in a real app, this would come from an API)
-const staticOperationsData = [
-  { id: "1", operationCategoryName: "salam", isColorSelection: false, isImplantSelection: false, insurancePercentages: { aSigorta: "10", aGroupSigorta: "12", abcSigorta: "15", ataSigorta: "", atasgahSigorta: "", meqaSigorta: "", pasaSigorta: "", sanayeSigorta: "" } },
-  { id: "2", operationCategoryName: "Endodontiya", isColorSelection: true, isImplantSelection: false, insurancePercentages: { aSigorta: "5", aGroupSigorta: "", abcSigorta: "", ataSigorta: "", atasgahSigorta: "", meqaSigorta: "", pasaSigorta: "", sanayeSigorta: "" } },
-  { id: "3", operationCategoryName: "İmplantologiya", isColorSelection: false, isImplantSelection: true, insurancePercentages: { aSigorta: "", aGroupSigorta: "", abcSigorta: "", ataSigorta: "20", atasgahSigorta: "", meqaSigorta: "", pasaSigorta: "", sanayeSigorta: "" } },
-];
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import "../../assets/style/Operations/editoperationcategory.css";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { IoCheckmarkOutline } from "react-icons/io5";
+import { RxCross2 } from "react-icons/rx";
+import { FaPercentage } from "react-icons/fa";
+import useOperationTypesStore from "../../../stores/operationsTypeStore";
 
 function EditOperationCategory() {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const [operationCategoryName, setOperationCategoryName] = useState('');
+  const { selectedOperationType, fetchById, update } = useOperationTypesStore();
+
+  const [operationCategoryName, setOperationCategoryName] = useState("");
   const [isColorSelection, setIsColorSelection] = useState(false);
   const [isImplantSelection, setIsImplantSelection] = useState(false);
-  const [insurancePercentages, setInsurancePercentages] = useState(
-    insuranceCompanies.reduce((acc, company) => ({ ...acc, [company.key]: '' }), {})
-  );
+  const [insurancePercentages, setInsurancePercentages] = useState({});
 
   useEffect(() => {
-    const operation = staticOperationsData.find(item => item.id === id);
-    if (operation) {
-      setOperationCategoryName(operation.operationCategoryName);
-      setIsColorSelection(operation.isColorSelection);
-      setIsImplantSelection(operation.isImplantSelection);
-      setInsurancePercentages(operation.insurancePercentages);
-    }
-  }, [id]);
+    if (id) fetchById(id);
+  }, [id, fetchById]);
 
-  const handlePercentageChange = (key, value) => {
-    setInsurancePercentages(prev => ({
-      ...prev,
-      [key]: value
-    }));
+  useEffect(() => {
+    if (selectedOperationType) {
+      setOperationCategoryName(selectedOperationType.categoryName || "");
+      setIsColorSelection(!!selectedOperationType.colorSelection);
+      setIsImplantSelection(!!selectedOperationType.implantSelection);
+
+      const percentages = {};
+      if (Array.isArray(selectedOperationType.insurances)) {
+        selectedOperationType.insurances.forEach((ins) => {
+          percentages[ins.insuranceCompanyId] =
+            ins.deductiblePercentage?.toString() || "";
+        });
+      }
+      setInsurancePercentages(percentages);
+    }
+  }, [selectedOperationType]);
+
+  const handlePercentageChange = (insuranceCompanyId, value) => {
+    if (/^\d*$/.test(value)) {
+      setInsurancePercentages((prev) => ({
+        ...prev,
+        [insuranceCompanyId]: value,
+      }));
+    }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!operationCategoryName.trim()) {
       toast.error("Əməliyyat kateqoriyasının adı boş ola bilməz!");
       return;
     }
 
-    const updatedOperationCategory = {
-      id,
-      operationCategoryName,
-      isColorSelection,
-      isImplantSelection,
-      insurancePercentages,
+    const insurances = Object.entries(insurancePercentages)
+      .filter(([_, val]) => val !== "" && !isNaN(Number(val)))
+      .map(([insuranceCompanyId, deductiblePercentage]) => ({
+        insuranceCompanyId: Number(insuranceCompanyId),
+        deductiblePercentage: Number(deductiblePercentage),
+      }));
+
+    const payload = {
+      categoryName: operationCategoryName,
+      colorSelection: isColorSelection,
+      implantSelection: isImplantSelection,
+      insurances,
     };
 
-    console.log("Updated Operation Category:", updatedOperationCategory);
-    toast.success("Əməliyyat kateqoriyası uğurla yeniləndi!");
-    // navigate('/operations'); // Uncomment to navigate after success
+    try {
+      await update(id, payload);
+      toast.success("Əməliyyat kateqoriyası uğurla yeniləndi!");
+      setTimeout(() => navigate("/operations"), 1500);
+    } catch (err) {
+      toast.error("Yeniləmə zamanı xəta baş verdi!");
+    }
   };
+
+  if (!selectedOperationType) {
+    return <p>Yüklənir...</p>;
+  }
 
   return (
     <div className="editOperationWrapper">
+      <ToastContainer />
       <form className="editOperationContainer" onSubmit={handleSubmit}>
         <div className="editOperationInputGroup">
           <p>
@@ -108,15 +119,22 @@ function EditOperationCategory() {
         </div>
 
         <div className="editOperationInsuranceSection">
-          {insuranceCompanies.map((company) => (
-            <div className="editOperationInsuranceItem" key={company.key}>
-              <p>{company.name}</p>
+          {selectedOperationType.insurances?.map((ins) => (
+            <div
+              className="editOperationInsuranceItem"
+              key={ins.insuranceCompanyId}>
+              <p>{ins.companyName || `Sığorta #${ins.insuranceCompanyId}`}</p>
               <div className="editOperationPercentageInput">
                 <input
                   type="text"
                   placeholder="Azadolma faizi"
-                  value={insurancePercentages[company.key]}
-                  onChange={(e) => handlePercentageChange(company.key, e.target.value)}
+                  value={insurancePercentages[ins.insuranceCompanyId] || ""}
+                  onChange={(e) =>
+                    handlePercentageChange(
+                      ins.insuranceCompanyId,
+                      e.target.value
+                    )
+                  }
                 />
                 <span>
                   <FaPercentage />
@@ -127,7 +145,10 @@ function EditOperationCategory() {
         </div>
 
         <div className="editOperationButtons">
-          <button type="button" className="cancelFormCondition" onClick={() => navigate('/operations')}>
+          <button
+            type="button"
+            className="cancelFormCondition"
+            onClick={() => navigate("/operations")}>
             <RxCross2 />
             İmtina et
           </button>
@@ -141,4 +162,4 @@ function EditOperationCategory() {
   );
 }
 
-export default EditOperationCategory; 
+export default EditOperationCategory;

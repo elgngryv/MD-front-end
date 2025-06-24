@@ -1,24 +1,20 @@
 import React, { useRef, useState } from "react";
 import { MdEdit, MdDelete } from "react-icons/md";
-import CustomSelect from '../../components/CustomSelect';
-import AddPhoto from '../../assets/icons/AddPhoto';
-import downloadIcon from '../../assets/images/EmployeesPage/verifyProcess.png';
+import AddPhoto from "../../assets/icons/AddPhoto";
+import downloadIcon from "../../assets/images/EmployeesPage/verifyProcess.png";
 import "../../assets/style/Teeth/addoperationpicture.css";
-
-const operationOptions = [
-  { value: 'apikal_iltihab', label: 'Apikal iltihab 1 kanal' },
-  { value: 'curuk_bukkal', label: 'Çürük bukkal' },
-  { value: 'bashqa_muayine', label: 'Başqa müayinə/əməliyyat' }
-];
+import { useParams, useNavigate } from "react-router-dom";
+import useTeethOperationStore from "../../../stores/teeth-opetaionStore";
 
 const AddOperationPicture = () => {
-  const [selectedOperation, setSelectedOperation] = useState(null);
+  const { id } = useParams();
+  const navigate = useNavigate();
+
+  const { createTeethOperations, loading, error } = useTeethOperationStore();
+
+  const [operationName, setOperationName] = useState("");
   const [image, setImage] = useState(null);
   const fileInputRef = useRef();
-
-  const handleOperationChange = (selectedOption) => {
-    setSelectedOperation(selectedOption);
-  };
 
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
@@ -33,6 +29,34 @@ const AddOperationPicture = () => {
 
   const handleImageDelete = () => {
     setImage(null);
+    if (fileInputRef.current) fileInputRef.current.value = null;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!operationName.trim()) {
+      alert("Əməliyyat adını daxil edin");
+      return;
+    }
+
+    try {
+      await createTeethOperations({
+        teethId: Number(id),
+        opTypeAndItemRequests: [
+          {
+            operationName: operationName.trim(),
+          },
+        ],
+        // Şəkil varsa əlavə et, base64 formatında (əgər backend dəstəkləyirsə)
+        image: image || null,
+      });
+
+      alert("Əlavə olundu!");
+      navigate(`/teeth/${id}/operation-pictures`);
+    } catch (err) {
+      alert("Xəta baş verdi: " + (err.message || "Naməlum"));
+    }
   };
 
   return (
@@ -41,17 +65,19 @@ const AddOperationPicture = () => {
         <MdEdit className="icon edit-icon" />
         <MdDelete className="icon delete-icon" onClick={handleImageDelete} />
       </div>
-      <form className="addoperationpicture-form">
+      <form className="addoperationpicture-form" onSubmit={handleSubmit}>
         <div className="addoperationpicture-row">
           <label>
-            Müayinə / Əməliyyat <span className="addoperationpicture-required">*</span>
+            Müayinə / Əməliyyat{" "}
+            <span className="addoperationpicture-required">*</span>
           </label>
-          <CustomSelect
-            options={operationOptions}
-            value={selectedOperation}
-            onChange={handleOperationChange}
-            placeholder="Seçin"
-            className="operation-select"
+          <input
+            type="text"
+            value={operationName}
+            onChange={(e) => setOperationName(e.target.value)}
+            placeholder="Əməliyyat adını daxil edin"
+            className="operation-input"
+            required
           />
         </div>
         <div className="addoperationpicture-row imagesRowToUploadOperation">
@@ -61,7 +87,11 @@ const AddOperationPicture = () => {
               <div className="image-preview">
                 <img src={image} alt="Uploaded" />
                 <div className="download-overlay">
-                  <img src={downloadIcon} alt="Download" className="download-icon" />
+                  <img
+                    src={downloadIcon}
+                    alt="Download"
+                    className="download-icon"
+                  />
                 </div>
               </div>
             ) : (
@@ -81,12 +111,27 @@ const AddOperationPicture = () => {
           </div>
         </div>
         <div className="addoperationpicture-actions">
-          <button type="button" className="addoperationpicture-cancel-btn">İmtina et</button>
-          <button type="submit" className="addoperationpicture-save-btn">Yadda saxla</button>
+          <button
+            type="button"
+            className="addoperationpicture-cancel-btn"
+            onClick={() => navigate(-1)}>
+            İmtina et
+          </button>
+          <button
+            type="submit"
+            className="addoperationpicture-save-btn"
+            disabled={loading}>
+            {loading ? "Yüklənir..." : "Yadda saxla"}
+          </button>
         </div>
+        {error && (
+          <p className="error-message">
+            Xəta: {error.message || "Naməlum xəta"}
+          </p>
+        )}
       </form>
     </div>
   );
 };
 
-export default AddOperationPicture; 
+export default AddOperationPicture;

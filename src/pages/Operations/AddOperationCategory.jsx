@@ -1,61 +1,70 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import '../../assets/style/Operations/addoperationcategory.css';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { IoCheckmarkOutline } from "react-icons/io5"; // Check icon
-import { RxCross2 } from "react-icons/rx"; // Cross icon
-import { FaPercentage } from "react-icons/fa"; // Percentage icon
-
-const insuranceCompanies = [
-  { name: "A sığorta", key: "aSigorta" },
-  { name: "A-Group Sığorta", key: "aGroupSigorta" },
-  { name: "ABC Sığorta", key: "abcSigorta" },
-  { name: "ATA Sığorta", key: "ataSigorta" },
-  { name: "Ataşgah Sığorta", key: "atasgahSigorta" },
-  { name: "Meqa Sığorta", key: "meqaSigorta" },
-  { name: "PAŞA Sığorta", key: "pasaSigorta" },
-  { name: "Sənaye Sığorta", key: "sanayeSigorta" },
-];
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import "../../assets/style/Operations/addoperationcategory.css";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import { IoCheckmarkOutline } from "react-icons/io5";
+import { RxCross2 } from "react-icons/rx";
+import { FaPercentage } from "react-icons/fa";
+import useOperationTypesStore from "../../../stores/operationsTypeStore";
+import useInsuranceCompanyStore from "../../../stores/insuranceStore";
 
 function AddOperationCategory() {
   const navigate = useNavigate();
-  const [operationCategoryName, setOperationCategoryName] = useState('');
+  const createOperation = useOperationTypesStore((state) => state.create);
+  const { insuranceCompanyList, fetchList, loading, error } = useInsuranceCompanyStore();
+
+  const [operationCategoryName, setOperationCategoryName] = useState("");
   const [isColorSelection, setIsColorSelection] = useState(false);
   const [isImplantSelection, setIsImplantSelection] = useState(false);
-  const [insurancePercentages, setInsurancePercentages] = useState(
-    insuranceCompanies.reduce((acc, company) => ({ ...acc, [company.key]: '' }), {})
-  );
+  const [insurancePercentages, setInsurancePercentages] = useState({});
 
-  const handlePercentageChange = (key, value) => {
-    setInsurancePercentages(prev => ({
+  useEffect(() => {
+    fetchList();
+  }, [fetchList]);
+
+  const handlePercentageChange = (id, value) => {
+    setInsurancePercentages((prev) => ({
       ...prev,
-      [key]: value
+      [id]: value,
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!operationCategoryName.trim()) {
       toast.error("Əməliyyat kateqoriyasının adı boş ola bilməz!");
       return;
     }
 
-    const newOperationCategory = {
-      id: Math.random().toString(36).substr(2, 9),
-      operationCategoryName,
-      isColorSelection,
-      isImplantSelection,
-      insurancePercentages,
+    const insurances = insuranceCompanyList
+      .filter((company) => insurancePercentages[company.id])
+      .map((company) => ({
+        insuranceCompanyId: company.id,
+        deductiblePercentage: Number(insurancePercentages[company.id]) || 0,
+      }));
+
+    const payload = {
+      categoryName: operationCategoryName,
+      status: "ACTIVE",
+      colorSelection: isColorSelection,
+      implantSelection: isImplantSelection,
+      insurances,
     };
 
-    console.log("New Operation Category:", newOperationCategory);
-    toast.success("Əməliyyat kateqoriyası uğurla əlavə olundu!");
-    // navigate('/operations'); // Uncomment to navigate after success
+    try {
+      await createOperation(payload);
+      toast.success("Əməliyyat kateqoriyası uğurla əlavə olundu!");
+      setTimeout(() => navigate("/operations"), 1500);
+    } catch (err) {
+      toast.error("Əlavə olunarkən xəta baş verdi!");
+    }
   };
 
   return (
     <div className="addOperationWrapper">
+      <ToastContainer />
       <form className="addOperationContainer" onSubmit={handleSubmit}>
         <div className="addOperationInputGroup">
           <p>
@@ -89,15 +98,25 @@ function AddOperationCategory() {
         </div>
 
         <div className="addOperationInsuranceSection">
-          {insuranceCompanies.map((company) => (
-            <div className="addOperationInsuranceItem" key={company.key}>
-              <p>{company.name}</p>
+          {loading && <p style={{ color: "gray" }}>Yüklənir...</p>}
+
+          {error && <p style={{ color: "red" }}>Xəta baş verdi: {error.message || error.toString()}</p>}
+
+          {!loading && !error && insuranceCompanyList.length === 0 && (
+            <p style={{ color: "gray" }}>Sığorta şirkətləri tapılmadı...</p>
+          )}
+
+          {!loading && !error && insuranceCompanyList.length > 0 && insuranceCompanyList.map((company) => (
+            <div className="addOperationInsuranceItem" key={company.id}>
+              <p>{company.companyName}</p>
               <div className="addOperationPercentageInput">
                 <input
                   type="text"
                   placeholder="Azadolma faizi"
-                  value={insurancePercentages[company.key]}
-                  onChange={(e) => handlePercentageChange(company.key, e.target.value)}
+                  value={insurancePercentages[company.id] || ""}
+                  onChange={(e) =>
+                    handlePercentageChange(company.id, e.target.value)
+                  }
                 />
                 <span>
                   <FaPercentage />
@@ -108,7 +127,11 @@ function AddOperationCategory() {
         </div>
 
         <div className="addOperationButtons">
-          <button type="button" className="cancelFormCondition" onClick={() => navigate('/operations')}>
+          <button
+            type="button"
+            className="cancelFormCondition"
+            onClick={() => navigate("/operations")}
+          >
             <RxCross2 />
             İmtina et
           </button>

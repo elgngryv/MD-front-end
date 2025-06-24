@@ -27,7 +27,8 @@ const AdminUser = () => {
   const filteredUsers = workers
     .filter(
       (user) =>
-        Array.isArray(user.permissions) && user.permissions.includes("ADMIN")
+        Array.isArray(user.permissions) &&
+        user.permissions.includes("ADMIN", "admin")
     )
     .filter(
       (user) =>
@@ -116,7 +117,7 @@ const AdminUser = () => {
                   <td className="usernameOfAdminUser">
                     <img
                       src={`https://ui-avatars.com/api/?name=${
-                        user.name || "Admin"
+                        user.name || "Admin" || "admin"
                       }&background=random`}
                       className="imageOfAdminUser"
                       alt={user.username}
