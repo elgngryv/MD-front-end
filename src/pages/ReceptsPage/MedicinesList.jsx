@@ -12,19 +12,17 @@ function MedicinesList() {
   const navigate = useNavigate();
   const { id: recipeId } = useParams(); // route: /recepts/:id/medicines
 
-  const {
-    medicines,
-    fetchMedicines,
-    removeMedicine,
-    downloadExcel,
-  } = useMedicineStore();
+  const { medicines, fetchMedicines, removeMedicine, downloadExcel } =
+    useMedicineStore();
 
   const [searchTerm, setSearchTerm] = useState("");
 
   // Get data on mount
   useEffect(() => {
-    fetchMedicines(); // pagination yoxdur deyə bir dəfə oxunması kifayətdir
-  }, []);
+    if (recipeId) {
+      fetchMedicines(Number(recipeId));
+    }
+  }, [recipeId]);
 
   // Filter
   const filteredData = medicines.filter((row) =>
@@ -86,10 +84,13 @@ function MedicinesList() {
         <table className="medicinesPageTable">
           <thead>
             <tr>
-              <th>{filteredData.length === 0 ? '0' : `1-${filteredData.length}`}</th>
+              <th>
+                {filteredData.length === 0 ? "0" : `1-${filteredData.length}`}
+              </th>
               <th>
                 <span>
-                  <HiOutlineArrowsUpDown className="arrowIconsNow" /> Dərmanın adı
+                  <HiOutlineArrowsUpDown className="arrowIconsNow" /> Dərmanın
+                  adı
                 </span>
               </th>
               <th>
@@ -113,21 +114,32 @@ function MedicinesList() {
                   <td className="medicineNameCol">{row.name}</td>
                   <td>{row.description || "-"}</td>
                   <td>
-                    <span className={`statusBadge ${row.status === "ACTIVE" ? "active" : "passive"}`}>
+                    <span
+                      className={`statusBadge ${
+                        row.status === "ACTIVE" ? "active" : "passive"
+                      }`}>
                       {row.status === "ACTIVE" ? "Aktiv" : "Passiv"}
                     </span>
                   </td>
                   <td>
                     <div className="medicinesActionIcons">
-                      <FiEdit3 className="editBtn" onClick={() => handleEdit(row)} />
-                      <GoTrash className="deleteBtn" onClick={() => handleDelete(row)} />
+                      <FiEdit3
+                        className="editBtn"
+                        onClick={() => handleEdit(row)}
+                      />
+                      <GoTrash
+                        className="deleteBtn"
+                        onClick={() => handleDelete(row)}
+                      />
                     </div>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="5" style={{ textAlign: "center", padding: "20px" }}>
+                <td
+                  colSpan="5"
+                  style={{ textAlign: "center", padding: "20px" }}>
                   Dərman tapılmadı.
                 </td>
               </tr>

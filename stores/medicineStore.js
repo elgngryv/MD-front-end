@@ -20,7 +20,7 @@ const useMedicineStore = create((set) => ({
   fetchMedicines: async (recipeId) => {
     set({ loading: true, error: null });
     try {
-      const data = await readMedicine(recipeId);
+      const data = await readMedicine(recipeId); // Burda recipeId gəlir
       set({ medicines: data, loading: false });
     } catch (error) {
       set({ error, loading: false });
