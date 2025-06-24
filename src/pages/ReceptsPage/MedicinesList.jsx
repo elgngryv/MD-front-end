@@ -10,7 +10,7 @@ import useMedicineStore from "../../../stores/medicineStore";
 
 function MedicinesList() {
   const navigate = useNavigate();
-  const { id: recipeId } = useParams(); // route: /recepts/:id/medicines
+  const { id: recipeId } = useParams();
 
   const { medicines, fetchMedicines, removeMedicine, downloadExcel } =
     useMedicineStore();
