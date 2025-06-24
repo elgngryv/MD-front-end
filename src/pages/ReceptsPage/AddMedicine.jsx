@@ -1,17 +1,20 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import "../../assets/style/ReceptsPage/addmedicine.css";
+import { useNavigate, useParams } from "react-router-dom";
+import useMedicineStore from "../../../stores/medicineStore";
 
+import "../../assets/style/ReceptsPage/addmedicine.css";
 import acceptButton from "../../assets/images/EmployeesPage/verifyProcess.png";
 import cancelButton from "../../assets/images/EmployeesPage/cancelProcess.png";
 
 function AddMedicine() {
   const [formData, setFormData] = useState({
-    medicineName: "",
-    note: "",
+    name: "",
+    description: "",
   });
 
   const navigate = useNavigate();
+  const { id } = useParams(); // URL-dən id alırıq
+  const { addMedicine } = useMedicineStore(); // Zustand store-dan add funksiyası
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -24,15 +27,24 @@ function AddMedicine() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    try {
-      console.log("New Medicine:", formData);
-      alert("Dərman uğurla əlavə edildi");
-      navigate(-1); // Go back to previous page (medicines list)
+    const numericRecipeId = Number(id);
+    if (isNaN(numericRecipeId)) {
+      alert("Xəta: recipeId düzgün deyil və ya URL-də yoxdur.");
+      return;
+    }
 
-      setFormData({
-        medicineName: "",
-        note: "",
-      });
+    const payload = {
+      name: formData.name,
+      description: formData.description,
+      recipeId: numericRecipeId,
+    };
+
+    try {
+      console.log("Göndərilən payload:", payload);
+      await addMedicine(payload);
+      alert("Dərman uğurla əlavə edildi");
+      setFormData({ name: "", description: "" }); // Formu sıfırla
+      navigate(-1); // Əvvəlki səhifəyə geri dön
     } catch (error) {
       alert("Xəta baş verdi: " + error.message);
     }
@@ -42,12 +54,14 @@ function AddMedicine() {
     <form className="addMedicineWrapper" onSubmit={handleSubmit}>
       <div className="addMedicineContainer">
         <div className="addMedicineInput">
-          <p>Dərmanın adı<span>*</span></p>
+          <p>
+            Dərmanın adı <span>*</span>
+          </p>
           <input
             type="text"
             placeholder="Dərmanın adı"
-            name="medicineName"
-            value={formData.medicineName}
+            name="name"
+            value={formData.name}
             onChange={handleChange}
             required
           />
@@ -56,9 +70,9 @@ function AddMedicine() {
           <p>Qeyd</p>
           <input
             type="text"
-            placeholder="Tezlik"
-            name="frequency"
-            value={formData.frequency}
+            placeholder="Qeyd"
+            name="description"
+            value={formData.description}
             onChange={handleChange}
           />
         </div>

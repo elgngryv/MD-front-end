@@ -4,38 +4,51 @@ import { FiDownload, FiEdit3 } from "react-icons/fi";
 import { GoTrash } from "react-icons/go";
 import { HiOutlineArrowsUpDown } from "react-icons/hi2";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-// Static data for example
-const staticMedicinesData = [
-  { id: "1", medicineName: "Aspirin", dosage: "500mg", frequency: "Gündə 2 dəfə", status: "ACTIVE" },
-  { id: "2", medicineName: "Parol", dosage: "650mg", frequency: "Gündə 3 dəfə", status: "ACTIVE" },
-  { id: "3", medicineName: "Vitamin C", dosage: "1000mg", frequency: "Gündə 1 dəfə", status: "PASSIVE" },
-];
+import useMedicineStore from "../../../stores/medicineStore";
 
 function MedicinesList() {
   const navigate = useNavigate();
-  const { receptId } = useParams();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [medicinesData] = useState(staticMedicinesData);
+  const { id: recipeId } = useParams(); // route: /recepts/:id/medicines
 
-  const filteredData = medicinesData.filter((row) =>
-    row.medicineName.toLowerCase().includes(searchTerm.toLowerCase())
+  const {
+    medicines,
+    fetchMedicines,
+    removeMedicine,
+    downloadExcel,
+  } = useMedicineStore();
+
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Get data on mount
+  useEffect(() => {
+    fetchMedicines(); // pagination yoxdur deyə bir dəfə oxunması kifayətdir
+  }, []);
+
+  // Filter
+  const filteredData = medicines.filter((row) =>
+    row.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Edit
   const handleEdit = (row) => {
     navigate(`edit/${row.id}`);
   };
 
-  const handleDelete = (row) => {
+  // Delete
+  const handleDelete = async (row) => {
     const confirmDelete = window.confirm(
-      `${row.medicineName} dərmanını silmək istədiyinizə əminsiniz?`
+      `${row.name} dərmanını silmək istədiyinizə əminsiniz?`
     );
     if (!confirmDelete) return;
 
-    // Here you would typically make an API call to delete
-    console.log("Deleting medicine:", row.id);
-    alert(`${row.medicineName} uğurla silindi.`);
+    try {
+      await removeMedicine(row.id);
+      alert(`${row.name} uğurla silindi.`);
+    } catch (err) {
+      alert("Silinərkən xəta baş verdi.");
+    }
   };
 
   return (
@@ -63,9 +76,9 @@ function MedicinesList() {
               <span>+</span> Yenisini əlavə et
             </p>
           </Link>
-          <Link to={"/export"}>
+          <button onClick={downloadExcel}>
             <FiDownload className="exportMedicinesCategoriesData" />
-          </Link>
+          </button>
         </div>
       </div>
 
@@ -73,7 +86,7 @@ function MedicinesList() {
         <table className="medicinesPageTable">
           <thead>
             <tr>
-              <th>{staticMedicinesData.length === 0 ? '0' : `1-${staticMedicinesData.length}`}</th>
+              <th>{filteredData.length === 0 ? '0' : `1-${filteredData.length}`}</th>
               <th>
                 <span>
                   <HiOutlineArrowsUpDown className="arrowIconsNow" /> Dərmanın adı
@@ -81,12 +94,7 @@ function MedicinesList() {
               </th>
               <th>
                 <span>
-                  <HiOutlineArrowsUpDown className="arrowIconsNow" /> Doza
-                </span>
-              </th>
-              <th>
-                <span>
-                  <HiOutlineArrowsUpDown className="arrowIconsNow" /> Tezlik
+                  <HiOutlineArrowsUpDown className="arrowIconsNow" /> Qeyd
                 </span>
               </th>
               <th>
@@ -98,25 +106,32 @@ function MedicinesList() {
             </tr>
           </thead>
           <tbody>
-            {filteredData.map((row, index) => (
-              <tr key={row.id}>
-                <td>{index + 1}</td>
-                <td className="medicineNameCol">{row.medicineName}</td>
-                <td>{row.dosage}</td>
-                <td>{row.frequency}</td>
-                <td>
-                  <span className={`statusBadge ${row.status === "ACTIVE" ? "active" : "passive"}`}>
-                    {row.status === "ACTIVE" ? "Aktiv" : "Passiv"}
-                  </span>
-                </td>
-                <td>
-                  <div className="medicinesActionIcons">
-                    <FiEdit3 className="editBtn" onClick={() => handleEdit(row)} />
-                    <GoTrash className="deleteBtn" onClick={() => handleDelete(row)} />
-                  </div>
+            {filteredData.length > 0 ? (
+              filteredData.map((row, index) => (
+                <tr key={row.id}>
+                  <td>{index + 1}</td>
+                  <td className="medicineNameCol">{row.name}</td>
+                  <td>{row.description || "-"}</td>
+                  <td>
+                    <span className={`statusBadge ${row.status === "ACTIVE" ? "active" : "passive"}`}>
+                      {row.status === "ACTIVE" ? "Aktiv" : "Passiv"}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="medicinesActionIcons">
+                      <FiEdit3 className="editBtn" onClick={() => handleEdit(row)} />
+                      <GoTrash className="deleteBtn" onClick={() => handleDelete(row)} />
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="5" style={{ textAlign: "center", padding: "20px" }}>
+                  Dərman tapılmadı.
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>

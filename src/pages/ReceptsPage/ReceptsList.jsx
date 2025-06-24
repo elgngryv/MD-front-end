@@ -10,7 +10,8 @@ import useRecipeStore from "../../../stores/receptsStore";
 function ReceptsList() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  const { recipes, fetchRecipes, deleteRecipeById, exportExcel } = useRecipeStore();
+  const { recipes, fetchRecipes, deleteRecipeById, exportExcel } =
+    useRecipeStore();
 
   useEffect(() => {
     fetchRecipes();
@@ -74,22 +75,27 @@ function ReceptsList() {
               <th>
                 <span className="firstElementOfTHS">
                   <HiOutlineArrowsUpDown className="receptsList-sort-icon" />
-                  {filteredRecepts.length === 0 ? "0" : `1-${filteredRecepts.length}`}
+                  {filteredRecepts.length === 0
+                    ? "0"
+                    : `1-${filteredRecepts.length}`}
                 </span>
               </th>
               <th>
                 <span>
-                  <HiOutlineArrowsUpDown className="receptsList-sort-icon" /> Reseptin adı
+                  <HiOutlineArrowsUpDown className="receptsList-sort-icon" />{" "}
+                  Reseptin adı
                 </span>
               </th>
               <th>
                 <span>
-                  <HiOutlineArrowsUpDown className="receptsList-sort-icon" /> Dərmanları
+                  <HiOutlineArrowsUpDown className="receptsList-sort-icon" />{" "}
+                  Dərmanları
                 </span>
               </th>
               <th>
                 <span>
-                  <HiOutlineArrowsUpDown className="receptsList-sort-icon" /> Status
+                  <HiOutlineArrowsUpDown className="receptsList-sort-icon" />{" "}
+                  Status
                 </span>
               </th>
               <th>
@@ -117,8 +123,14 @@ function ReceptsList() {
                 </td>
                 <td>
                   <div className="receptsList-action-icons">
-                    <FiEdit3 className="receptsList-edit-button" onClick={() => handleEdit(row.id)} />
-                    <GoTrash className="receptsList-delete-button" onClick={() => handleDelete(row.id)} />
+                    <FiEdit3
+                      className="receptsList-edit-button"
+                      onClick={() => handleEdit(row.id)}
+                    />
+                    <GoTrash
+                      className="receptsList-delete-button"
+                      onClick={() => handleDelete(row.id)}
+                    />
                   </div>
                 </td>
               </tr>
