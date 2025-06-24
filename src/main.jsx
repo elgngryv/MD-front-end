@@ -559,8 +559,6 @@ const AnimatedRoutes = () => {
               element={<InsuranceDetail />}
             />
 
-
-
             {/* Other Settings Routes */}
             <Route path="/admin-users" element={<AdminUser />} />
             <Route path="/admin-users/add" element={<AddAdmin />} />
@@ -623,12 +621,24 @@ const AnimatedRoutes = () => {
             />
 
             {/* AnamnesisList Page Routes */}
-            <Route path="/anamnesis" element={<AnamnesisCategoryList/>}/>
-            <Route path="/anamnesis/add" element={<AddAnamnesisCategory/>}/>
-            <Route path="/anamnesis/edit/:name" element={<EditAnamnesisCategory/>}/> 
-            <Route path="/anamnesis/anamnesis-details/:name" element={<AnamnesisList/>}/>
-            <Route path="/anamnesis/anamnesis-details/:id/add" element={<AddAnamnesis/>}/>
-            <Route path="/anamnesis/anamnesis-details/:name/edit/:id" element={<EditAnamnesis/>}/>
+            <Route path="/anamnesis" element={<AnamnesisCategoryList />} />
+            <Route path="/anamnesis/add" element={<AddAnamnesisCategory />} />
+            <Route
+              path="/anamnesis/edit/:name"
+              element={<EditAnamnesisCategory />}
+            />
+            <Route
+              path="/anamnesis/anamnesis-details/:name"
+              element={<AnamnesisList />}
+            />
+            <Route
+              path="/anamnesis/anamnesis-details/:id/add"
+              element={<AddAnamnesis />}
+            />
+            <Route
+              path="/anamnesis/anamnesis-details/:name/edit/:id"
+              element={<EditAnamnesis />}
+            />
 
             {/* Checklist Page Routes */}
             <Route path="checklist" element={<ChecklistPage />} />
@@ -654,22 +664,21 @@ const AnimatedRoutes = () => {
             <Route path="/cabinets/:id/edit" element={<EditCabinet />} />
 
             {/* Recepts Page Routes */}
-            <Route path="/recepts" element={<ReceptsList/>}/>
-            <Route path="/recepts/add" element={<AddRecept/>}/>
-            <Route path="/recepts/edit/:id" element={<EditRecept/>}/>
-            <Route path="/recepts/:id" element={<MedicinesList/>}/>
-            <Route path="/recepts/:id/add" element={<AddMedicine/>}/>
-            <Route path="/recepts/:id/edit/:id" element={<AddMedicine/>}/>
+            <Route path="/recepts" element={<ReceptsList />} />
+            <Route path="/recepts/add" element={<AddRecept />} />
+            <Route path="/recepts/edit/:id" element={<EditRecept />} />
+            <Route path="/recepts/:id" element={<MedicinesList />} />
+            <Route path="/recepts/:id/add" element={<AddMedicine />} />
+            <Route path="/recepts/:id/edit/:id" element={<AddMedicine />} />
             {/* Insurance Page Routes */}
-            <Route path="/insurance" element={<InsuranceList/>}/>
-            <Route path="/insurance/add" element={<AddInsurance/>}/>
-            <Route path="/insurance/edit/:id" element={<EditInsurance/>}/>
-            
+            <Route path="/insurance" element={<InsuranceList />} />
+            <Route path="/insurance/add" element={<AddInsurance />} />
+            <Route path="/insurance/edit/:id" element={<EditInsurance />} />
 
             {/* Dental Set Routes */}
-            <Route path="/dental-set" element={<DentalSetList/>}/>
-            <Route path="dental-set/add" element={<AddDentalSet/>}/>
-            <Route path="dental-set/edit/:id" element={<EditDentalSet/>}/>
+            <Route path="/dental-set" element={<DentalSetList />} />
+            <Route path="dental-set/add" element={<AddDentalSet />} />
+            <Route path="dental-set/edit/:id" element={<EditDentalSet />} />
 
             {/* Reccomendations Page Routes */}
             <Route path="/recommendations" element={<RecommendationsPage />} />
@@ -683,34 +692,55 @@ const AnimatedRoutes = () => {
             />
 
             {/* Implants Page Routes */}
-            <Route path="/implants" element={<ImplantsList/>}/>    
-            <Route path="/implants/edit/:id" element={<EditImplant/>}/>    
-            <Route path="/implants/add" element={<AddImplant/>}/>    
-            <Route path="/implants/sizes/:name" element={<SizesList/>}/>    
-            <Route path="/implants/sizes/:name/edit/:id" element={<EditSize/>}/>    
-            <Route path="/implants/sizes/:name/add" element={<AddSize/>}/>    
+            <Route path="/implants" element={<ImplantsList />} />
+            <Route path="/implants/edit/:id" element={<EditImplant />} />
+            <Route path="/implants/add" element={<AddImplant />} />
+            <Route path="/implants/sizes/:name" element={<SizesList />} />
+            <Route
+              path="/implants/sizes/:name/edit/:id"
+              element={<EditSize />}
+            />
+            <Route path="/implants/sizes/:name/add" element={<AddSize />} />
 
             {/* Operations Page Routes */}
-            <Route path="/operations" element={<OperationCategoryList/>}/>
-            <Route path="/operations/add" element={<AddOperationCategory/>}/>
-            <Route path="/operations/edit/:id" element={<EditOperationCategory/>}/>
-            <Route path="/operations/:name" element={<OperationList/>}/>
-            <Route path="/operations/:name/edit/:id" element={<EditOperation/>}/>
-            <Route path="/operations/:name/add" element={<AddOperation/>}/>
+            <Route path="/operations" element={<OperationCategoryList />} />
+            <Route path="/operations/add" element={<AddOperationCategory />} />
+            <Route
+              path="/operations/edit/:id"
+              element={<EditOperationCategory />}
+            />
+            <Route path="/operations/:id" element={<OperationList />} />
+            <Route
+              path="/operations/:name/edit/:id"
+              element={<EditOperation />}
+            />
+            <Route path="/operations/:id/add" element={<AddOperation />} />
 
             {/* Teeth Pages Routes */}
-            <Route path="/teeth" element={<TeethList/>}/>
-            <Route path="/teeth/add" element={<AddTeeth/>}/>
-            <Route path="/teeth/edit/:id" element={<EditTeeth/>}/>
-            <Route path="/teeth/:id/operation-pictures" element={<OperationPictures/>}/>
-            <Route path="/teeth/:id/operation-pictures/add" element={<AddOperationPicture/>}/>
-            <Route path="/teeth/:id/examination-pictures" element={<ExaminationPictures/>}/>
-            <Route path="/teeth/:id/examination-pictures/add" element={<AddExaminationPicture/>}/>
-            
+            <Route path="/teeth" element={<TeethList />} />
+            <Route path="/teeth/add" element={<AddTeeth />} />
+            <Route path="/teeth/edit/:id" element={<EditTeeth />} />
+            <Route
+              path="/teeth/:id/operation-pictures"
+              element={<OperationPictures />}
+            />
+            <Route
+              path="/teeth/:id/operation-pictures/add"
+              element={<AddOperationPicture />}
+            />
+            <Route
+              path="/teeth/:id/examination-pictures"
+              element={<ExaminationPictures />}
+            />
+            <Route
+              path="/teeth/:id/examination-pictures/add"
+              element={<AddExaminationPicture />}
+            />
+
             {/* General Settings Routes */}
             <Route path="/general-settings" element={<GeneralSettings />} />
             <Route path="/general-settings/edit" element={<EditSettings />} />
-        
+
             {/* Other Objects Routes */}
             <Route path="other-objects" element={<OtherObjects />} />
             <Route path="other-objects/add" element={<AddObject />} />
@@ -720,8 +750,6 @@ const AnimatedRoutes = () => {
 
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="/change-password" element={<ChangePassword />} />
-
-
           </Route>
         </Routes>
       </div>

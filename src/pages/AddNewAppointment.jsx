@@ -9,7 +9,7 @@ import CustomDropdown from '../components/CustomDropdown.jsx';
 import DropdownChecklist from '../components/DropdownChecklist.jsx';
 import { usePatients } from '../hooks/usePatients.js';
 import { useDoctors } from '../hooks/useDoctors.js';
-import { useCreateAppointment } from '../hooks/useCalendar.js';// Müvəqqəti pasiyent məlumatları
+import { useCreateAppointment } from '../hooks/useCalendar.js';
 import BlurLoader from '../components/layout/BlurLoader.jsx';
 import { toast } from 'react-toastify';
 import { useRooms } from '../hooks/useRooms.js';

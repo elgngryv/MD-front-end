@@ -108,9 +108,7 @@ function TechniciansPrices() {
                     <input
                       type="text"
                       value={op.price}
-                      onChange={(e) =>
-                        handlePriceChange(op.id, e.target.value)
-                      }
+                      onChange={(e) => handlePriceChange(op.id, e.target.value)}
                       className="editableInput"
                     />
                   ) : (

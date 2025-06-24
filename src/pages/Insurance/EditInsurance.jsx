@@ -4,34 +4,42 @@ import "../../assets/style/Insurance/editinsurance.css";
 import acceptButton from "../../assets/images/EmployeesPage/verifyProcess.png";
 import cancelButton from "../../assets/images/EmployeesPage/cancelProcess.png";
 
-// Static data for example
-const staticInsuranceData = [
-  { id: 1, companyName: "Sığorta 1", deductibleAmount: 100, status: "active" },
-  { id: 2, companyName: "Sığorta 2", deductibleAmount: 200, status: "active" },
-  { id: 3, companyName: "Sığorta 3", deductibleAmount: 300, status: "passive" },
-];
+import useInsuranceCompanyStore from "../../../stores/insuranceStore";
 
 function EditInsurance() {
   const { id } = useParams();
   const navigate = useNavigate();
 
+  const { selectedCompany, fetchById, update, clearSelected } =
+    useInsuranceCompanyStore();
+
   const [formData, setFormData] = useState({
     companyName: "",
     deductibleAmount: "",
-    status: "active"
+    status: "ACTIVE",
   });
   const [formErrors, setFormErrors] = useState({});
- 
+
+  // Məlumatı store-dan götür və formu doldur
   useEffect(() => {
-    const insuranceToEdit = staticInsuranceData.find((i) => i.id.toString() === id);
-    if (insuranceToEdit) {
+    fetchById(id);
+
+    // Təmizləmə (unmount zamanı)
+    return () => {
+      clearSelected();
+    };
+  }, [id]);
+
+  // selectedCompany dəyişəndə formu yenilə
+  useEffect(() => {
+    if (selectedCompany) {
       setFormData({
-        companyName: insuranceToEdit.companyName || "",
-        deductibleAmount: insuranceToEdit.deductibleAmount?.toString() || "",
-        status: insuranceToEdit.status || "active",
+        companyName: selectedCompany.companyName || "",
+        deductibleAmount: selectedCompany.deductibleAmount?.toString() || "",
+        status: selectedCompany.status || "ACTIVE",
       });
     }
-  }, [id]);
+  }, [selectedCompany]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -45,15 +53,16 @@ function EditInsurance() {
   };
 
   const handleStatusChange = (e) => {
-    const newStatus = e.target.value;
-    const confirmMessage = newStatus === "active" 
-      ? "Sığortanı aktiv etmək istədiyinizə əminsiniz?" 
-      : "Sığortanı passiv etmək istədiyinizə əminsiniz?";
+    const newStatus = e.target.value.toUpperCase();
+    const confirmMessage =
+      newStatus === "ACTIVE"
+        ? "Sığortanı aktiv etmək istədiyinizə əminsiniz?"
+        : "Sığortanı passiv etmək istədiyinizə əminsiniz?";
 
     if (window.confirm(confirmMessage)) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        status: newStatus
+        status: newStatus,
       }));
     } else {
       e.target.value = formData.status;
@@ -71,24 +80,21 @@ function EditInsurance() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     const validationErrors = validateForm();
     if (Object.keys(validationErrors).length > 0) {
       setFormErrors(validationErrors);
       return;
     }
-  
+
     const payload = {
-      id: Number(id),
       companyName: formData.companyName,
       deductibleAmount: Number(formData.deductibleAmount),
       status: formData.status,
     };
-  
-    console.log("EditInsurance payload:", payload);  
-  
+
     try {
-      // Here you would typically make an API call
+      await update(id, payload);
       alert("Sığorta uğurla yeniləndi!");
       navigate("/insurance");
     } catch (err) {
@@ -137,6 +143,18 @@ function EditInsurance() {
           )}
         </div>
 
+        <div className="editInsuranceInput">
+          <label>
+            Status<span>*</span>
+          </label>
+          <select
+            name="status"
+            value={formData.status}
+            onChange={handleStatusChange}>
+            <option value="ACTIVE">Aktiv</option>
+            <option value="PASSIVE">Passiv</option>
+          </select>
+        </div>
 
         <div className="editInsuranceButtons">
           <button
@@ -146,9 +164,7 @@ function EditInsurance() {
             <img src={cancelButton} alt="İmtina et" />
             İmtina et
           </button>
-          <button
-            type="submit"
-            className="acceptFormCondition">
+          <button type="submit" className="acceptFormCondition">
             <img src={acceptButton} alt="Yadda saxla" />
             Yadda saxla
           </button>

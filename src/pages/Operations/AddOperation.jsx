@@ -1,62 +1,112 @@
-import React, { useState } from 'react';
-import '../../assets/style/Operations/addopertaion.css';
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import "../../assets/style/Operations/addopertaion.css";
+import { useNavigate, useParams } from "react-router-dom";
 import { MdClose } from "react-icons/md";
 import { FaRegSave } from "react-icons/fa";
-import { FaManatSign } from "react-icons/fa6"; 
+import { FaManatSign } from "react-icons/fa6";
+import useInsuranceCompanyStore from "../../../stores/insuranceStore";
+import useOperationItemsTypeStore from "../../../stores/operationItemTypeStore";
+import usePriceCategoryStore from "../../../stores/priceCategoryStore";
 
 const AddOperation = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
 
-  const [operationName, setOperationName] = useState('');
-  const [operationCode, setOperationCode] = useState('');
-  const [standardPrice, setStandardPrice] = useState('');
-  const [vip1Price, setVip1Price] = useState('');
-  const [vip2Price, setVip2Price] = useState('');
-  const [vip3Price, setVip3Price] = useState('');
+  const { fetchAll, insuranceCompanies } = useInsuranceCompanyStore();
+  const { create } = useOperationItemsTypeStore();
+  const { fetchCategories, categories } = usePriceCategoryStore();
+
+  const [operationName, setOperationName] = useState("");
+  const [operationCode, setOperationCode] = useState("");
   const [visibleInTechnicians, setVisibleInTechnicians] = useState(false);
-  const [insuranceData, setInsuranceData] = useState([
-    { name: 'A Sığorta', value: '' },
-    { name: 'A-Group Sığorta', value: '' },
-    { name: 'ABC Sığorta', value: '' },
-    { name: 'ATA Sığorta', value: '' },
-    { name: 'Ataşgah Sığorta', value: '' },
-    { name: 'Meqa Sığorta', value: '' },
-    { name: 'PAŞA Sığorta', value: '' },
-    { name: 'Sənaye Sığorta', value: '' },
-  ]);
+  const [insuranceData, setInsuranceData] = useState([]);
+  const [dynamicPrices, setDynamicPrices] = useState([]);
+
+  useEffect(() => {
+    fetchAll();
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    if (insuranceCompanies.length) {
+      const data = insuranceCompanies.map((company) => ({
+        name: company.companyName,
+        id: company.id,
+        value: "",
+      }));
+      setInsuranceData(data);
+    }
+  }, [insuranceCompanies]);
+
+  // Qiymət sahələrini kateqoriyalara əsasən hazırla
+  useEffect(() => {
+    if (categories.length) {
+      const prices = categories.map((cat) => ({
+        id: cat.id,
+        name: cat.name,
+        value: "",
+      }));
+      setDynamicPrices(prices);
+    }
+  }, [categories]);
 
   const handleCancel = () => {
-    navigate(-1); // Go back to the previous page
-  };
-
-  const handleSave = () => {
-    // Implement save logic here
-    console.log({
-      operationName,
-      operationCode,
-      standardPrice,
-      vip1Price,
-      vip2Price,
-      vip3Price,
-      visibleInTechnicians,
-      insuranceData,
-    });
-    // After saving, navigate back or to a confirmation page
-    // navigate('/operations');
+    navigate(-1);
   };
 
   const handleInsuranceChange = (index, value) => {
-    const newInsuranceData = [...insuranceData];
-    newInsuranceData[index].value = value;
-    setInsuranceData(newInsuranceData);
+    const updated = [...insuranceData];
+    updated[index].value = value;
+    setInsuranceData(updated);
+  };
+
+  const handlePriceChange = (index, value) => {
+    const updated = [...dynamicPrices];
+    updated[index].value = value;
+    setDynamicPrices(updated);
+  };
+
+  const handleSave = async () => {
+    try {
+      const prices = dynamicPrices
+        .filter((item) => item.value)
+        .map((item) => ({
+          priceTypeId: item.id,
+          price: parseFloat(item.value),
+        }));
+
+      const insurances = insuranceData
+        .filter((item) => item.value)
+        .map((item) => ({
+          name: item.name,
+          amount: parseFloat(item.value),
+          insuranceCompanyId: item.id,
+        }));
+
+      const payload = {
+        opTypeId: Number(id),
+        operationName,
+        operationCode,
+        showTechnic: visibleInTechnicians,
+        status: "ACTIVE",
+        prices,
+        insurances,
+      };
+
+      await create(payload);
+      navigate(-1);
+    } catch (err) {
+      console.error("Save error:", err);
+    }
   };
 
   return (
     <div className="addOperation-container">
       <div className="addOperation-form-section">
         <div className="addOperation-form-group">
-          <label htmlFor="operationName">Əməliyyatın adı<span>*</span></label>
+          <label htmlFor="operationName">
+            Əməliyyatın adı<span>*</span>
+          </label>
           <input
             type="text"
             id="operationName"
@@ -67,7 +117,9 @@ const AddOperation = () => {
         </div>
 
         <div className="addOperation-form-group">
-          <label htmlFor="operationCode">Əməliyyatın kodu<span>*</span></label>
+          <label htmlFor="operationCode">
+            Əməliyyatın kodu<span>*</span>
+          </label>
           <input
             type="text"
             id="operationCode"
@@ -80,55 +132,26 @@ const AddOperation = () => {
         <div className="addOperation-form-group-prices">
           <label>Qiymətləri</label>
           <div className="addOperation-price-inputs">
-            <div className="addOperation-price-input-group">
-              <label htmlFor="standardPrice">Standart</label>
-              <input
-                type="text"
-                id="standardPrice"
-                className="addOperation-price-input"
-                placeholder="Qiymət"
-                value={standardPrice}
-                onChange={(e) => setStandardPrice(e.target.value)}
-              />
-            </div>
-            <div className="addOperation-price-input-group">
-              <label htmlFor="vip1Price">VIP1</label>
-              <input
-                type="text"
-                id="vip1Price"
-                className="addOperation-price-input"
-                placeholder="Qiymət"
-                value={vip1Price}
-                onChange={(e) => setVip1Price(e.target.value)}
-              />
-            </div>
-            <div className="addOperation-price-input-group">
-              <label htmlFor="vip2Price">VIP2</label>
-              <input
-                type="text"
-                id="vip2Price"
-                className="addOperation-price-input"
-                placeholder="Qiymət"
-                value={vip2Price}
-                onChange={(e) => setVip2Price(e.target.value)}
-              />
-            </div>
-            <div className="addOperation-price-input-group">
-              <label htmlFor="vip3Price">VIP3</label>
-              <input
-                type="text"
-                id="vip3Price"
-                className="addOperation-price-input"
-                placeholder="Qiymət"
-                value={vip3Price}
-                onChange={(e) => setVip3Price(e.target.value)}
-              />
-            </div>
+            {dynamicPrices.map((price, index) => (
+              <div className="addOperation-price-input-group" key={price.id}>
+                <label htmlFor={`price-${price.id}`}>{price.name}</label>
+                <input
+                  type="text"
+                  id={`price-${price.id}`}
+                  className="addOperation-price-input"
+                  placeholder="Qiymət"
+                  value={price.value}
+                  onChange={(e) => handlePriceChange(index, e.target.value)}
+                />
+              </div>
+            ))}
           </div>
         </div>
 
         <div className="addOperation-form-group-tech">
-          <label htmlFor="visibleInTechnicians">Texniklarda görünsün<span>*</span></label>
+          <label htmlFor="visibleInTechnicians">
+            Texniklarda görünsün<span>*</span>
+          </label>
           <input
             type="checkbox"
             id="visibleInTechnicians"
@@ -140,17 +163,21 @@ const AddOperation = () => {
 
         <div className="addOperation-insurance-section">
           {insuranceData.map((insurance, index) => (
-            <div className="addOperation-insurance-item" key={index}>
-              <label className="addOperation-insurance-label">{insurance.name}</label>
+            <div className="addOperation-insurance-item" key={insurance.id}>
+              <label className="addOperation-insurance-label">
+                {insurance.name}
+              </label>
               <div className="addOperation-insurance-input-group">
                 <input
                   type="number"
                   className="addOperation-insurance-input"
-                  placeholder="Adı"
+                  placeholder="Məbləğ"
                   value={insurance.value}
                   onChange={(e) => handleInsuranceChange(index, e.target.value)}
                 />
-                <span className="addOperation-currency-symbol"><FaManatSign /></span>
+                <span className="addOperation-currency-symbol">
+                  <FaManatSign />
+                </span>
               </div>
             </div>
           ))}

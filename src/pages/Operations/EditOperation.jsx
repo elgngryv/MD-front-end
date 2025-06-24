@@ -1,62 +1,126 @@
-import React, { useState } from 'react';
-import '../../assets/style/Operations/editoperation.css';
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import "../../assets/style/Operations/editoperation.css";
+import { useNavigate, useParams } from "react-router-dom";
 import { MdClose } from "react-icons/md";
 import { FaRegSave } from "react-icons/fa";
-import { FaManatSign } from "react-icons/fa6"; // Used for Manat symbol
+import { FaManatSign } from "react-icons/fa6";
+import useInsuranceCompanyStore from "../../../stores/insuranceStore";
+import useOperationItemsTypeStore from "../../../stores/operationItemTypeStore";
+import usePriceCategoryStore from "../../../stores/priceCategoryStore";
 
 const EditOperation = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
 
-  const [operationName, setOperationName] = useState('Şift titan(Antijor)');
-  const [operationCode, setOperationCode] = useState('49');
-  const [standardPrice, setStandardPrice] = useState('20.00');
-  const [vip1Price, setVip1Price] = useState('');
-  const [vip2Price, setVip2Price] = useState('');
-  const [vip3Price, setVip3Price] = useState('');
+  const { insuranceCompanies, fetchAll: fetchAllInsurance } =
+    useInsuranceCompanyStore();
+  const { selectedOperationItemsType, fetchById, updateOp } =
+    useOperationItemsTypeStore();
+  const { categories, fetchCategories } = usePriceCategoryStore();
+
+  // Local state
+  const [operationName, setOperationName] = useState("");
+  const [operationCode, setOperationCode] = useState("");
   const [visibleInTechnicians, setVisibleInTechnicians] = useState(false);
-  const [insuranceData, setInsuranceData] = useState([
-    { name: 'A Sığorta', value: '' },
-    { name: 'A-Group Sığorta', value: '' },
-    { name: 'ABC Sığorta', value: '' },
-    { name: 'ATA Sığorta', value: '' },
-    { name: 'Ataşgah Sığorta', value: '' },
-    { name: 'Meqa Sığorta', value: '' },
-    { name: 'PAŞA Sığorta', value: '' },
-    { name: 'Sənaye Sığorta', value: '' },
-  ]);
+  const [prices, setPrices] = useState({});
+  const [insuranceData, setInsuranceData] = useState([]);
 
-  const handleCancel = () => {
-    navigate(-1); // Go back to the previous page
+  // Məlumatları yüklə
+  useEffect(() => {
+    if (id) {
+      fetchById(Number(id));
+    }
+    fetchCategories();
+    fetchAllInsurance();
+  }, [id]);
+
+  useEffect(() => {
+    if (
+      !selectedOperationItemsType ||
+      !categories.length ||
+      !insuranceCompanies.length
+    )
+      return;
+
+    setOperationName(selectedOperationItemsType.operationName || "");
+    setOperationCode(selectedOperationItemsType.operationCode || "");
+    setVisibleInTechnicians(!!selectedOperationItemsType.showTechnic);
+
+    // Qiymətləri doldur
+    const priceMap = {};
+    categories.forEach((cat) => {
+      const priceObj = (selectedOperationItemsType.prices || []).find(
+        (p) => p.priceCategoryId === cat.id
+      );
+      priceMap[cat.id] =
+        priceObj && priceObj.price != null ? priceObj.price.toString() : "";
+    });
+    setPrices(priceMap);
+
+    // Sığorta məlumatlarını doldur
+    const insurancesFromApi = selectedOperationItemsType.insurances || [];
+
+    // Bizim insuranceCompanies ilə uyğunlaşdıraraq dəyərləri hazırlayaq
+    const insuranceMap = insuranceCompanies.map((company) => {
+      const found = insurancesFromApi.find(
+        (ins) => ins.insuranceCompanyId === company.id
+      );
+      return {
+        id: company.id,
+        name: company.companyName,
+        value: found && found.amount != null ? found.amount.toString() : "",
+      };
+    });
+    setInsuranceData(insuranceMap);
+  }, [selectedOperationItemsType, categories, insuranceCompanies]);
+
+  // Qiymət inputlarını dəyiş
+  const handlePriceChange = (categoryId, value) => {
+    setPrices((prev) => ({ ...prev, [categoryId]: value }));
   };
 
-  const handleSave = () => {
-    // Implement save logic here
-    console.log({
+  // Sığorta inputlarını dəyiş
+  const handleInsuranceChange = (id, value) => {
+    setInsuranceData((prev) =>
+      prev.map((ins) => (ins.id === id ? { ...ins, value } : ins))
+    );
+  };
+
+  // Yadda saxla düyməsi
+  const handleSave = async () => {
+    const payload = {
       operationName,
       operationCode,
-      standardPrice,
-      vip1Price,
-      vip2Price,
-      vip3Price,
-      visibleInTechnicians,
-      insuranceData,
-    });
-    // After saving, navigate back or to a confirmation page
-    // navigate('/operations');
+      showTechnic: visibleInTechnicians,
+      prices: Object.entries(prices).map(([categoryId, price]) => ({
+        priceCategoryId: Number(categoryId),
+        price: parseFloat(price) || 0,
+      })),
+      insurances: insuranceData.map((ins) => ({
+        insuranceCompanyId: ins.id,
+        amount: parseFloat(ins.value) || 0,
+      })),
+    };
+
+    try {
+      await updateOp(Number(id), payload);
+      navigate(-1);
+    } catch (err) {
+      console.error("Update operation error:", err);
+    }
   };
 
-  const handleInsuranceChange = (index, value) => {
-    const newInsuranceData = [...insuranceData];
-    newInsuranceData[index].value = value;
-    setInsuranceData(newInsuranceData);
+  const handleCancel = () => {
+    navigate(-1);
   };
 
   return (
     <div className="editOperation-container">
       <div className="editOperation-form-section">
         <div className="editOperation-form-group">
-          <label htmlFor="operationName">Əməliyyatın adı <span>*</span></label>
+          <label htmlFor="operationName">
+            Əməliyyatın adı <span>*</span>
+          </label>
           <input
             type="text"
             id="operationName"
@@ -67,7 +131,9 @@ const EditOperation = () => {
         </div>
 
         <div className="editOperation-form-group">
-          <label htmlFor="operationCode">Əməliyyatın kodu <span>*</span></label>
+          <label htmlFor="operationCode">
+            Əməliyyatın kodu <span>*</span>
+          </label>
           <input
             type="text"
             id="operationCode"
@@ -80,54 +146,26 @@ const EditOperation = () => {
         <div className="editOperation-form-group-prices">
           <label>Qiymətləri</label>
           <div className="editOperation-price-inputs">
-            <div className="editOperation-price-input-group">
-              <label htmlFor="standardPrice">Standart</label>
-              <input
-                type="text"
-                id="standardPrice"
-                className="editOperation-price-input"
-                value={standardPrice}
-                onChange={(e) => setStandardPrice(e.target.value)}
-              />
-            </div>
-            <div className="editOperation-price-input-group">
-              <label htmlFor="vip1Price">VIP1</label>
-              <input
-                type="text"
-                id="vip1Price"
-                className="editOperation-price-input"
-                placeholder="Qiymət"
-                value={vip1Price}
-                onChange={(e) => setVip1Price(e.target.value)}
-              />
-            </div>
-            <div className="editOperation-price-input-group">
-              <label htmlFor="vip2Price">VIP2</label>
-              <input
-                type="text"
-                id="vip2Price"
-                className="editOperation-price-input"
-                placeholder="Qiymət"
-                value={vip2Price}
-                onChange={(e) => setVip2Price(e.target.value)}
-              />
-            </div>
-            <div className="editOperation-price-input-group">
-              <label htmlFor="vip3Price">VIP3</label>
-              <input
-                type="text"
-                id="vip3Price"
-                className="editOperation-price-input"
-                placeholder="Qiymət"
-                value={vip3Price}
-                onChange={(e) => setVip3Price(e.target.value)}
-              />
-            </div>
+            {categories.map((cat) => (
+              <div className="editOperation-price-input-group" key={cat.id}>
+                <label htmlFor={`price-${cat.id}`}>{cat.name}</label>
+                <input
+                  type="text"
+                  id={`price-${cat.id}`}
+                  className="editOperation-price-input"
+                  placeholder="Qiymət"
+                  value={prices[cat.id] || ""}
+                  onChange={(e) => handlePriceChange(cat.id, e.target.value)}
+                />
+              </div>
+            ))}
           </div>
         </div>
 
         <div className="editOperation-form-group-tech editOperation-checkbox-group">
-          <label htmlFor="visibleInTechnicians">Texniklarda görünsün <span>*</span></label>
+          <label htmlFor="visibleInTechnicians">
+            Texniklarda görünsün <span>*</span>
+          </label>
           <input
             type="checkbox"
             id="visibleInTechnicians"
@@ -138,25 +176,37 @@ const EditOperation = () => {
         </div>
 
         <div className="editOperation-insurance-section">
-          {insuranceData.map((insurance, index) => (
-            <div className="editOperation-insurance-item" key={index}>
-              <label className="editOperation-insurance-label">{insurance.name}</label>
-              <div className="editOperation-insurance-input-group">
-                <input
-                  type="number"
-                  className="editOperation-insurance-input"
-                  placeholder="Adı"
-                  value={insurance.value}
-                  onChange={(e) => handleInsuranceChange(index, e.target.value)}
-                />
-                <span className="editOperation-currency-symbol"><FaManatSign /></span>
+          {insuranceData.length > 0 ? (
+            insuranceData.map((insurance) => (
+              <div className="editOperation-insurance-item" key={insurance.id}>
+                <label className="editOperation-insurance-label">
+                  {insurance.name}
+                </label>
+                <div className="editOperation-insurance-input-group">
+                  <input
+                    type="number"
+                    className="editOperation-insurance-input"
+                    placeholder="Məbləğ"
+                    value={insurance.value}
+                    onChange={(e) =>
+                      handleInsuranceChange(insurance.id, e.target.value)
+                    }
+                  />
+                  <span className="editOperation-currency-symbol">
+                    <FaManatSign />
+                  </span>
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            <p>Sığorta şirkətləri mövcud deyil</p>
+          )}
         </div>
 
         <div className="editOperation-buttons">
-          <button className="editOperation-cancel-button" onClick={handleCancel}>
+          <button
+            className="editOperation-cancel-button"
+            onClick={handleCancel}>
             <MdClose /> İmtina et
           </button>
           <button className="editOperation-save-button" onClick={handleSave}>
