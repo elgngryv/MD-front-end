@@ -13,6 +13,8 @@ const StockOrder = () => {
   const { workers, fetchWorkers } = useWorkerStore();
 
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [searchTerm, setSearchTerm] = useState(""); // Added missing state
+  const [filteredOrders, setFilteredOrders] = useState([]); // Added missing state
 
   const categories = [
     { value: "all", label: "Bütün kateqoriyalar" },
