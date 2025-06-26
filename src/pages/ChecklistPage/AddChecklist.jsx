@@ -2,13 +2,15 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "../../assets/style/ChecklistPage/addchecklist.css";
-import { FaTimes, FaCheck } from "react-icons/fa"; // Ləğv və Yadda saxla ikonları
+import { FaTimes, FaCheck } from "react-icons/fa";
+import useExaminationStore from "../../../stores/examinationStore"; // Store path-ı özündə uyğun dəyiş
 
 function AddCheckList() {
   const navigate = useNavigate();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { createExamination, loading } = useExaminationStore();
+
   const [formData, setFormData] = useState({
-    itemName: "",
+    examinationTypeName: "",
   });
 
   const handleInputChange = (e) => {
@@ -18,17 +20,13 @@ function AddCheckList() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
+
     try {
-      // API çağırışı burada olacaq (məsələn, yoxlama siyahısı elementini serverə göndərmək)
-      setTimeout(() => {
-        setIsSubmitting(false);
-        toast.success("Yoxlama siyahısı elementi uğurla əlavə edildi");
-        navigate("/checklist"); // Yoxlama siyahısı səhifəsinə yönləndirmə
-      }, 1000);
+      await createExamination(formData);
+      toast.success("Yoxlama siyahısı elementi uğurla əlavə edildi");
+      navigate("/checklist");
     } catch (error) {
-      toast.error("Xəta baş verdi");
-      setIsSubmitting(false);
+      toast.error("Xəta baş verdi. Təkrar cəhd edin.");
     }
   };
 
@@ -43,8 +41,8 @@ function AddCheckList() {
             <input
               type="text"
               className="addCheckListField"
-              name="itemName"
-              value={formData.itemName}
+              name="examinationTypeName"
+              value={formData.examinationTypeName}
               onChange={handleInputChange}
               required
             />
@@ -55,16 +53,20 @@ function AddCheckList() {
               type="button"
               className="addCheckListCancelBtn"
               onClick={() => navigate("/checklist")}
-              disabled={isSubmitting}
-            >
+              disabled={loading}>
               <FaTimes /> İmtina et
             </button>
             <button
               type="submit"
               className="addCheckListSaveBtn"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Yüklənir..." : <><FaCheck /> Yadda saxla</>}
+              disabled={loading}>
+              {loading ? (
+                "Yüklənir..."
+              ) : (
+                <>
+                  <FaCheck /> Yadda saxla
+                </>
+              )}
             </button>
           </div>
         </form>

@@ -2,7 +2,6 @@
   display: flex;
   width: 100%;
   height: 100vh;
-  overflow: hidden;
 }
 
 .left-side {
@@ -12,29 +11,28 @@
   overflow-y: auto;
 }
 
-.addNewAppointment{
+.addNewAppointment {
   padding: 10px 15px;
-  border: 1px solid #155EEF;
+  border: 1px solid #155eef;
   border-radius: 8px;
   font-weight: 600;
-  color: #155EEF;
+  color: #155eef;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
   transition: 0.4s ease;
-  &:hover{
+  &:hover {
     cursor: pointer;
-    background-color: #155EEF;
+    background-color: #155eef;
     color: #fff;
-    >.addNewAppointmentIcon{
+    > .addNewAppointmentIcon {
       color: #fff;
     }
   }
-  >.addNewAppointmentIcon{
-    color: #155EEF;
-   transition: 0.4s ease;
-
+  > .addNewAppointmentIcon {
+    color: #155eef;
+    transition: 0.4s ease;
   }
 }
 
@@ -86,7 +84,8 @@
   position: relative;
 }
 
-.nav-button, .calendar-button {
+.nav-button,
+.calendar-button {
   background: none;
   border: none;
   cursor: pointer;
@@ -97,7 +96,8 @@
   justify-content: center;
 }
 
-.nav-button:hover, .calendar-button:hover {
+.nav-button:hover,
+.calendar-button:hover {
   background-color: #f0f0f0;
 }
 
@@ -197,11 +197,13 @@
   border: 1px solid #e0e0e0;
 }
 
-.time-column, .day-column {
+.time-column,
+.day-column {
   background-color: #fff;
 }
 
-.time-header, .day-header {
+.time-header,
+.day-header {
   background-color: #f8f9fa;
   border-bottom: 1px solid #e0e0e0;
 }
@@ -266,7 +268,7 @@
 
 .schedule-cell.doctor-working {
   background-color: rgba(76, 175, 80, 0.2);
-  border: 1px solid #4CAF50;
+  border: 1px solid #4caf50;
   position: relative;
 }
 
@@ -276,7 +278,7 @@
   left: 50%;
   transform: translate(-50%, -50%);
   text-align: center;
-  color: #2E7D32;
+  color: #2e7d32;
   font-size: 11px;
   font-weight: 500;
   width: 100%;

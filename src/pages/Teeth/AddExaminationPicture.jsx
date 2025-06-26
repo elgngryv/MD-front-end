@@ -1,17 +1,23 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { FiUpload, FiTrash2 } from "react-icons/fi";
+import useExaminationStore from "../../../stores/examinationStore";
+import useTeethExaminationStore from "../../../stores/teeth-examinationStore";
 import "../../assets/style/Teeth/addexaminationpicture.css";
 
-const examinationOptions = [
-  "Apikal iltihab 1 kanal",
-  "Çürük bukkal",
-  "Başqa müayinə/əməliyyat"
-];
-
 const AddExaminationPicture = () => {
+  const { id: teethId } = useParams();
+  const fileInputRef = useRef();
+
   const [selectedExam, setSelectedExam] = useState("");
   const [images, setImages] = useState([]);
-  const fileInputRef = useRef();
+
+  const { examinations, fetchAllExaminations } = useExaminationStore();
+  const { createTeethExamination } = useTeethExaminationStore();
+
+  useEffect(() => {
+    fetchAllExaminations();
+  }, []);
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
@@ -23,24 +29,52 @@ const AddExaminationPicture = () => {
     setImages((prev) => prev.filter((_, i) => i !== idx));
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const selected = examinations.find((exam) => exam.typeName === selectedExam);
+
+    if (!selected) {
+      alert("Zəhmət olmasa düzgün müayinə seçin");
+      return;
+    }
+
+    const payload = {
+      teethId: Number(teethId),
+      examinationId: Number(selected.id),
+    };
+
+    try {
+      await createTeethExamination(payload);
+      alert("Müvəffəqiyyətlə yadda saxlanıldı!");
+      setSelectedExam("");
+      setImages([]);
+    } catch (err) {
+      alert("Xəta baş verdi: " + err.message);
+    }
+  };
+
   return (
     <div className="addExaminationPictureContainer">
-      <form className="addexaminationpicture-form">
+      <form className="addexaminationpicture-form" onSubmit={handleSubmit}>
         <div className="addexaminationpicture-row">
           <label>
-            Müayinə / Əməliyyat <span className="addexaminationpicture-required">*</span>
+            Müayinə / Əməliyyat{" "}
+            <span className="addexaminationpicture-required">*</span>
           </label>
           <select
             value={selectedExam}
             onChange={(e) => setSelectedExam(e.target.value)}
-            required
-          >
+            required>
             <option value="">Seçin</option>
-            {examinationOptions.map((opt) => (
-              <option key={opt} value={opt}>{opt}</option>
+            {examinations.map((opt) => (
+              <option key={opt.id} value={opt.typeName}>
+                {opt.typeName}
+              </option>
             ))}
           </select>
         </div>
+
         <div className="addexaminationpicture-row imagesRowToUploadExamination">
           <label>Şəkil</label>
           <div className="addexaminationpicture-upload-box">
@@ -55,11 +89,11 @@ const AddExaminationPicture = () => {
             <button
               type="button"
               className="addexaminationpicture-upload-btn"
-              onClick={() => fileInputRef.current.click()}
-            >
+              onClick={() => fileInputRef.current.click()}>
               <FiUpload style={{ marginRight: 8 }} /> Dişin şəklini yükləyin
             </button>
           </div>
+
           {images.length > 0 && (
             <div className="addexaminationpicture-images-list">
               {images.map((img, idx) => (
@@ -73,8 +107,7 @@ const AddExaminationPicture = () => {
                     type="button"
                     className="addexaminationpicture-remove-btn"
                     onClick={() => handleRemoveImage(idx)}
-                    title="Sil"
-                  >
+                    title="Sil">
                     <FiTrash2 />
                   </button>
                 </div>
@@ -82,13 +115,18 @@ const AddExaminationPicture = () => {
             </div>
           )}
         </div>
+
         <div className="addexaminationpicture-actions">
-          <button type="button" className="addexaminationpicture-cancel-btn">İmtina et</button>
-          <button type="submit" className="addexaminationpicture-save-btn">Yadda saxla</button>
+          <button type="button" className="addexaminationpicture-cancel-btn">
+            İmtina et
+          </button>
+          <button type="submit" className="addexaminationpicture-save-btn">
+            Yadda saxla
+          </button>
         </div>
       </form>
     </div>
   );
 };
 
-export default AddExaminationPicture; 
+export default AddExaminationPicture;

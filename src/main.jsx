@@ -224,6 +224,7 @@ import AddExaminationPicture from "./pages/Teeth/AddExaminationPicture";
 
 import InfoPermission from "./pages/PermissionsPage/InfoPermission";
 import EditMedicine from "./pages/ReceptsPage/EditMedicine";
+import EditCheckList from "./pages/ChecklistPage/EditChecklist";
 
 // Constants
 const roomOptions = [
@@ -644,7 +645,7 @@ const AnimatedRoutes = () => {
             {/* Checklist Page Routes */}
             <Route path="checklist" element={<ChecklistPage />} />
             <Route path="checklist/add" element={<AddCheckList />} />
-            <Route path="checklist/:id/edit" element={<AddCheckList />} />
+            <Route path="checklist/:id/edit" element={<EditCheckList />} />
 
             {/* Colors Page Routes */}
             <Route path="/colors" element={<ColorsPage />} />

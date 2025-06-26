@@ -1,20 +1,39 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { MdEdit, MdDelete } from "react-icons/md";
+import CustomSelect from "../../components/CustomSelect";
 import AddPhoto from "../../assets/icons/AddPhoto";
 import downloadIcon from "../../assets/images/EmployeesPage/verifyProcess.png";
 import "../../assets/style/Teeth/addoperationpicture.css";
 import { useParams, useNavigate } from "react-router-dom";
+import useOperationTypesStore from "../../../stores/operationsTypeStore";
+import useOperationItemsTypeStore from "../../../stores/operationItemTypeStore";
 import useTeethOperationStore from "../../../stores/teeth-opetaionStore";
 
 const AddOperationPicture = () => {
-  const { id } = useParams();
+  const { id } = useParams(); // teethId olaraq
   const navigate = useNavigate();
+
+  const { fetchAll: fetchAllCategories, operationTypes } =
+    useOperationTypesStore();
+
+  const { fetchAllOp, operationItemsType } = useOperationItemsTypeStore();
 
   const { createTeethOperations, loading, error } = useTeethOperationStore();
 
-  const [operationName, setOperationName] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedOperation, setSelectedOperation] = useState(null);
   const [image, setImage] = useState(null);
   const fileInputRef = useRef();
+
+  useEffect(() => {
+    fetchAllCategories();
+  }, []);
+
+  useEffect(() => {
+    if (selectedCategory) {
+      fetchAllOp(selectedCategory.value);
+    }
+  }, [selectedCategory]);
 
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
@@ -35,29 +54,38 @@ const AddOperationPicture = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!operationName.trim()) {
-      alert("Əməliyyat adını daxil edin");
+    if (!selectedCategory || !selectedOperation) {
+      alert("Kateqoriya və əməliyyat seçilməlidir");
       return;
     }
 
-    try {
-      await createTeethOperations({
-        teethId: Number(id),
-        opTypeAndItemRequests: [
-          {
-            operationName: operationName.trim(),
-          },
-        ],
-        // Şəkil varsa əlavə et, base64 formatında (əgər backend dəstəkləyirsə)
-        image: image || null,
-      });
+    const payload = {
+      teethId: Number(id),
+      opTypeAndItemRequests: [
+        {
+          operationName: `${selectedCategory.label}-${selectedOperation.label}`,
+        },
+      ],
+    };
 
+    try {
+      await createTeethOperations(payload);
       alert("Əlavə olundu!");
       navigate(`/teeth/${id}/operation-pictures`);
     } catch (err) {
       alert("Xəta baş verdi: " + (err.message || "Naməlum"));
     }
   };
+
+  const categoryOptions = operationTypes.map((c) => ({
+    value: c.id,
+    label: c.categoryName,
+  }));
+
+  const operationOptions = operationItemsType.map((op) => ({
+    value: op.id,
+    label: op.operationName,
+  }));
 
   return (
     <div className="addOperationPictureContainer">
@@ -68,18 +96,29 @@ const AddOperationPicture = () => {
       <form className="addoperationpicture-form" onSubmit={handleSubmit}>
         <div className="addoperationpicture-row">
           <label>
-            Müayinə / Əməliyyat{" "}
+            Əməliyyat Kateqoriyası{" "}
             <span className="addoperationpicture-required">*</span>
           </label>
-          <input
-            type="text"
-            value={operationName}
-            onChange={(e) => setOperationName(e.target.value)}
-            placeholder="Əməliyyat adını daxil edin"
-            className="operation-input"
-            required
+          <CustomSelect
+            options={categoryOptions}
+            value={selectedCategory}
+            onChange={setSelectedCategory}
+            placeholder="Kateqoriya seçin"
           />
         </div>
+
+        <div className="addoperationpicture-row">
+          <label>
+            Əməliyyat <span className="addoperationpicture-required">*</span>
+          </label>
+          <CustomSelect
+            options={operationOptions}
+            value={selectedOperation}
+            onChange={setSelectedOperation}
+            placeholder="Əməliyyat seçin"
+          />
+        </div>
+
         <div className="addoperationpicture-row imagesRowToUploadOperation">
           <label>Şəkil</label>
           <div className="image-upload-area">
@@ -110,6 +149,7 @@ const AddOperationPicture = () => {
             />
           </div>
         </div>
+
         <div className="addoperationpicture-actions">
           <button
             type="button"

@@ -3,48 +3,57 @@ import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import "../../assets/style/CabinetsPage/editcabinet.css";
 import { FaTimes, FaCheck } from "react-icons/fa";
+import useCabinetStore from "../../../stores/cabinetStore"; // path-ı uyğunlaşdır
 
 function EditCabinet() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { cabinets, updateCabinet, fetchCabinets, loading } = useCabinetStore();
+
   const [formData, setFormData] = useState({
+    id: "",
     cabinetName: "",
+    status: "ACTIVE", // default olaraq
   });
 
   useEffect(() => {
-    // Burada məlumatları yükləmək üçün API çağırışı ediləcək
-    // Məsələn:
-    // const fetchData = async () => {
-    //   try {
-    //     const response = await fetch(`/api/cabinets/${id}`);
-    //     const data = await response.json();
-    //     setFormData(data);
-    //   } catch (error) {
-    //     toast.error("Məlumatları yükləmək mümkün olmadı");
-    //   }
-    // };
-    // fetchData();
-  }, [id]);
+    fetchCabinets(); // Məlumat yenilənməyibsə
+  }, []);
+
+  useEffect(() => {
+    const cabinetToEdit = cabinets.find((cab) => String(cab.id) === String(id));
+    if (cabinetToEdit) {
+      setFormData({
+        id: cabinetToEdit.id,
+        cabinetName: cabinetToEdit.cabinetName,
+        status: cabinetToEdit.status || "ACTIVE",
+      });
+    }
+  }, [id, cabinets]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
+
+    if (!formData.cabinetName.trim()) {
+      toast.error("Kabinet adı boş ola bilməz");
+      return;
+    }
+
     try {
-      // API çağırışı burada olacaq (məsələn, kabinet elementini yeniləmək)
-      setTimeout(() => {
-        setIsSubmitting(false);
-        toast.success("Kabinet uğurla yeniləndi");
-        navigate("/cabinets");
-      }, 1000);
+      await updateCabinet(formData);
+      toast.success("Kabinet uğurla yeniləndi");
+      navigate("/cabinets");
     } catch (error) {
-      toast.error("Xəta baş verdi");
-      setIsSubmitting(false);
+      toast.error("Yeniləmə zamanı xəta baş verdi");
     }
   };
 
@@ -66,21 +75,34 @@ function EditCabinet() {
             />
           </div>
 
+          <div className="editCabinetFormRow">
+            <label className="editCabinetLabel">Status</label>
+            <select
+              className="editCabinetField"
+              name="status"
+              value={formData.status}
+              onChange={handleInputChange}
+            >
+              <option value="ACTIVE">Aktiv</option>
+              <option value="PASSIVE">Passiv</option>
+            </select>
+          </div>
+
           <div className="editCabinetActions">
             <button
               type="button"
               className="editCabinetCancelBtn"
               onClick={() => navigate("/cabinets")}
-              disabled={isSubmitting}
+              disabled={loading}
             >
               <FaTimes /> İmtina et
             </button>
             <button
               type="submit"
               className="editCabinetSaveBtn"
-              disabled={isSubmitting}
+              disabled={loading}
             >
-              {isSubmitting ? "Yüklənir..." : <><FaCheck /> Yadda saxla</>}
+              {loading ? "Yüklənir..." : <><FaCheck /> Yadda saxla</>}
             </button>
           </div>
         </form>

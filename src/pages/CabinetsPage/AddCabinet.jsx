@@ -2,10 +2,13 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "../../assets/style/CabinetsPage/addcabinet.css";
-import { FaTimes, FaCheck } from "react-icons/fa"; // Ləğv və Yadda saxla ikonları
+import { FaTimes, FaCheck } from "react-icons/fa";
+import useCabinetStore from "../../../stores/cabinetStore";
 
 function AddCabinet() {
   const navigate = useNavigate();
+  const createCabinet = useCabinetStore((state) => state.createCabinet);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     cabinetName: "",
@@ -20,14 +23,12 @@ function AddCabinet() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      // API çağırışı burada olacaq (məsələn, kabinet elementini serverə göndərmək)
-      setTimeout(() => {
-        setIsSubmitting(false);
-        toast.success("Kabinet uğurla əlavə edildi");
-        navigate("/cabinets"); // Kabinet səhifəsinə yönləndirmə
-      }, 1000);
+      await createCabinet(formData);
+      toast.success("Kabinet uğurla əlavə edildi");
+      navigate("/cabinets");
     } catch (error) {
-      toast.error("Xəta baş verdi");
+      toast.error("Kabinet əlavə edilərkən xəta baş verdi");
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -55,16 +56,20 @@ function AddCabinet() {
               type="button"
               className="addCabinetCancelBtn"
               onClick={() => navigate("/cabinets")}
-              disabled={isSubmitting}
-            >
+              disabled={isSubmitting}>
               <FaTimes /> İmtina et
             </button>
             <button
               type="submit"
               className="addCabinetSaveBtn"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Yüklənir..." : <><FaCheck /> Yadda saxla</>}
+              disabled={isSubmitting}>
+              {isSubmitting ? (
+                "Yüklənir..."
+              ) : (
+                <>
+                  <FaCheck /> Yadda saxla
+                </>
+              )}
             </button>
           </div>
         </form>
