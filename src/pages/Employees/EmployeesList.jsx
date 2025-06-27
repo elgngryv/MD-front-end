@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react"; // Import useRef
 import OrdinaryListHeader from "../../components/OrdinaryList/OrdinaryListHeader";
 import { CiSearch, CiCircleInfo } from "react-icons/ci";
 import { GoTrash } from "react-icons/go";
 import { FiEdit3 } from "react-icons/fi";
 import { HiArrowsUpDown } from "react-icons/hi2";
 import "../../assets/style/EmployeesPage/employeespage.css";
-import useEmployeeStore from "../../../stores/workerStore";
+import useEmployeeStore from "../../../stores/workerStore"; // Renamed for clarity in this context
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { CiCalendar } from "react-icons/ci";
@@ -24,11 +24,14 @@ const EmployeesList = () => {
   });
 
   const [filteredEmployees, setFilteredEmployees] = useState([]);
+  const searchTimeoutRef = useRef(null); // Ref to hold the debounce timeout
 
+  // Initial fetch of workers
   useEffect(() => {
     fetchWorkers();
   }, [fetchWorkers]);
 
+  // Update filteredEmployees when workers data changes (after initial fetch or search)
   useEffect(() => {
     setFilteredEmployees(workers);
   }, [workers]);
@@ -36,60 +39,34 @@ const EmployeesList = () => {
   const getStatus = (emp) => (emp.enabled ? "Aktiv" : "Passiv");
   const navigation = useNavigate();
 
-  const handleSearch = async () => {
+  // Function to perform the search
+  const performSearch = async (currentSearchParams) => {
     try {
       // If all search fields are empty, fetch all workers
-      if (Object.values(searchParams).every((val) => !val)) {
+      if (Object.values(currentSearchParams).every((val) => !val)) {
         await fetchWorkers();
-        setFilteredEmployees(workers); // Set all employees when search is cleared
         return;
       }
 
       // Convert status to boolean for API
       const enabled =
-        searchParams.status === "Aktiv"
+        currentSearchParams.status === "Aktiv"
           ? true
-          : searchParams.status === "Passiv"
+          : currentSearchParams.status === "Passiv"
           ? false
           : undefined;
 
       // Call search API
       await searchWorkers({
-        username: searchParams.username || undefined,
-        name: searchParams.name || undefined,
-        surname: searchParams.surname || undefined,
-        patronymic: searchParams.patronymic || undefined,
-        phone: searchParams.phone || undefined,
+        username: currentSearchParams.username || undefined,
+        name: currentSearchParams.name || undefined,
+        surname: currentSearchParams.surname || undefined,
+        patronymic: currentSearchParams.patronymic || undefined,
+        phone: currentSearchParams.phone || undefined,
         enabled,
       });
-
-      // Filter locally in the frontend if no backend data found
-      const filtered = workers.filter((worker) => {
-        return (
-          (worker.username
-            ?.toLowerCase()
-            .includes(searchParams.username.toLowerCase()) ||
-            !searchParams.username) &&
-          (worker.name
-            ?.toLowerCase()
-            .includes(searchParams.name.toLowerCase()) ||
-            !searchParams.name) &&
-          (worker.surname
-            ?.toLowerCase()
-            .includes(searchParams.surname.toLowerCase()) ||
-            !searchParams.surname) &&
-          (worker.patronymic
-            ?.toLowerCase()
-            .includes(searchParams.patronymic.toLowerCase()) ||
-            !searchParams.patronymic) &&
-          (worker.phone?.includes(searchParams.phone) || !searchParams.phone) &&
-          (getStatus(worker)
-            .toLowerCase()
-            .includes(searchParams.status.toLowerCase()) ||
-            !searchParams.status)
-        );
-      });
-      setFilteredEmployees(filtered);
+      // The searchWorkers action in the store already updates the 'workers' state
+      // which in turn updates filteredEmployees via the useEffect above.
     } catch (error) {
       console.error("Search error:", error);
       alert("Axtarış zamanı xəta baş verdi");
@@ -102,11 +79,33 @@ const EmployeesList = () => {
       ...prev,
       [name]: value,
     }));
+
+    // If the changed input is 'username', apply debouncing
+    if (name === "username") {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+      searchTimeoutRef.current = setTimeout(() => {
+        performSearch({ ...searchParams, [name]: value }); // Use the updated value
+      }, 500); // Debounce time: 500ms
+    }
+  };
+
+  const handleSearchButtonClick = () => {
+    // Clear any pending debounce timeout when the search button is clicked
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    performSearch(searchParams);
   };
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
-      handleSearch();
+      // Clear any pending debounce timeout when Enter is pressed
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+      performSearch(searchParams);
     }
   };
 
@@ -187,7 +186,7 @@ const EmployeesList = () => {
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
             />
-            <button className="cursor-pointer" onClick={handleSearch}>
+            <button className="cursor-pointer" onClick={handleSearchButtonClick}>
               <CiSearch className="searchBTN" />
             </button>
           </div>
@@ -196,7 +195,8 @@ const EmployeesList = () => {
               className="workersStatusChecker"
               name="status"
               value={searchParams.status}
-              onChange={handleInputChange}>
+              onChange={handleInputChange}
+            >
               <option value="">Hamısı</option>
               <option value="Aktiv">Aktiv</option>
               <option value="Passiv">Passiv</option>
@@ -285,7 +285,8 @@ const EmployeesList = () => {
                     <td>
                       <Link
                         className="employeeScheduleTableData"
-                        to={`work-schedule/${emp.id}`}>
+                        to={`work-schedule/${emp.id}`}
+                      >
                         <CiCalendar className="employeeScheduleTableDataIcon" />{" "}
                         İş qrafiki
                       </Link>
@@ -294,7 +295,8 @@ const EmployeesList = () => {
                       <span
                         className={`status ${
                           emp.enabled ? "active" : "passive"
-                        }`}>
+                        }`}
+                      >
                         {getStatus(emp)}
                       </span>
                     </td>
