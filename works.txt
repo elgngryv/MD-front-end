@@ -4,7 +4,6 @@ import { useState, useEffect, useMemo } from "react";
 import { FiChevronLeft, FiChevronRight, FiX, FiCalendar } from "react-icons/fi";
 import "./EmployeeSchedule.css";
 
-// Həftə günləri və qısa adlar
 const weekDays = [
   { key: "MONDAY", label: "B.e" },
   { key: "TUESDAY", label: "Ç.a" },
@@ -16,27 +15,15 @@ const weekDays = [
 ];
 
 const azMonths = [
-  "Yanvar",
-  "Fevral",
-  "Mart",
-  "Aprel",
-  "May",
-  "İyun",
-  "İyul",
-  "Avqust",
-  "Sentyabr",
-  "Oktyabr",
-  "Noyabr",
-  "Dekabr",
+  "Yanvar", "Fevral", "Mart", "Aprel", "May", "İyun",
+  "İyul", "Avqust", "Sentyabr", "Oktyabr", "Noyabr", "Dekabr",
 ];
 
-// Saatı formatlamaq üçün funksiya
 function formatTime(timeStr) {
   if (!timeStr) return "";
   return timeStr.slice(0, 5);
 }
 
-// Həftənin bazar ertəsini tap
 function getMonday(date) {
   const d = new Date(date);
   const day = d.getDay();
@@ -44,7 +31,6 @@ function getMonday(date) {
   return new Date(d.setDate(diff));
 }
 
-// Həftənin bütün günlərini qaytar
 function getWeekDates(startDate) {
   const days = [];
   for (let i = 0; i < 7; i++) {
@@ -55,13 +41,11 @@ function getWeekDates(startDate) {
   return days;
 }
 
-// Rəng seçimi üçün funksiya
 const blockColors = ["blue", "green", "pink", "red"];
 function getBlockColor(idx) {
   return blockColors[idx % blockColors.length];
 }
 
-// Generate 30-minute time intervals between two times
 function generateTimeIntervals(startTime, endTime) {
   const intervals = [];
   const start = startTime.split(":").map(Number);
@@ -90,7 +74,6 @@ function generateTimeIntervals(startTime, endTime) {
   return intervals;
 }
 
-// Get number of 30-min intervals between two times
 function getIntervalCount(startTime, endTime) {
   const start = startTime.split(":").map(Number);
   const end = endTime.split(":").map(Number);
@@ -99,18 +82,15 @@ function getIntervalCount(startTime, endTime) {
 }
 
 const EmployeeSchedule = () => {
-  // Həftənin başlanğıc günü
   const [weekStart, setWeekStart] = useState(getMonday(new Date()));
   const [schedules, setSchedules] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Select values
   const [selectedEmployee, setSelectedEmployee] = useState("");
   const [selectedRoom, setSelectedRoom] = useState("");
 
-  // Həftənin günləri və tarixləri
   const weekDates = getWeekDates(weekStart);
   const today = new Date();
   const isSameDay = (d1, d2) =>
@@ -120,14 +100,12 @@ const EmployeeSchedule = () => {
   const monthName = azMonths[weekStart.getMonth()];
   const rangeStr = `${weekDates[0].getDate()} ${monthName} - ${weekDates[6].getDate()} ${monthName}`;
 
-  // API-dan məlumatları yüklə
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        // Get token from localStorage
         const token = localStorage.getItem("token");
         if (!token) {
           throw new Error("Authentication token not found");
@@ -138,37 +116,27 @@ const EmployeeSchedule = () => {
           "Content-Type": "application/json",
         };
 
-        // İşçiləri yüklə
         const employeesResponse = await fetch(
           "http://195.7.6.10:5555/api/v1/add-worker/read",
-          {
-            headers,
-          }
+          { headers }
         );
-
         if (!employeesResponse.ok) {
           throw new Error(
             `Failed to fetch employees: ${employeesResponse.status}`
           );
         }
-
         const employeesData = await employeesResponse.json();
         setEmployees(employeesData);
 
-        // Qrafikləri yüklə
         const schedulesResponse = await fetch(
           "http://195.7.6.10:5555/api/v1/workers-work-schedule/read",
-          {
-            headers,
-          }
+          { headers }
         );
-
         if (!schedulesResponse.ok) {
           throw new Error(
             `Failed to fetch schedules: ${schedulesResponse.status}`
           );
         }
-
         const schedulesData = await schedulesResponse.json();
         setSchedules(schedulesData);
       } catch (err) {
@@ -182,7 +150,6 @@ const EmployeeSchedule = () => {
     fetchData();
   }, [weekStart]);
 
-  // Həftə dəyişmə funksiyaları
   const handlePrevWeek = () => {
     const prev = new Date(weekStart);
     prev.setDate(prev.getDate() - 7);
@@ -195,70 +162,59 @@ const EmployeeSchedule = () => {
     setWeekStart(getMonday(next));
   };
 
-  // İşçi select dəyişəndə
   const handleEmployeeChange = (e) => {
     setSelectedEmployee(e.target.value);
-    setSelectedRoom(""); // Clear room filter when selecting employee
+    setSelectedRoom(""); // seçilən işçi dəyişəndə otaq seçimini sıfırla
   };
 
-  // Room select dəyişəndə
   const handleRoomChange = (e) => {
     setSelectedRoom(e.target.value);
-    setSelectedEmployee(""); // Clear employee filter when selecting room
   };
 
-  // Filterləri sıfırlayan funksiya
   const handleClearFilters = () => {
     setSelectedEmployee("");
     setSelectedRoom("");
   };
 
-  // Hər işçi üçün, hər günə uyğun schedule tap
-  function getScheduleForEmployeeAndDay(userId, weekDay) {
-    return schedules.find((s) => s.userId === userId && s.weekDay === weekDay);
-  }
+  // İşçi seçilibsə yalnız onun qrafikləri, yoxsa bütün qrafiklər
+  const filteredSchedules = useMemo(() => {
+    if (selectedEmployee) {
+      return schedules.filter((s) => s.userId === selectedEmployee);
+    }
+    return schedules;
+  }, [schedules, selectedEmployee]);
 
-  // Unique rooms from schedules
+  // Filtrlənmiş otaqlar yalnız filteredSchedules-dan alınır
   const availableRooms = useMemo(() => {
-    const rooms = [...new Set(schedules.map((s) => s.room).filter(Boolean))];
-    return rooms.sort();
-  }, [schedules]);
+    let filtered = filteredSchedules;
+    if (selectedRoom) {
+      filtered = filtered.filter((s) => s.room === selectedRoom);
+    }
+    return [...new Set(filtered.map((s) => s.room).filter(Boolean))].sort();
+  }, [filteredSchedules, selectedRoom]);
 
-  // Filtered employees based on selected filters
+  // Filtrlənmiş işçilər həm işçi, həm otaq seçimindən asılıdır
   const filteredEmployees = useMemo(() => {
-    let result = employees;
+    let filtered = employees;
 
     if (selectedEmployee) {
-      result = result.filter((e) => e.id === selectedEmployee);
+      filtered = filtered.filter((e) => e.id === selectedEmployee);
     }
 
     if (selectedRoom) {
-      const employeeIdsWithRoom = schedules
+      // otaq üzrə işçi id-lərini tap
+      const userIdsByRoom = schedules
         .filter((s) => s.room === selectedRoom)
         .map((s) => s.userId);
-      result = result.filter((e) => employeeIdsWithRoom.includes(e.id));
+      filtered = filtered.filter((e) => userIdsByRoom.includes(e.id));
     }
 
-    return result;
+    return filtered;
   }, [employees, schedules, selectedEmployee, selectedRoom]);
 
-  // Check if we should show detailed view (either employee selected or room selected with only one employee)
-  const showDetailedView = useMemo(() => {
-    if (selectedEmployee) return true;
-    if (selectedRoom && filteredEmployees.length === 1) return true;
-    return false;
-  }, [selectedEmployee, selectedRoom, filteredEmployees]);
-
-  // Get the employee to show in detailed view
-  const detailedEmployee = useMemo(() => {
-    if (selectedEmployee) {
-      return employees.find((e) => e.id === selectedEmployee);
-    }
-    if (selectedRoom && filteredEmployees.length === 1) {
-      return filteredEmployees[0];
-    }
-    return null;
-  }, [selectedEmployee, selectedRoom, filteredEmployees, employees]);
+  function getScheduleForEmployeeAndDay(userId, weekDay) {
+    return filteredSchedules.find((s) => s.userId === userId && s.weekDay === weekDay);
+  }
 
   if (error) {
     return (
@@ -276,7 +232,8 @@ const EmployeeSchedule = () => {
               border: "none",
               borderRadius: "4px",
               cursor: "pointer",
-            }}>
+            }}
+          >
             Yenidən yüklə
           </button>
         </div>
@@ -291,7 +248,8 @@ const EmployeeSchedule = () => {
           <select
             className="ews-filter-select"
             value={selectedEmployee}
-            onChange={handleEmployeeChange}>
+            onChange={handleEmployeeChange}
+          >
             <option value="">İşçi seç</option>
             {employees.map((emp) => (
               <option key={emp.id} value={emp.id}>
@@ -303,7 +261,8 @@ const EmployeeSchedule = () => {
             className="ews-filter-select"
             style={{ marginLeft: 8 }}
             value={selectedRoom}
-            onChange={handleRoomChange}>
+            onChange={handleRoomChange}
+          >
             <option value="">Otaq</option>
             {availableRooms.map((room) => (
               <option key={room} value={room}>
@@ -329,7 +288,9 @@ const EmployeeSchedule = () => {
             <button className="nav-button" onClick={handleNextWeek}>
               <FiChevronRight />
             </button>
-            
+            <button className="calendar-button">
+              <FiCalendar />
+            </button>
           </div>
         </div>
       </div>
@@ -348,32 +309,28 @@ const EmployeeSchedule = () => {
               animation: "spin 1s linear infinite",
             }}
           />
-          <p style={{ marginTop: "16px", color: "#666" }}>
-            Məlumatlar yüklənir...
-          </p>
+          <p style={{ marginTop: "16px", color: "#666" }}>Məlumatlar yüklənir...</p>
         </div>
-      ) : showDetailedView && detailedEmployee ? (
-        // Time-based vertical schedule for selected employee
+      ) : selectedEmployee ? (
         (() => {
-          const emp = detailedEmployee;
+          const emp = employees.find((e) => e.id === selectedEmployee);
+          if (!emp) return null;
 
-          // Find all schedules for this employee for the week (filtered by room if selected)
           const empSchedules = weekDays.map((d) => {
             const sched = getScheduleForEmployeeAndDay(emp.id, d.key);
-            if (selectedRoom && sched && sched.room !== selectedRoom)
-              return null;
+            if (selectedRoom && sched && sched.room !== selectedRoom) return null;
             return sched;
           });
 
-          // Find min/max time for intervals
+          // Ən erkən başlama və ən gec bitmə saatını tap
           let minHour = 9,
-            maxHour = 18; // default values
+            maxHour = 18;
           empSchedules.forEach((s) => {
             if (s) {
-              const startHour = Number.parseInt(s.startTime.split(":")[0]);
-              const endHour = Number.parseInt(s.finishTime.split(":")[0]);
-              minHour = Math.min(minHour, startHour);
-              maxHour = Math.max(maxHour, endHour);
+              const startHour = parseInt(s.startTime.split(":")[0], 10);
+              const endHour = parseInt(s.finishTime.split(":")[0], 10);
+              if (startHour < minHour) minHour = startHour;
+              if (endHour > maxHour) maxHour = endHour;
             }
           });
 
@@ -382,7 +339,6 @@ const EmployeeSchedule = () => {
             `${String(maxHour + 1).padStart(2, "0")}:00`
           );
 
-          // For each day, track if block is rendered for that day
           const blockRendered = Array(weekDays.length).fill(false);
 
           return (
@@ -393,19 +349,11 @@ const EmployeeSchedule = () => {
                   {weekDays.map((d, i) => {
                     const isToday = isSameDay(weekDates[i], today);
                     return (
-                      <th
-                        key={d.key}
-                        className={isToday ? "current-day-header" : ""}>
-                        <div
-                          className={
-                            isToday ? "day-name current-day-name" : "day-name"
-                          }>
+                      <th key={d.key} className={isToday ? "current-day-header" : ""}>
+                        <div className={isToday ? "day-name current-day-name" : "day-name"}>
                           {d.label}
                         </div>
-                        <div
-                          className={
-                            isToday ? "day-date current-day-date" : "day-date"
-                          }>
+                        <div className={isToday ? "day-date current-day-date" : "day-date"}>
                           {weekDates[i].getDate()}
                         </div>
                       </th>
@@ -424,51 +372,37 @@ const EmployeeSchedule = () => {
                         fontSize: 14,
                         textAlign: "right",
                         paddingRight: 10,
-                      }}>
+                      }}
+                    >
                       {interval.timeStr}
                     </td>
                     {weekDays.map((d, dayIdx) => {
                       const sched = empSchedules[dayIdx];
                       if (!sched)
-                        return (
-                          <td
-                            key={d.key}
-                            style={{ background: "#F7F8FA" }}></td>
-                        );
+                        return <td key={d.key} style={{ background: "#F7F8FA" }}></td>;
 
                       const intervalTime = interval.hour * 60 + interval.minute;
                       const schedStart =
-                        Number.parseInt(sched.startTime.split(":")[0]) * 60 +
-                        Number.parseInt(sched.startTime.split(":")[1]);
+                        parseInt(sched.startTime.split(":")[0], 10) * 60 +
+                        parseInt(sched.startTime.split(":")[1], 10);
                       const schedEnd =
-                        Number.parseInt(sched.finishTime.split(":")[0]) * 60 +
-                        Number.parseInt(sched.finishTime.split(":")[1]);
+                        parseInt(sched.finishTime.split(":")[0], 10) * 60 +
+                        parseInt(sched.finishTime.split(":")[1], 10);
 
-                      if (
-                        !blockRendered[dayIdx] &&
-                        intervalTime === schedStart
-                      ) {
-                        const span = getIntervalCount(
-                          sched.startTime,
-                          sched.finishTime
-                        );
+                      if (!blockRendered[dayIdx] && intervalTime === schedStart) {
+                        const span = getIntervalCount(sched.startTime, sched.finishTime);
                         blockRendered[dayIdx] = true;
                         return (
-                          <td
-                            key={d.key}
-                            rowSpan={span}
-                            style={{ verticalAlign: "top", padding: 0 }}>
+                          <td key={d.key} rowSpan={span} style={{ verticalAlign: "top", padding: 0 }}>
                             <div
-                              className={`ews-schedule-block ews-schedule-block-${getBlockColor(
-                                dayIdx
-                              )} vertical-view`}
-                              style={{ height: 60 * span - 8 }}>
+                              className={`ews-schedule-block ews-schedule-block-${getBlockColor(dayIdx)} vertical-view`}
+                              style={{ height: 60 * span - 8 }}
+                            >
                               <div className="block-doctor">
                                 {emp.name} {emp.surname}
                               </div>
                               <div className="block-time">
-                                {formatTime(sched.startTime)} -{" "}
-                                {formatTime(sched.finishTime)}
+                                {formatTime(sched.startTime)} - {formatTime(sched.finishTime)}
                               </div>
                               <div className="block-room">{sched.room}</div>
                             </div>
@@ -476,17 +410,11 @@ const EmployeeSchedule = () => {
                         );
                       }
 
-                      if (
-                        blockRendered[dayIdx] &&
-                        intervalTime > schedStart &&
-                        intervalTime < schedEnd
-                      ) {
+                      if (blockRendered[dayIdx] && intervalTime > schedStart && intervalTime < schedEnd) {
                         return null;
                       }
 
-                      return (
-                        <td key={d.key} style={{ background: "#F7F8FA" }}></td>
-                      );
+                      return <td key={d.key} style={{ background: "#F7F8FA" }}></td>;
                     })}
                   </tr>
                 ))}
@@ -495,28 +423,24 @@ const EmployeeSchedule = () => {
           );
         })()
       ) : (
-        // Default horizontal view
         <table className="ews-table">
           <thead>
-          <tr>
-            <th className="text-left">Ad, soyad</th>
-            {weekDays.map((d, i) => {
-              const isToday = isSameDay(weekDates[i], today);
-              return (
-                <th
-                  key={d.key}
-                  className={`dateContainerTH ${isToday ? "current-day-header" : ""}`}>
-                  <div className={`day-name ${isToday ? "current-day-name" : ""}`}>
-                    {d.label}
-                  </div>
-                  <div className={`day-date ${isToday ? "current-day-date" : ""}`}>
-                    {weekDates[i].getDate()}
-                  </div>
-                </th>
-              );
-            })}
-          </tr>
-
+            <tr>
+              <th className="text-left">Ad, soyad</th>
+              {weekDays.map((d, i) => {
+                const isToday = isSameDay(weekDates[i], today);
+                return (
+                  <th key={d.key} className={isToday ? "current-day-header" : ""}>
+                    <div className={isToday ? "day-name current-day-name" : "day-name"}>
+                      {d.label}
+                    </div>
+                    <div className={isToday ? "day-date current-day-date" : "day-date"}>
+                      {weekDates[i].getDate()}
+                    </div>
+                  </th>
+                );
+              })}
+            </tr>
           </thead>
           <tbody>
             {filteredEmployees.map((emp) => (
@@ -534,9 +458,7 @@ const EmployeeSchedule = () => {
                     <td key={d.key}>
                       {sched ? (
                         <div
-                          className={`ews-schedule-block ews-schedule-block-${getBlockColor(
-                            dayIdx
-                          )}`}
+                          className={`ews-schedule-block ews-schedule-block-${getBlockColor(dayIdx)}`}
                           style={
                             selectedRoom && !isRoomMatch
                               ? {
@@ -546,10 +468,10 @@ const EmployeeSchedule = () => {
                                   color: "#B0B7C3",
                                 }
                               : { minWidth: 120, margin: "0 auto" }
-                          }>
+                          }
+                        >
                           <div>
-                            {formatTime(sched.startTime)} -{" "}
-                            {formatTime(sched.finishTime)}
+                            {formatTime(sched.startTime)} - {formatTime(sched.finishTime)}
                           </div>
                           <div className="ews-room">{sched.room}</div>
                         </div>

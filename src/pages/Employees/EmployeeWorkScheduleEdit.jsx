@@ -8,7 +8,7 @@ import acceptProcess from "../../assets/images/EmployeesPage/verifyProcess.png";
 import cancelProcess from "../../assets/images/EmployeesPage/cancelProcess.png";
 
 function EmployeeWorkScheduleEdit() {
-  const { id } = useParams(); // burada id schedule id-dir (məsələn 4)
+  const { id } = useParams(); // schedule id
   const navigate = useNavigate();
 
   const { schedules, updateSchedule, fetchSchedules, removeSchedule } =
@@ -19,6 +19,7 @@ function EmployeeWorkScheduleEdit() {
   const [room, setRoom] = useState("");
   const [startTime, setStartTime] = useState("");
   const [finishTime, setFinishTime] = useState("");
+  const [userId, setUserId] = useState("");
 
   const daysOfWeek = [
     { value: "MONDAY", label: "Bazar ertəsi" },
@@ -41,9 +42,7 @@ function EmployeeWorkScheduleEdit() {
     "STOM8",
   ];
 
-  // Komponent mount olanda mövcud məlumatı yüklə
   useEffect(() => {
-    // Əgər artıq bütün schedule-lər yüklənibsə, id-ə uyğun olanı tap
     if (schedules.length === 0) {
       fetchSchedules();
     } else {
@@ -51,8 +50,9 @@ function EmployeeWorkScheduleEdit() {
       if (sched) {
         setWeekDay(sched.weekDay);
         setRoom(sched.room);
-        setStartTime(sched.startTime.slice(0, 5)); // 12:21:00 => 12:21
+        setStartTime(sched.startTime.slice(0, 5));
         setFinishTime(sched.finishTime.slice(0, 5));
+        setUserId(sched.userId); // userId-ni təyin et
       }
     }
   }, [id, schedules, fetchSchedules]);
@@ -67,22 +67,22 @@ function EmployeeWorkScheduleEdit() {
     }
 
     const updatedData = {
-      id: Number(id),
+      id: Number(id), // Əgər id UUID-dirsə, sadəcə `id` yaz
       weekDay,
       room,
-      startTime: startTime + ":00", // vaxtı backendə 12:21:00 formatında göndər
+      startTime: startTime + ":00",
       finishTime: finishTime + ":00",
     };
 
     updateSchedule(updatedData);
-    navigate(`/employees/work-schedule/${id}`);
+    navigate(`/employees/work-schedule/${userId}`); // userId-yə yönləndir
   };
 
   // Silmə funksiyası
   const handleDelete = () => {
     if (window.confirm("Qrafiki silmək istədiyinizə əminsiniz?")) {
-      removeSchedule(Number(id)); // store-da bu funksiya olmalıdır
-      navigate(`/employees/work-schedule/${id}`);
+      removeSchedule(Number(id));
+      navigate(`/employees/work-schedule/${userId}`); // siləndə də userId-yə yönləndir
     }
   };
 
@@ -147,7 +147,7 @@ function EmployeeWorkScheduleEdit() {
           <button
             type="button"
             className="employeeAddCancelProcess"
-            onClick={() => navigate("/employees/work-schedule")}>
+            onClick={() => navigate(`/employees/work-schedule/${userId}`)}>
             <img src={cancelProcess} alt="İmtina et" />
             İmtina et
           </button>
@@ -157,7 +157,6 @@ function EmployeeWorkScheduleEdit() {
             Yadda saxla
           </button>
 
-          {/* Yeni əlavə etdiyimiz silmək düyməsi */}
           <button
             type="button"
             onClick={handleDelete}

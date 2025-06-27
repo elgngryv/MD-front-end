@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { CiSearch } from "react-icons/ci";
 import { GoTrash } from "react-icons/go";
 import { FiEdit3 } from "react-icons/fi";
@@ -19,10 +19,11 @@ function QueueList() {
     fetchReservations,
     removeReservation,
     searchReservations,
-    fetchReservationById,
+    changeReservationStatus,
     loading,
     error,
   } = useReservationStore();
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -45,13 +46,23 @@ function QueueList() {
       await removeReservation(id);
     }
   };
+
   const handleEdit = (id) => {
     navigate(`/queue/edit-queue/${id}`);
   };
 
   const formatTime = (timeString) => {
     if (!timeString) return "";
-    return timeString.substring(0, 5); // Extract HH:MM from HH:MM:SS
+    return timeString.substring(0, 5); // HH:MM
+  };
+
+  const changeStatusHandler = async (id, newStatus) => {
+    try {
+      await changeReservationStatus(id, { status: newStatus });
+      await fetchReservations();
+    } catch (error) {
+      alert("Status yenilənərkən xəta baş verdi.");
+    }
   };
 
   const filteredReservations = reservations.filter((reservation) => {
@@ -114,7 +125,8 @@ function QueueList() {
           <select
             className="workersStatusChecker"
             value={searchStatus}
-            onChange={(e) => setSearchStatus(e.target.value)}>
+            onChange={(e) => setSearchStatus(e.target.value)}
+          >
             <option value="">Status</option>
             <option value="ACTIVE">Aktiv</option>
             <option value="PASSIVE">Passiv</option>
@@ -159,7 +171,16 @@ function QueueList() {
                     <span
                       className={`queueListStatus ${
                         reservation.status === "ACTIVE" ? "active" : "passive"
-                      }`}>
+                      }`}
+                      style={{ cursor: "pointer" }}
+                      onClick={() =>
+                        changeStatusHandler(
+                          reservation.id,
+                          reservation.status === "ACTIVE" ? "PASSIVE" : "ACTIVE"
+                        )
+                      }
+                      title="Statusu dəyişmək üçün klikləyin"
+                    >
                       {reservation.status === "ACTIVE" ? "Aktiv" : "Passiv"}
                     </span>
                   </td>
@@ -179,6 +200,7 @@ function QueueList() {
               ))}
             </tbody>
           </table>
+
           {!loading && filteredReservations.length === 0 && (
             <div className="queueListNoResults">Nəticə tapılmadı.</div>
           )}
