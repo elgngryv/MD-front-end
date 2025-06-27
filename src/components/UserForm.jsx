@@ -6,19 +6,21 @@ import ProfileImage from "./ProfileImage";
 import { LuPenLine } from "react-icons/lu";
 import { FaRegTrashAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import Modal from "./Modal";
-import { Controller } from "react-hook-form";
 import CustomDropdown from "./CustomDropdown";
-
 import useWorkerStore from "../../stores/workerStore";
 import usePermissionStore from "../../stores/permissionStore";
 
 function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
   const { addWorker } = useWorkerStore();
-  const { permissions: rawPermissions, fetchPermissions, loading: permissionsLoading } = usePermissionStore();
+  const {
+    permissions: rawPermissions,
+    fetchPermissions,
+    loading: permissionsLoading,
+  } = usePermissionStore();
   const [mode, setMode] = useState(initialMode);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const colorPickerRef = useRef(null);
@@ -27,11 +29,11 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
 
   // Transform permissions to include both ID and name
   const permissionList = rawPermissions
-    .filter(permission => permission.status === "ACTIVE")
+    .filter((permission) => permission.status === "ACTIVE")
     .map((permission) => ({
       label: permission.permissionName,
       value: permission.id.toString(),
-      name: permission.permissionName
+      name: permission.permissionName,
     }));
 
   useEffect(() => {
@@ -41,8 +43,10 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
   // Convert permission names back to IDs when initializing form with existing data
   const getDefaultPermissions = () => {
     if (!userData || !userData.permissions) return [];
-    return userData.permissions.map(permissionName => {
-      const permission = rawPermissions.find(p => p.permissionName === permissionName);
+    return userData.permissions.map((permissionName) => {
+      const permission = rawPermissions.find(
+        (p) => p.permissionName === permissionName
+      );
       return permission ? permission.id.toString() : permissionName;
     });
   };
@@ -156,29 +160,31 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
   } = useForm({
     resolver: yupResolver(validationSchema),
     mode: "onBlur",
-    defaultValues: userData ? {
-      ...userData,
-      permissions: getDefaultPermissions()
-    } : {
-      username: "",
-      password: "",
-      name: "",
-      surname: "",
-      patronymic: "",
-      finCode: "",
-      colorCode: "#ffffff",
-      genderStatus: "",
-      dateOfBirth: "",
-      degree: "",
-      phone: "",
-      phone2: "",
-      homePhone: "",
-      phone3: "",
-      email: "",
-      address: "",
-      experience: 0,
-      permissions: [],
-    },
+    defaultValues: userData
+      ? {
+          ...userData,
+          permissions: getDefaultPermissions(),
+        }
+      : {
+          username: "",
+          password: "",
+          name: "",
+          surname: "",
+          patronymic: "",
+          finCode: "",
+          colorCode: "#ffffff",
+          genderStatus: "",
+          dateOfBirth: "",
+          degree: "",
+          phone: "",
+          phone2: "",
+          homePhone: "",
+          phone3: "",
+          email: "",
+          address: "",
+          experience: 0,
+          permissions: [],
+        },
   });
 
   useEffect(() => {
@@ -211,31 +217,45 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
     )}-${phoneNumber.slice(6, 8)}-${phoneNumber.slice(8, 10)}`;
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    if (["phone", "phone2", "homePhone", "phone3"].includes(name)) {
-      setValue(name, formatPhoneNumber(value));
-    } else {
-      setValue(name, value);
-    }
-  };
-
   const handleFormSubmit = (data) => {
     // Transform permission IDs to names before submission
-    const permissionsWithNames = data.permissions.map(permissionId => {
-      const permission = rawPermissions.find(p => p.id.toString() === permissionId);
+    const permissionsWithNames = data.permissions.map((permissionId) => {
+      const permission = rawPermissions.find(
+        (p) => p.id.toString() === permissionId
+      );
       return permission ? permission.permissionName : permissionId;
     });
 
+    // Fix color code format
+    let fixedColorCode = data.colorCode;
+    if (data.colorCode.startsWith("6")) {
+      fixedColorCode = `#${data.colorCode.substring(1)}`;
+    } else if (!data.colorCode.startsWith("#")) {
+      fixedColorCode = `#${data.colorCode}`;
+    }
+
     const transformedData = {
-      ...Object.fromEntries(
-        Object.entries(data).map(([key, value]) => [
-          key,
-          value === "" ? null : value,
-        ])
-      ),
-      permissions: permissionsWithNames
+      username: data.username,
+      password: mode === "create" ? data.password : undefined,
+      name: data.name,
+      surname: data.surname,
+      patronymic: data.patronymic,
+      finCode: data.finCode,
+      colorCode: fixedColorCode,
+      genderStatus: data.genderStatus,
+      dateOfBirth: data.dateOfBirth,
+      degree: data.degree || null,
+      phone: data.phone,
+      phone2: data.phone2 || null,
+      homePhone: data.homePhone || null,
+      phone3: data.phone3 || null,
+      email: data.email || null,
+      address: data.address || null,
+      experience: data.experience || 0,
+      permissions: permissionsWithNames,
     };
+
+    console.log("Submitting data:", transformedData);
 
     if (mode === "edit") {
       const updateData = Object.keys(transformedData).reduce((acc, key) => {
@@ -303,6 +323,9 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                   errors.username ? "error" : ""
                 }`}
               />
+              {errors.username && (
+                <p className="error-message">{errors.username.message}</p>
+              )}
             </div>
 
             {mode === "create" && (
@@ -315,8 +338,13 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                   type="password"
                   {...register("password")}
                   readOnly={mode === "view"}
-                  className={mode === "view" ? "readonly" : ""}
+                  className={`${mode === "view" ? "readonly" : ""} ${
+                    errors.password ? "error" : ""
+                  }`}
                 />
+                {errors.password && (
+                  <p className="error-message">{errors.password.message}</p>
+                )}
               </div>
             )}
 
@@ -329,8 +357,13 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                 type="text"
                 {...register("name")}
                 readOnly={mode === "view"}
-                className={mode === "view" ? "readonly" : ""}
+                className={`${mode === "view" ? "readonly" : ""} ${
+                  errors.name ? "error" : ""
+                }`}
               />
+              {errors.name && (
+                <p className="error-message">{errors.name.message}</p>
+              )}
             </div>
 
             <div className="main-form-group">
@@ -342,8 +375,13 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                 type="text"
                 {...register("surname")}
                 readOnly={mode === "view"}
-                className={mode === "view" ? "readonly" : ""}
+                className={`${mode === "view" ? "readonly" : ""} ${
+                  errors.surname ? "error" : ""
+                }`}
               />
+              {errors.surname && (
+                <p className="error-message">{errors.surname.message}</p>
+              )}
             </div>
 
             <div className="main-form-group">
@@ -355,8 +393,13 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                 type="text"
                 {...register("patronymic")}
                 readOnly={mode === "view"}
-                className={mode === "view" ? "readonly" : ""}
+                className={`${mode === "view" ? "readonly" : ""} ${
+                  errors.patronymic ? "error" : ""
+                }`}
               />
+              {errors.patronymic && (
+                <p className="error-message">{errors.patronymic.message}</p>
+              )}
             </div>
 
             <div className="main-form-group">
@@ -378,20 +421,29 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                     label: "Qadın",
                   },
                 ]}
+                isDisabled={mode === "view"}
               />
+              {errors.genderStatus && (
+                <p className="error-message">{errors.genderStatus.message}</p>
+              )}
             </div>
 
-            <div className="main-form-group ">
+            <div className="main-form-group">
               <label htmlFor="finCode">
-                FIN kod <span className="text-red-500 ">*</span>
+                FIN kod <span className="text-red-500">*</span>
               </label>
               <input
                 id="finCode"
                 type="text"
                 {...register("finCode")}
                 readOnly={mode === "view"}
-                className={mode === "view" ? "readonly" : ""}
+                className={`${mode === "view" ? "readonly" : ""} ${
+                  errors.finCode ? "error" : ""
+                }`}
               />
+              {errors.finCode && (
+                <p className="error-message">{errors.finCode.message}</p>
+              )}
             </div>
 
             <div className="main-form-group color-selector-group">
@@ -434,8 +486,13 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                 type="date"
                 {...register("dateOfBirth")}
                 readOnly={mode === "view"}
-                className={mode === "view" ? "readonly" : ""}
+                className={`${mode === "view" ? "readonly" : ""} ${
+                  errors.dateOfBirth ? "error" : ""
+                }`}
               />
+              {errors.dateOfBirth && (
+                <p className="error-message">{errors.dateOfBirth.message}</p>
+              )}
             </div>
 
             <div className="main-form-group">
@@ -466,8 +523,13 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                   },
                 })}
                 readOnly={mode === "view"}
-                className={mode === "view" ? "readonly" : ""}
+                className={`${mode === "view" ? "readonly" : ""} ${
+                  errors.phone ? "error" : ""
+                }`}
               />
+              {errors.phone && (
+                <p className="error-message">{errors.phone.message}</p>
+              )}
             </div>
 
             <div className="main-form-group">
@@ -483,8 +545,13 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                   },
                 })}
                 readOnly={mode === "view"}
-                className={mode === "view" ? "readonly" : ""}
+                className={`${mode === "view" ? "readonly" : ""} ${
+                  errors.phone2 ? "error" : ""
+                }`}
               />
+              {errors.phone2 && (
+                <p className="error-message">{errors.phone2.message}</p>
+              )}
             </div>
 
             <div className="main-form-group">
@@ -500,8 +567,13 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                   },
                 })}
                 readOnly={mode === "view"}
-                className={mode === "view" ? "readonly" : ""}
+                className={`${mode === "view" ? "readonly" : ""} ${
+                  errors.phone3 ? "error" : ""
+                }`}
               />
+              {errors.phone3 && (
+                <p className="error-message">{errors.phone3.message}</p>
+              )}
             </div>
             <div className="main-form-group">
               <label htmlFor="homePhone">Ev telefonu</label>
@@ -516,8 +588,13 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                   },
                 })}
                 readOnly={mode === "view"}
-                className={mode === "view" ? "readonly" : ""}
+                className={`${mode === "view" ? "readonly" : ""} ${
+                  errors.homePhone ? "error" : ""
+                }`}
               />
+              {errors.homePhone && (
+                <p className="error-message">{errors.homePhone.message}</p>
+              )}
             </div>
 
             <div className="main-form-group">
@@ -527,8 +604,13 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                 type="email"
                 {...register("email")}
                 readOnly={mode === "view"}
-                className={mode === "view" ? "readonly" : ""}
+                className={`${mode === "view" ? "readonly" : ""} ${
+                  errors.email ? "error" : ""
+                }`}
               />
+              {errors.email && (
+                <p className="error-message">{errors.email.message}</p>
+              )}
             </div>
 
             <div className="main-form-group">
@@ -549,8 +631,13 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                 type="number"
                 {...register("experience")}
                 readOnly={mode === "view"}
-                className={mode === "view" ? "readonly" : ""}
+                className={`${mode === "view" ? "readonly" : ""} ${
+                  errors.experience ? "error" : ""
+                }`}
               />
+              {errors.experience && (
+                <p className="error-message">{errors.experience.message}</p>
+              )}
             </div>
 
             <div className="main-form-group">
@@ -559,7 +646,9 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
               </label>
               <div className="permissions-checklist">
                 {permissionsLoading ? (
-                  <div className="text-sm text-gray-500">İcazələr yüklənir...</div>
+                  <div className="text-sm text-gray-500">
+                    İcazələr yüklənir...
+                  </div>
                 ) : permissionList.length === 0 ? (
                   <div className="text-sm text-gray-500">İcazə tapılmadı</div>
                 ) : (
@@ -569,7 +658,9 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                     render={({ field }) => (
                       <div className="grid grid-cols-2 gap-2">
                         {permissionList.map((permission) => (
-                          <label key={permission.value} className="flex items-center space-x-2">
+                          <label
+                            key={permission.value}
+                            className="flex items-center space-x-2">
                             <input
                               type="checkbox"
                               value={permission.value}
@@ -578,10 +669,15 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                                 const isChecked = e.target.checked;
                                 const currentValues = field.value || [];
                                 if (isChecked) {
-                                  field.onChange([...currentValues, permission.value]);
+                                  field.onChange([
+                                    ...currentValues,
+                                    permission.value,
+                                  ]);
                                 } else {
                                   field.onChange(
-                                    currentValues.filter((val) => val !== permission.value)
+                                    currentValues.filter(
+                                      (val) => val !== permission.value
+                                    )
                                   );
                                 }
                               }}
@@ -597,7 +693,9 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                 )}
               </div>
               {errors.permissions && (
-                <p className="mt-1 text-sm text-red-600">{errors.permissions.message}</p>
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.permissions.message}
+                </p>
               )}
             </div>
           </div>
