@@ -25,8 +25,8 @@ function Header() {
             <LuBell className="headerBellIcon headerIcon" />
             {showNotificationDot && <p className="headerNewNotifIcon"></p>}
           </div> */}
-          <LuCalendarPlus className="headerCalendarIcon headerIcon" />
-          <AiOutlineUserAdd className="headerIcon" />
+          <Link to={'/appointments/add'}><LuCalendarPlus className="headerCalendarIcon headerIcon" /></Link>
+          <Link to={'/patients/add-patient'}><AiOutlineUserAdd className="headerIcon" /></Link>
           <div
             className="headerUserProfileLink"
             onClick={() => setMenuOpen((prev) => !prev)}

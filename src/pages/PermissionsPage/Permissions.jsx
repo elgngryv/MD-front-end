@@ -121,7 +121,7 @@ function Permissions() {
                   <td>
                     <span
                       className={`statusBadge ${
-                        row.status === "Aktiv" ? "active" : "passive"
+                        row.status === "ACTIVE" ? "active" : "passive"
                       }`}>
                       {row.status}
                     </span>

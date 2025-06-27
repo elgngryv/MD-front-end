@@ -4,6 +4,7 @@ import "../../assets/style/PatientsPage/addpatient.css";
 import cancelButton from "../../assets/images/EmployeesPage/cancelProcess.png";
 import verifyButton from "../../assets/images/EmployeesPage/verifyProcess.png";
 import usePatientStore from "../../../stores/patiendStore";
+import useBlackListResultStore from "../../../stores/blacklistReasonStore"; // Import the blacklist store
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -13,13 +14,10 @@ const priceCategories = [
   { id: 3, name: "C - Aşağı qiymət" },
 ];
 
-const blacklistOptions = [
-  { id: 1, name: "Problemli pasiyent" },
-  { id: 2, name: "Normal pasiyent" },
-];
-
 const PatientAdd = () => {
   const { addPatient } = usePatientStore();
+  const { results: blacklistOptions, fetchResults: fetchBlacklistOptions } =
+    useBlackListResultStore(); // Destructure results and fetchResults
 
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -47,6 +45,31 @@ const PatientAdd = () => {
     workAddress: "",
     recommender: "",
   });
+
+  useEffect(() => {
+    // Fetch doctors
+    const fetchDoctors = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.get(
+          "http://195.7.6.10:5555/api/v1/general-calendar/read-doctors",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setDoctors(response.data);
+      } catch (error) {
+        console.error("Doktorları alarkən xəta:", error);
+        alert("Doktor məlumatları yüklənərkən xəta baş verdi");
+      }
+    };
+    fetchDoctors();
+
+    // Fetch blacklist options
+    fetchBlacklistOptions();
+  }, [fetchBlacklistOptions]); // Add fetchBlacklistOptions to dependency array
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -99,27 +122,6 @@ const PatientAdd = () => {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
-  useEffect(() => {
-    const fetchDoctors = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await axios.get(
-          "http://195.7.6.10:5555/api/v1/general-calendar/read-doctors",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        setDoctors(response.data);
-      } catch (error) {
-        console.error("Doktorları alarkən xəta:", error);
-        alert("Doktor məlumatları yüklənərkən xəta baş verdi");
-      }
-    };
-    fetchDoctors();
-  }, []);
 
   const formatPhoneNumber = (phone) => {
     const cleaned = phone.replace(/\D/g, "");
@@ -303,7 +305,8 @@ const PatientAdd = () => {
               name="priceCategoryStatus"
               value={formData.priceCategoryStatus}
               onChange={handleChange}
-              className="patientsGroupSelect">
+              className="patientsGroupSelect"
+            >
               <option value="">seçin</option>
               {priceCategories.map((category) => (
                 <option key={category.id} value={category.id}>
@@ -339,7 +342,8 @@ const PatientAdd = () => {
               name="doctorId"
               value={formData.doctorId || ""}
               onChange={handleChange}
-              className="patientsGroupSelect">
+              className="patientsGroupSelect"
+            >
               <option value="">Həkim seçin</option>
               {doctors.map((doctor) => (
                 <option key={doctor.doctorId} value={doctor.doctorId}>
@@ -380,13 +384,15 @@ const PatientAdd = () => {
                 value={formData.blacklistCategory}
                 onChange={handleChange}
                 className="patientsGroupBlacklistSelect"
-                disabled={!formData.isBlacklisted}>
+                disabled={!formData.isBlacklisted}
+              >
                 <option value="">seçin</option>
-                {blacklistOptions.map((option) => (
-                  <option key={option.id} value={option.id}>
-                    {option.name}
-                  </option>
-                ))}
+                {blacklistOptions.data &&
+                  blacklistOptions.data.map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.statusName}
+                    </option>
+                  ))}
               </select>
             </div>
             {errors.blacklistCategory && (
@@ -541,7 +547,8 @@ const PatientAdd = () => {
               recommender: "",
             });
             setErrors({});
-          }}>
+          }}
+        >
           <img
             src={cancelButton}
             className="addPatientCancelBTN"
@@ -553,7 +560,8 @@ const PatientAdd = () => {
           type="submit"
           onClick={handleSubmit}
           className="addPatientVerifyButton"
-          disabled={loading}>
+          disabled={loading}
+        >
           <img src={verifyButton} className="addPatientVerifyBTN" alt="Save" />
           {loading ? (
             <>
