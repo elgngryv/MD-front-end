@@ -10,8 +10,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { CiCalendar } from "react-icons/ci";
 
 const EmployeesList = () => {
-  // searchResult artıq birbaşa masada istifadə olunur.
-  // setSearchResult funksiyasını da Zustanda əlavə edəcəyik.
+
   const { workers, fetchWorkers, searchWorkers, removeWorker, searchResult, loading, setSearchResult } = useEmployeeStore();
 
   const [searchParams, setSearchParams] = useState({

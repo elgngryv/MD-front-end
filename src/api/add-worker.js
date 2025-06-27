@@ -90,10 +90,14 @@ export const searchWorkers = async (searchParams) => {
     // Axtarış parametrlərini qismən uyğunluq üçün çeviririk
     const transformedParams = {};
     for (const key in searchParams) {
-      if (searchParams[key] !== undefined && searchParams[key] !== null && searchParams[key] !== "") {
+      if (
+        searchParams[key] !== undefined &&
+        searchParams[key] !== null &&
+        searchParams[key] !== ""
+      ) {
         // String tipli sahələr üçün ətrafına wildcard (%) əlavə edirik.
         // Bu, backendin SQL LIKE sorğusu ilə qismən uyğunluq etməsini təmin edir.
-        if (typeof searchParams[key] === 'string') {
+        if (typeof searchParams[key] === "string") {
           transformedParams[key] = `%${searchParams[key]}%`;
         } else {
           transformedParams[key] = searchParams[key];
