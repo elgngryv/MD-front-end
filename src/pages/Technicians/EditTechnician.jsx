@@ -7,33 +7,28 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+// ... digər importlar eynidir
+
 function EditTechnician({ technicianId }) {
-  const [files, setFiles] = useState([]);
+  const { selectedTechnician, fetchTechnicianById, updateTech } =
+    useTechnicianStore();
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [selectedImage, setSelectedImage] = useState(null);
-  const fileInputRef = useRef(null);
-
-  const { selectedTechnician, fetchTechnicianById, updateTech } =
-    useTechnicianStore();
-
   const [formData, setFormData] = useState({
-    username: "",
+    username: "", // lazım deyilsə silə bilərsən
     name: "",
     surname: "",
     patronymic: "",
-    genderStatus: "",
     finCode: "",
     password: "",
-    birthDate: "",
-    phone: "+994",
-    phone2: "+994",
-    phone3: "+994",
-    homePhone: "+994",
+    dateOfBirth: "",
+    phone: "",
+    phone2: "",
+    homePhone: "",
     email: "",
     address: "",
-    permissions: [],
+    genderStatus: "",
   });
 
   useEffect(() => {
@@ -44,77 +39,57 @@ function EditTechnician({ technicianId }) {
 
   useEffect(() => {
     if (selectedTechnician) {
-      setFormData((prev) => ({
-        ...prev,
-        username: selectedTechnician.username ?? "",
-        name: selectedTechnician.name ?? "",
-        surname: selectedTechnician.surname ?? "",
-        patronymic: selectedTechnician.patronymic ?? "",
-        genderStatus: selectedTechnician.genderStatus ?? "",
-        finCode: selectedTechnician.finCode ?? "",
-        password: selectedTechnician.password ?? "",
-        birthDate: selectedTechnician.birthDate ?? "",
-        phone: selectedTechnician.phone ?? "+994",
-        phone2: selectedTechnician.phone2 ?? "+994",
-        phone3: selectedTechnician.phone3 ?? "+994",
-        homePhone: selectedTechnician.homePhone ?? "+994",
-        email: selectedTechnician.email ?? "",
-        address: selectedTechnician.address ?? "",
-        permissions: selectedTechnician.permissions ?? [],
-      }));
+      setFormData({
+        name: selectedTechnician.name || "",
+        surname: selectedTechnician.surname || "",
+        patronymic: selectedTechnician.patronymic || "",
+        finCode: selectedTechnician.finCode || "",
+        password: "", // boş saxla, yeniləmək istəyirsə
+        dateOfBirth: selectedTechnician.dateOfBirth || "",
+        phone: selectedTechnician.phone || "",
+        phone2: selectedTechnician.phone2 || "",
+        homePhone: selectedTechnician.homePhone || "",
+        email: selectedTechnician.email || "",
+        address: selectedTechnician.address || "",
+        genderStatus: selectedTechnician.genderStatus || "",
+      });
     }
   }, [selectedTechnician]);
 
   const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value, type } = e.target;
 
-    if (type === "checkbox") {
-      setFormData((prev) => {
-        const updatedPermissions = checked
-          ? [...prev.permissions, value]
-          : prev.permissions.filter((p) => p !== value);
-        return { ...prev, permissions: updatedPermissions };
-      });
-    } else if (name === "gender") {
-      setFormData((prev) => ({ ...prev, genderStatus: value }));
+    if (name === "gender") {
+      setFormData((prev) => ({
+        ...prev,
+        genderStatus: value === "male" ? "MAN" : "WOMAN",
+      }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
 
-  const handleDeleteImage = (index) => {
-    setFiles((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const handleImageClick = (file) => {
-    setSelectedImage(file);
-  };
-
-  const handleFileSelect = (event) => {
-    const selectedFiles = Array.from(event.target.files);
-    const imageUrls = selectedFiles.map((file) => URL.createObjectURL(file));
-    setFiles((prev) => [...prev, ...imageUrls]);
-  };
-
-  const handleUploadClick = () => {
-    fileInputRef.current.click();
-  };
-
   const handleSubmit = async () => {
     try {
       const dataToSend = {
-        ...formData,
-        gender: formData.genderStatus,
-        permissions: formData.permissions.join(","),
+        name: formData.name,
+        surname: formData.surname,
+        patronymic: formData.patronymic,
+        finCode: formData.finCode,
+        password: formData.password,
+        dateOfBirth: formData.dateOfBirth,
+        phone: formData.phone,
+        phone2: formData.phone2,
+        homePhone: formData.homePhone,
+        email: formData.email,
+        address: formData.address,
+        genderStatus: formData.genderStatus,
       };
-
-      console.log("Göndərilən data:", dataToSend);
 
       await updateTech(technicianId || id, dataToSend);
       toast.success("Uğurla yeniləndi!");
       navigate("/technicians");
     } catch (error) {
-      console.error("Update xətası:", error.response?.data || error.message);
       toast.error(
         "Xəta baş verdi: " + (error.response?.data?.message || error.message)
       );
@@ -125,63 +100,38 @@ function EditTechnician({ technicianId }) {
     <div className="editTechnicianFormContainer">
       <ToastContainer />
       <div className="editTechFormPart">
+        {/* Sol tərəfdəki inputlar */}
         <div className="editTechnicianLeft">
           {[
-            "username",
-            "name",
-            "surname",
-            "patronymic",
-            "finCode",
-            "password",
-            "birthDate",
-            "phone",
-          ].map((field, idx) => (
-            <div className="editPartInputData" key={idx}>
-              <p className="editPartInputTitle">
-                {field === "username"
-                  ? "İstifadəçi adı"
-                  : field === "name"
-                  ? "Adı"
-                  : field === "surname"
-                  ? "Soyadı"
-                  : field === "patronymic"
-                  ? "Ata adı"
-                  : field === "finCode"
-                  ? "Fin kodu"
-                  : field === "password"
-                  ? "Şifrə"
-                  : field === "birthDate"
-                  ? "Doğum tarixi"
-                  : "Mobil nömrə 1"}{" "}
-                <span className="requiredStar">*</span>
-              </p>
+            { label: "Adı", name: "name", type: "text" },
+            { label: "Soyadı", name: "surname", type: "text" },
+            { label: "Ata adı", name: "patronymic", type: "text" },
+            { label: "Fin kodu", name: "finCode", type: "text" },
+            { label: "Şifrə", name: "password", type: "password" },
+            { label: "Doğum tarixi", name: "dateOfBirth", type: "date" },
+            { label: "Mobil nömrə 1", name: "phone", type: "text" },
+          ].map(({ label, name, type }) => (
+            <div className="editPartInputData" key={name}>
+              <p className="editPartInputTitle">{label}</p>
               <input
-                type={
-                  field === "birthDate"
-                    ? "date"
-                    : field === "password"
-                    ? "password"
-                    : "text"
-                }
+                type={type}
                 className="editTechnicianInput"
-                name={field}
-                value={formData[field] ?? ""}
+                name={name}
+                value={formData[name]}
                 onChange={handleInputChange}
               />
             </div>
           ))}
 
           <div className="editPartInputGender">
-            <p className="editPartInputTitle">
-              Cinsiyyət <span className="requiredStar">*</span>
-            </p>
+            <p className="editPartInputTitle">Cinsiyyət</p>
             <div className="editGenderOptions">
               <label className="editGenderLabel">
                 <input
                   type="radio"
                   name="gender"
                   value="male"
-                  checked={formData.genderStatus === "male"}
+                  checked={formData.genderStatus === "MAN"}
                   onChange={handleInputChange}
                 />
                 Kişi
@@ -191,7 +141,7 @@ function EditTechnician({ technicianId }) {
                   type="radio"
                   name="gender"
                   value="female"
-                  checked={formData.genderStatus === "female"}
+                  checked={formData.genderStatus === "WOMAN"}
                   onChange={handleInputChange}
                 />
                 Qadın
@@ -200,114 +150,41 @@ function EditTechnician({ technicianId }) {
           </div>
         </div>
 
+        {/* Sağ tərəfdəki inputlar */}
         <div className="editTechnicianRight">
-          {["phone2", "phone3", "homePhone", "email", "address"].map(
-            (field, idx) => (
-              <div className="editPartInputData" key={idx}>
-                <p className="editPartInputTitle">
-                  {field === "phone2"
-                    ? "Mobil nömrə 2"
-                    : field === "phone3"
-                    ? "Mobil nömrə 3"
-                    : field === "homePhone"
-                    ? "Ev telefonu"
-                    : field === "email"
-                    ? "E-poçt ünvanı"
-                    : "Ünvan"}
-                </p>
-                <input
-                  type={field === "email" ? "email" : "text"}
-                  className="editTechnicianInput"
-                  name={field}
-                  value={formData[field] ?? ""}
-                  onChange={handleInputChange}
-                />
-              </div>
-            )
-          )}
-
-          <div className="editPartInputData">
-            <p className="editPartInputTitle">İcazələri</p>
-            <div className="editTechnicianCheckboxGroup">
-              {[
-                "TAM İCAZƏ",
-                "RESEPSİONİST",
-                "TİBB BACISI",
-                "DİŞ TEXNİKLƏRİ",
-                "MALİYYƏ HESABAT",
-                "ANBAR",
-                "Həkim tam icazə",
-                "Həkim limitli",
-              ].map((permission, idx) => (
-                <label key={idx}>
-                  <input
-                    type="checkbox"
-                    value={permission}
-                    checked={formData.permissions.includes(permission)}
-                    onChange={handleInputChange}
-                  />
-                  {permission}
-                </label>
-              ))}
+          {[
+            { label: "Mobil nömrə 2", name: "phone2" },
+            { label: "Ev telefonu", name: "homePhone" },
+            { label: "E-poçt ünvanı", name: "email", type: "email" },
+            { label: "Ünvan", name: "address" },
+          ].map(({ label, name, type }) => (
+            <div className="editPartInputData" key={name}>
+              <p className="editPartInputTitle">{label}</p>
+              <input
+                type={type || "text"}
+                className="editTechnicianInput"
+                name={name}
+                value={formData[name]}
+                onChange={handleInputChange}
+              />
             </div>
-          </div>
+          ))}
         </div>
       </div>
 
-      <div className="editTechnicianUpload">
-        <p className="editPartInputTitle">Şəkil</p>
-        <div className="editUploadContainer">
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileSelect}
-            accept="image/*"
-            multiple
-            className="hidden"
-            style={{ display: "none" }}
-          />
-          <button
-            className="editUploadButton"
-            onClick={handleUploadClick}
-            type="button"
-          >
-            <AddPhotoIcon />
-            <span>Müvafiq sənədləri yükləyin</span>
-          </button>
-
-          {files.length > 0 && (
-            <div className="editImagePreviewContainer">
-              {files.map((file, index) => (
-                <div key={index} className="editImagePreview">
-                  <img
-                    src={file}
-                    alt={`file-${index}`}
-                    onClick={() => handleImageClick(file)}
-                  />
-                  <button
-                    className="editDeleteButton"
-                    onClick={() => handleDeleteImage(index)}
-                    type="button"
-                  >
-                    <CloseIcon />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
+      {/* Submit və Cancel düymələri */}
       <div className="editTechnicianSubmit">
         <div className="editTechnicianActions">
-          <button type="button" className="editTechnicianCancelBtn">
+          <button
+            type="button"
+            className="editTechnicianCancelBtn"
+            onClick={() => navigate("/technicians")}>
             İmtina et
           </button>
           <button
             type="button"
             onClick={handleSubmit}
-            className="editTechnicianSaveBtn"
-          >
+            className="editTechnicianSaveBtn">
             Yadda saxla
           </button>
         </div>

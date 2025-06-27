@@ -12,8 +12,12 @@ function InfoTechnician() {
   const { id } = useParams();
   const [selectedImage, setSelectedImage] = useState(null);
 
-  const { selectedTechnician, fetchTechnicianById, removeTechnician, loading } =
-    useTechnicianStore();
+  const {
+    selectedTechnician,
+    fetchTechnicianById,
+    removeTechnician,
+    loading,
+  } = useTechnicianStore();
 
   useEffect(() => {
     if (id) fetchTechnicianById(id);
@@ -24,9 +28,10 @@ function InfoTechnician() {
   };
 
   const handleDownload = (file) => {
+    if (!file) return;
     const link = document.createElement("a");
     link.href = file;
-    link.download = "downloaded-file";
+    link.download = file.split("/").pop() || "downloaded-file";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -53,28 +58,33 @@ function InfoTechnician() {
   if (loading || !data)
     return <div className="infoTechnicianContainer">Yüklənir...</div>;
 
+  // Tarixi formatlama funksiyası
+  const formatDate = (dateString) => {
+    if (!dateString) return "-";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("az-AZ", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+  };
+
   return (
     <div className="infoTechnicianContainer">
       <div className="infoHeader">
         <div className="actionButtons">
-          <button
-            className="iconButton"
-            onClick={handleEdit}
-            title="Redaktə et">
+          <button className="iconButton" onClick={handleEdit} title="Redaktə et">
             <FiEdit2 size={20} />
           </button>
           <button className="iconButton" onClick={handleDelete} title="Sil">
             <RiDeleteBin6Line size={20} />
           </button>
-          <button
-            className="iconButton"
-            onClick={handlePrices}
-            title="Qiymətlər">
+          <button className="iconButton" onClick={handlePrices} title="Qiymətlər">
             <TbCoins size={20} />
           </button>
           <button
             className="downloadButton"
-            onClick={() => handleDownload(data?.cvFile || "/default.pdf")}>
+            onClick={() => handleDownload(data?.cvFile)}>
             <DownloadIcon />
             <span>Yüklə</span>
           </button>
@@ -87,14 +97,14 @@ function InfoTechnician() {
             <span className="infoLabel">Status</span>
             <span
               className={`statusBadge ${
-                data.status === "Aktiv" ? "active" : "inactive"
+                data.status === "ACTIVE" ? "active" : "inactive"
               }`}>
-              {data.status}
+              {data.status === "ACTIVE" ? "Aktiv" : "Passiv"}
             </span>
           </div>
           <div className="infoRow">
             <span className="infoLabel">İstifadəçi adı</span>
-            <span className="infoValue">{data.username}</span>
+            <span className="infoValue">{data.username || "-"}</span>
           </div>
           <div className="infoRow">
             <span className="infoLabel">Şifrə</span>
@@ -102,54 +112,48 @@ function InfoTechnician() {
           </div>
           <div className="infoRow">
             <span className="infoLabel">Adı</span>
-            <span className="infoValue">{data.name}</span>
+            <span className="infoValue">{data.name || "-"}</span>
           </div>
           <div className="infoRow">
             <span className="infoLabel">Soyadı</span>
-            <span className="infoValue">{data.surname}</span>
+            <span className="infoValue">{data.surname || "-"}</span>
           </div>
           <div className="infoRow">
             <span className="infoLabel">Ata adı</span>
-            <span className="infoValue">{data.patronymic}</span>
-          </div>
-          <div className="infoRow">
-            <span className="infoLabel">İcazələr</span>
-            <span className="infoValue">{data.permissions}</span>
+            <span className="infoValue">{data.patronymic || "-"}</span>
           </div>
           <div className="infoRow">
             <span className="infoLabel">Fin kodu</span>
-            <span className="infoValue">{data.finCode}</span>
+            <span className="infoValue">{data.finCode || "-"}</span>
           </div>
           <div className="infoRow">
             <span className="infoLabel">Cinsiyyət</span>
-            <span className="infoValue">{data.genderStatus}</span>
+            <span className="infoValue">
+              {data.genderStatus === "MAN"
+                ? "Kişi"
+                : data.genderStatus === "WOMAN"
+                ? "Qadın"
+                : "-"}
+            </span>
           </div>
         </div>
 
         <div className="infoRight">
           <div className="infoRow">
             <span className="infoLabel">Doğum tarixi</span>
-            <span className="infoValue">{data.birthDate || "-"}</span>
+            <span className="infoValue">{formatDate(data.birthDate)}</span>
           </div>
           <div className="infoRow">
             <span className="infoLabel">Mobil nömrə 1</span>
-            <span className="infoValue">{data.phone}</span>
+            <span className="infoValue">{data.phone || "-"}</span>
           </div>
           <div className="infoRow">
             <span className="infoLabel">Mobil nömrə 2</span>
             <span className="infoValue">{data.phone2 || "-"}</span>
           </div>
           <div className="infoRow">
-            <span className="infoLabel">Mobil nömrə 3</span>
-            <span className="infoValue">{data.mobile3 || "-"}</span>
-          </div>
-          <div className="infoRow">
             <span className="infoLabel">Ev telefonu</span>
             <span className="infoValue">{data.homePhone || "-"}</span>
-          </div>
-          <div className="infoRow">
-            <span className="infoLabel">E-poçt ünvanı</span>
-            <span className="infoValue">{data.email || "-"}</span>
           </div>
           <div className="infoRow">
             <span className="infoLabel">Ünvan</span>

@@ -7,12 +7,18 @@ import { CiSearch, CiExport, CiCircleInfo } from "react-icons/ci";
 import { HiArrowsUpDown } from "react-icons/hi2";
 import { FiEdit3 } from "react-icons/fi";
 import { GoTrash } from "react-icons/go";
+import "./tech.css";
 
 import useTechnicianStore from "../../../stores/technicianStore";
 
 function Technicians() {
-  const { fetchTechnicians, removeTechnician, exportToExcel, searchTechs } =
-    useTechnicianStore();
+  const {
+    fetchTechnicians,
+    removeTechnician,
+    exportToExcel,
+    searchTechs,
+    updateTechStatus,
+  } = useTechnicianStore();
 
   const [technicians, setTechnicians] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -25,15 +31,24 @@ function Technicians() {
   const loadTechnicians = async () => {
     try {
       const data = await fetchTechnicians();
+      let list = [];
 
       if (Array.isArray(data)) {
-        setTechnicians(data);
+        list = data;
       } else if (Array.isArray(data?.technicians)) {
-        setTechnicians(data.technicians);
-      } else {
-        setTechnicians([]);
-        console.warn("fetchTechnicians data format is unexpected:", data);
+        list = data.technicians;
       }
+
+      // Status sahəsi yalnız ACTIVE olduqda enabled true olsun
+      const mappedList = list.map((tech) => ({
+        ...tech,
+        enabled: tech.status === "ACTIVE",
+      }));
+
+      setTechnicians(mappedList);
+
+      // Debug üçün konsola statusları çap et
+      console.log("Technicians loaded:", mappedList);
     } catch (err) {
       console.error("Texnikləri yükləmək mümkün olmadı:", err);
       setTechnicians([]);
@@ -41,6 +56,17 @@ function Technicians() {
   };
 
   const getStatus = (tech) => (tech.enabled ? "Aktiv" : "Passiv");
+
+  const toggleStatus = async (tech) => {
+    const newStatus = tech.enabled ? "PASSIVE" : "ACTIVE";
+    try {
+      await updateTechStatus(tech.id, newStatus);
+      await loadTechnicians();
+    } catch (error) {
+      alert("Status dəyişdirilə bilmədi.");
+      console.error(error);
+    }
+  };
 
   const handleDelete = async (tech) => {
     const confirmDelete = window.confirm(
@@ -63,14 +89,21 @@ function Technicians() {
     setSearchTerm(term);
     try {
       const filtered = await searchTechs(term);
+      let filteredList = [];
+
       if (Array.isArray(filtered)) {
-        setTechnicians(filtered);
+        filteredList = filtered;
       } else if (Array.isArray(filtered?.technicians)) {
-        setTechnicians(filtered.technicians);
-      } else {
-        setTechnicians([]);
-        console.warn("searchTechs data format is unexpected:", filtered);
+        filteredList = filtered.technicians;
       }
+
+      // Burada da enabled boolean təyin et
+      const mappedFiltered = filteredList.map((tech) => ({
+        ...tech,
+        enabled: tech.status === "ACTIVE",
+      }));
+
+      setTechnicians(mappedFiltered);
     } catch (err) {
       console.error("Axtarış zamanı xəta:", err);
     }
@@ -178,9 +211,7 @@ function Technicians() {
                   <td>{tech.permissions?.join(", ")}</td>
                   <td>{tech.phone}</td>
                   <td>
-                    <Link
-                      className="priceListLinkTech"
-                      to={`prices/${tech.id}`}>
+                    <Link className="priceListLinkTech" to={`prices/${tech.id}`}>
                       Qiymətlər
                     </Link>
                   </td>
@@ -188,7 +219,11 @@ function Technicians() {
                     <span
                       className={`status ${
                         tech.enabled ? "active" : "passive"
-                      }`}>
+                      }`}
+                      onClick={() => toggleStatus(tech)}
+                      style={{ cursor: "pointer" }}
+                      title="Statusu dəyişmək üçün klikləyin"
+                    >
                       {getStatus(tech)}
                     </span>
                   </td>
