@@ -32,25 +32,37 @@ const General = () => {
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
+        const token = localStorage.getItem("token"); // Token adını səndə necədirsə onu yaz
+
         const res = await axios.get(
-          "http://195.7.6.10:5555/api/v1/general-calendar/read-doctors"
+          "http://195.7.6.10:5555/api/v1/general-calendar/read-doctors",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
+
         setDoctors(res.data);
       } catch (err) {
+        console.error("Həkimləri gətirərkən xəta baş verdi:", err);
       } finally {
         setDoctorsLoading(false);
       }
     };
+
     fetchDoctors();
   }, []);
 
+  // Həkimi tap
+  const doctor = doctors.find(
+    (d) =>
+      d.doctorId?.toString().toLowerCase().trim() ===
+      patient?.doctorId?.toString().toLowerCase().trim()
+  );
+
   useEffect(() => {
     if (patient && doctors.length > 0) {
-      const selectedDoctor = doctors.find(
-        (d) =>
-          String(d.doctorId).toLowerCase().trim() ===
-          String(patient?.doctorId).toLowerCase().trim()
-      );
     }
   }, [patient, doctors]);
 
@@ -97,10 +109,6 @@ const General = () => {
     );
   }
 
-  const doctor = doctors.find(
-    (d) => String(d.doctorId).trim() === String(patient?.doctorId).trim()
-  );
-
   return (
     <BlurLoader isLoading={isLoading || deletingPatient || updatingPatient}>
       <div className="flex flex-col gap-2">
@@ -119,7 +127,7 @@ const General = () => {
         <div className="input-container">
           <div className="left">
             <div className="flex flex-col gap-3 bg-[#D1E0FF] rounded-lg p-4">
-              <div className="main-form-group">
+              {/* <div className="main-form-group">
                 <label htmlFor="status">Status</label>
                 <input
                   id="status"
@@ -128,7 +136,7 @@ const General = () => {
                   readOnly
                   className="readonly"
                 />
-              </div>
+              </div> */}
               <div className="main-form-group">
                 <label htmlFor="id">ID</label>
                 <input
@@ -139,7 +147,7 @@ const General = () => {
                   className="readonly"
                 />
               </div>
-              <div className="main-form-group">
+              {/* <div className="main-form-group">
                 <label htmlFor="registrationDate">Qeydiyyat Tarixi</label>
                 <input
                   id="registrationDate"
@@ -148,8 +156,8 @@ const General = () => {
                   readOnly
                   className="readonly"
                 />
-              </div>
-              <div className="main-form-group">
+              </div> */}
+              {/* <div className="main-form-group">
                 <label htmlFor="lastEdited">Son redakte</label>
                 <input
                   id="lastEdited"
@@ -158,7 +166,7 @@ const General = () => {
                   readOnly
                   className="readonly"
                 />
-              </div>
+              </div> */}
             </div>
 
             {[
@@ -168,21 +176,18 @@ const General = () => {
               { label: "Cinsiyyət", name: "genderStatus" },
               { label: "FIN kod", name: "finCode" },
               { label: "Doğum tarixi", name: "dateOfBirth", type: "date" },
-              { label: "Qiymət kateqoriyası", name: "priceCategoryStatus" },
               { label: "İxtisas", name: "specializationStatus" },
               {
                 label: "Həkim",
                 name: "doctorId",
                 customRender: () => {
                   if (doctorsLoading) {
-                    return "Yüklenir...";
+                    return "Yüklənir...";
                   }
                   if (!doctor) {
                     return "Həkim tapılmadı";
                   }
-                  return `${doctor?.name || ""} ${
-                    doctor?.surname || ""
-                  }`.trim();
+                  return `${doctor.name || ""} ${doctor.surname || ""}`.trim();
                 },
               },
             ].map(({ label, name, type = "text", customRender }) => (
@@ -201,16 +206,8 @@ const General = () => {
 
           <div className="right">
             {[
-              { label: "VIP", name: "isVip" },
-              { label: "Qara siyahı", name: "isBlacklisted" },
-              { label: "Mobil nömrə 1", name: "mobileNumber1", type: "tel" },
-              { label: "Mobil nömrə 2", name: "mobileNumber2", type: "tel" },
-              { label: "Mobil nömrə 3", name: "mobileNumber3", type: "tel" },
-              {
-                label: "WhatsApp nömrəsi",
-                name: "whatsappNumber",
-                type: "tel",
-              },
+              { label: "Qiymət kateqoriyası", name: "priceCategoryStatus" },
+              { label: "Qara siyahı", name: "isBlocked" },
               { label: "İş telefonu", name: "workPhone", type: "tel" },
               { label: "Ev telefonu", name: "homePhone", type: "tel" },
               { label: "E-poçt ünvanı", name: "email", type: "email" },
