@@ -4,7 +4,6 @@ const API_BASE_URL = import.meta.env.VITE_BASE_URL;
 
 export const createWorker = async (workerData) => {
   try {
-    // Log the request data for debugging
     console.log(
       "Creating worker with data:",
       JSON.stringify(workerData, null, 2)
@@ -20,18 +19,13 @@ export const createWorker = async (workerData) => {
   } catch (error) {
     console.error("❌ Error creating worker:", error);
 
-    // Log more detailed error information
     if (error.response) {
-      // The request was made and the server responded with a status code
-      // that falls out of the range of 2xx
       console.error("Error response data:", error.response.data);
       console.error("Error response status:", error.response.status);
       console.error("Error response headers:", error.response.headers);
     } else if (error.request) {
-      // The request was made but no response was received
       console.error("Error request:", error.request);
     } else {
-      // Something happened in setting up the request that triggered an Error
       console.error("Error message:", error.message);
     }
 
@@ -72,8 +66,9 @@ export const getWorkerInfo = async (id) => {
     throw error;
   }
 };
+
 export const updateWorker = async (workerData) => {
-  console.log("🔧 Göndərilən worker data:", workerData); //
+  console.log("🔧 Göndərilən worker data:", workerData);
 
   try {
     const response = await axiosInstance.put(
@@ -92,9 +87,23 @@ export const updateWorker = async (workerData) => {
 
 export const searchWorkers = async (searchParams) => {
   try {
+    // Axtarış parametrlərini qismən uyğunluq üçün çeviririk
+    const transformedParams = {};
+    for (const key in searchParams) {
+      if (searchParams[key] !== undefined && searchParams[key] !== null && searchParams[key] !== "") {
+        // String tipli sahələr üçün ətrafına wildcard (%) əlavə edirik.
+        // Bu, backendin SQL LIKE sorğusu ilə qismən uyğunluq etməsini təmin edir.
+        if (typeof searchParams[key] === 'string') {
+          transformedParams[key] = `%${searchParams[key]}%`;
+        } else {
+          transformedParams[key] = searchParams[key];
+        }
+      }
+    }
+
     const response = await axiosInstance.post(
       `${API_BASE_URL}/add-worker/search`,
-      searchParams
+      transformedParams // Çevrilmiş parametrləri göndəririk
     );
     return response.data;
   } catch (error) {

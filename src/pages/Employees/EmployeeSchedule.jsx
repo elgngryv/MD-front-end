@@ -304,9 +304,7 @@ const EmployeeSchedule = () => {
             <button className="nav-button" onClick={handleNextWeek}>
               <FiChevronRight />
             </button>
-            <button className="calendar-button">
-              <FiCalendar />
-            </button>
+            
           </div>
         </div>
       </div>
@@ -476,30 +474,25 @@ const EmployeeSchedule = () => {
         // Default horizontal view
         <table className="ews-table">
           <thead>
-            <tr>
-              <th className="text-left">Ad, soyad</th>
-              {weekDays.map((d, i) => {
-                const isToday = isSameDay(weekDates[i], today);
-                return (
-                  <th
-                    key={d.key}
-                    className={isToday ? "current-day-header" : ""}>
-                    <div
-                      className={
-                        isToday ? "day-name current-day-name" : "day-name"
-                      }>
-                      {d.label}
-                    </div>
-                    <div
-                      className={
-                        isToday ? "day-date current-day-date" : "day-date"
-                      }>
-                      {weekDates[i].getDate()}
-                    </div>
-                  </th>
-                );
-              })}
-            </tr>
+          <tr>
+            <th className="text-left">Ad, soyad</th>
+            {weekDays.map((d, i) => {
+              const isToday = isSameDay(weekDates[i], today);
+              return (
+                <th
+                  key={d.key}
+                  className={`dateContainerTH ${isToday ? "current-day-header" : ""}`}>
+                  <div className={`day-name ${isToday ? "current-day-name" : ""}`}>
+                    {d.label}
+                  </div>
+                  <div className={`day-date ${isToday ? "current-day-date" : ""}`}>
+                    {weekDates[i].getDate()}
+                  </div>
+                </th>
+              );
+            })}
+          </tr>
+
           </thead>
           <tbody>
             {filteredEmployees.map((emp) => (

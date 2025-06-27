@@ -10,21 +10,43 @@ function EmployeeEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const { selectedWorker, fetchWorkerById, editWorker, removeWorker, loading } =
-    useWorkerStore();
+  const {
+    selectedWorker,
+    fetchWorkerById,
+    editWorker,
+    removeWorker,
+    loading,
+  } = useWorkerStore();
 
   const [isProcessing, setIsProcessing] = useState(false);
+  const [localWorker, setLocalWorker] = useState(null);
 
   useEffect(() => {
     fetchWorkerById(id);
   }, [id, fetchWorkerById]);
+
+  // Form məlumatlarını local state-ə kopyalayırıq ki, inputlara düzgün otursun
+  useEffect(() => {
+    if (selectedWorker) {
+      setLocalWorker({
+        ...selectedWorker,
+        name: selectedWorker.name || "",
+        surname: selectedWorker.surname || "",
+        username: selectedWorker.username || "",
+        patronymic: selectedWorker.patronymic || "",
+        phone: selectedWorker.phone || "",
+        enabled: selectedWorker.enabled ?? true,
+        permissions: selectedWorker.permissions || [],
+      });
+    }
+  }, [selectedWorker]);
 
   const handleUpdate = async (formData) => {
     setIsProcessing(true);
     try {
       await editWorker({ ...formData, id });
       toast.success("İstifadəçi uğurla yeniləndi");
-      navigate("/employees");
+      navigate(-1); // geri qaytarır
     } catch (err) {
       toast.error("İstifadəçini yeniləmək alınmadı");
     } finally {
@@ -37,7 +59,7 @@ function EmployeeEdit() {
     try {
       await removeWorker(id);
       toast.success("İstifadəçi uğurla silindi");
-      navigate("/employees");
+      navigate(-1);
     } catch (err) {
       toast.error("İstifadəçini silmək alınmadı");
     } finally {
@@ -45,7 +67,7 @@ function EmployeeEdit() {
     }
   };
 
-  if (loading || !selectedWorker) {
+  if (loading || !localWorker) {
     return (
       <div className="flex items-center justify-center h-screen">
         <BeatLoader />
@@ -66,7 +88,7 @@ function EmployeeEdit() {
       <div className={`${isProcessing ? "blur-sm pointer-events-none" : ""}`}>
         <UserForm
           mode="edit"
-          userData={selectedWorker}
+          userData={localWorker}
           onSubmit={handleUpdate}
           onDelete={handleDelete}
         />

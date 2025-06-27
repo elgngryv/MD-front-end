@@ -11,6 +11,7 @@ import {
 
 const useWorkerStore = create((set) => ({
   workers: [],
+  searchResult: [], // Bu, masanın əsas məlumat mənbəyi olacaq
   selectedWorker: null,
   statusList: [],
   loading: false,
@@ -61,23 +62,24 @@ const useWorkerStore = create((set) => ({
       set({ error: err.message });
     }
   },
+
   removeWorker: async (id) => {
     try {
-      console.log("Deleting worker with id:", id);
-      const response = await deleteWorker(id);
-      console.log("Delete response:", response);
+      await deleteWorker(id);
       await useWorkerStore.getState().fetchWorkers();
-      console.log("Worker list fetched after delete");
     } catch (err) {
       set({ error: err.message });
     }
   },
 
+  // searchResult state-ini komponentdən birbaşa idarə etmək üçün yeni aksiya
+  setSearchResult: (data) => set({ searchResult: data }),
+
   searchWorkers: async (params) => {
     set({ loading: true });
     try {
-      const data = await searchWorkers(params);
-      set({ workers: data, loading: false, error: null });
+      const data = await searchWorkers(params); // Bu, API çağırışıdır
+      set({ searchResult: data, loading: false, error: null });
     } catch (err) {
       set({ error: err.message, loading: false });
     }
