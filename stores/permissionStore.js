@@ -3,6 +3,10 @@ import {
   createPermission as apiCreatePermission,
   fetchPermissions as apiFetchPermissions,
   fetchPermissionById as apiFetchPermissionById,
+  updatePermission as apiUpdatePermission,
+  updatePermissionStatus as apiUpdatePermissionStatus,
+  searchPermissions as apiSearchPermissions,
+  deletePermission as apiDeletePermission,
 } from "../src/api/permission";
 
 const usePermissionStore = create((set) => ({
@@ -47,6 +51,66 @@ const usePermissionStore = create((set) => ({
       }));
     } catch (error) {
       set({ error: error.message || "Yaratmaqda xəta", loading: false });
+    }
+  },
+
+  // 🔄 Permission yenilə
+  updatePermission: async (updatedPermission) => {
+    set({ loading: true, error: null });
+    try {
+      const updated = await apiUpdatePermission(updatedPermission);
+      set((state) => ({
+        permissions: state.permissions.map((perm) =>
+          perm.id === updated.id ? updated : perm
+        ),
+        loading: false,
+      }));
+    } catch (error) {
+      set({ error: error.message || "Yeniləməkdə xəta", loading: false });
+    }
+  },
+
+  // 🔄 Status yenilə
+  updatePermissionStatus: async (statusData) => {
+    set({ loading: true, error: null });
+    try {
+      const updated = await apiUpdatePermissionStatus(statusData);
+      set((state) => ({
+        permissions: state.permissions.map((perm) =>
+          perm.id === updated.id ? updated : perm
+        ),
+        loading: false,
+      }));
+    } catch (error) {
+      set({
+        error: error.message || "Statusu yeniləməkdə xəta",
+        loading: false,
+      });
+    }
+  },
+
+  // 🔍 Axtarış et
+  searchPermissions: async (criteria) => {
+    set({ loading: true, error: null });
+    try {
+      const results = await apiSearchPermissions(criteria);
+      set({ permissions: results, loading: false });
+    } catch (error) {
+      set({ error: error.message || "Axtarışda xəta", loading: false });
+    }
+  },
+
+  // ❌ Silmə əməliyyatı
+  deletePermission: async (id) => {
+    set({ loading: true, error: null });
+    try {
+      await apiDeletePermission(id);
+      set((state) => ({
+        permissions: state.permissions.filter((perm) => perm.id !== id),
+        loading: false,
+      }));
+    } catch (error) {
+      set({ error: error.message || "Silinmədə xəta", loading: false });
     }
   },
 }));

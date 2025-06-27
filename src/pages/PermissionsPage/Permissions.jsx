@@ -30,8 +30,14 @@ function Permissions() {
   const [searchTerm, setSearchTerm] = useState("");
   const [status, setStatus] = useState("");
 
-  const { permissions, fetchPermissions, loading, error } =
-    usePermissionStore();
+  const {
+    permissions,
+    fetchPermissions,
+    updatePermissionStatus,
+    deletePermission,
+    loading,
+    error,
+  } = usePermissionStore();
 
   useEffect(() => {
     fetchPermissions();
@@ -43,12 +49,32 @@ function Permissions() {
       row.permissionName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleStatusToggle = async (row) => {
+    const newStatus = row.status === "ACTIVE" ? "PASSIVE" : "ACTIVE";
+    try {
+      await updatePermissionStatus({
+        id: row.id,
+        status: newStatus,
+      });
+    } catch (error) {
+      alert("Status dəyişdirilə bilmədi.");
+    }
+  };
   const handleEdit = (row) => {
     navigate(`/edit-permission/${row.id}`);
   };
 
-  const handleDelete = (row) => {
-    alert(`Silindi: ${row.permissionName}`);
+  const handleDelete = async (row) => {
+    const confirmDelete = window.confirm(
+      `"${row.permissionName}" icazəsini silmək istədiyinizə əminsiniz?`
+    );
+    if (!confirmDelete) return;
+
+    try {
+      await deletePermission(row.id);
+    } catch (error) {
+      alert("Silinmə zamanı xəta baş verdi.");
+    }
   };
 
   const handleInfo = (row) => {
@@ -118,14 +144,17 @@ function Permissions() {
                 <tr key={row.id}>
                   <td>{index + 1}</td>
                   <td className="permissionName">{row.permissionName}</td>
-                  <td>
+                  <td
+                    onClick={() => handleStatusToggle(row)}
+                    style={{ cursor: "pointer" }}>
                     <span
                       className={`statusBadge ${
                         row.status === "ACTIVE" ? "active" : "passive"
                       }`}>
-                      {row.status}
+                      {row.status === "ACTIVE" ? "Aktiv" : "Passiv"}
                     </span>
                   </td>
+
                   <td>
                     <div className="actionIcons flex gap-3 cursor-pointer">
                       <CiCircleInfo

@@ -2,7 +2,6 @@ import axiosInstance from "./temp-axios-auth";
 
 const API_BASE_URL = `${import.meta.env.VITE_BASE_URL}`;
 
-// Yeni permission yaratmaq (POST)
 export const createPermission = async (data) => {
   try {
     const response = await axiosInstance.post(
@@ -25,7 +24,6 @@ export const fetchPermissions = async () => {
   }
 };
 
-// GET ilə id-ə görə icazə oxumaq (info)
 export const fetchPermissionById = async (id) => {
   try {
     const response = await axiosInstance.get(
@@ -34,6 +32,53 @@ export const fetchPermissionById = async (id) => {
     return response.data;
   } catch (error) {
     console.error(`ID ilə icazə tapılmadı: ${id}`, error);
+    throw error;
+  }
+};
+export const updatePermission = async (data) => {
+  try {
+    const response = await axiosInstance.put(
+      `${API_BASE_URL}/permission/update`,
+      data
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Permission yenilənməsində xəta:", error);
+    throw error;
+  }
+};
+export const updatePermissionStatus = async (data) => {
+  try {
+    const response = await axiosInstance.put(
+      `${API_BASE_URL}/permission/status-updated`,
+      data
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Permission status yenilənməsində xəta:", error);
+    throw error;
+  }
+};
+export const searchPermissions = async (criteria) => {
+  try {
+    const response = await axiosInstance.post(
+      `${API_BASE_URL}/permission/search`,
+      criteria
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Permission axtarışında xəta:", error);
+    throw error;
+  }
+};
+export const deletePermission = async (id) => {
+  try {
+    const response = await axiosInstance.delete(
+      `${API_BASE_URL}/permission/delete/${id}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error(`Permission silinməsində xəta (ID: ${id}):`, error);
     throw error;
   }
 };
