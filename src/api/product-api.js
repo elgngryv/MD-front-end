@@ -24,13 +24,20 @@ export const updateProduct = async (productData) => {
   console.log("Update API response:", response.data);
   return response.data;
 };
-// Məhsul statusunu dəyişmək
+// ✅ Məhsul statusunu dəyişmək (PUT methodu ilə)
 export const updateProductStatus = async (statusPayload) => {
-  const response = await axiosInstance.patch(
-    `${API_BASE_URL}/product/status-update`,
-    statusPayload
-  );
-  return response.data;
+  console.log("Status update payload:", statusPayload);
+  try {
+    const response = await axiosInstance.put(
+      `${API_BASE_URL}/product/status-updated`,
+      statusPayload
+    );
+    console.log("Response:", response);
+    return response.data;
+  } catch (error) {
+    console.error("API updateProductStatus error:", error.response || error);
+    throw error;
+  }
 };
 
 // Məhsulları axtarmaq (filtrlərlə)

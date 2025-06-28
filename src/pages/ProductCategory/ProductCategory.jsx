@@ -2,25 +2,28 @@ import { CiSearch } from "react-icons/ci";
 import { FiDownload, FiEdit3 } from "react-icons/fi";
 import { GoTrash } from "react-icons/go";
 import { HiOutlineArrowsUpDown } from "react-icons/hi2";
-
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 
-// Store
 import { useProductCategoryStore } from "../../../stores/productCategories";
-
 import "../../assets/style/ProductCategory/productcategory.css";
 
 function ProductCategory() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
 
-  const { categories, fetchCategories, removeCategory } =
-    useProductCategoryStore();
+  const {
+    categories,
+    fetchCategories,
+    removeCategory,
+    changeCategoryStatus,
+    loading,
+    error,
+  } = useProductCategoryStore();
 
   useEffect(() => {
     fetchCategories();
-  }, [fetchCategories]);
+  }, []);
 
   const filteredData = categories.filter((row) =>
     row.categoryName.toLowerCase().includes(searchTerm.toLowerCase())
@@ -38,6 +41,15 @@ function ProductCategory() {
       alert(`${row.categoryName} silindi`);
     } catch (err) {
       alert(`Silərkən xəta baş verdi: ${err.message}`);
+    }
+  };
+
+  const toggleStatus = async (row) => {
+    const newStatus = row.status === "ACTIVE" ? "PASSIVE" : "ACTIVE";
+    try {
+      await changeCategoryStatus({ id: row.id, status: newStatus });
+    } catch (err) {
+      alert("Status dəyişdirilə bilmədi");
     }
   };
 
@@ -103,14 +115,17 @@ function ProductCategory() {
                 <td className="productCategoryName">{row.categoryName}</td>
                 <td>
                   <Link to={`./${row.categoryName}`}>
-                    Məhsulları ({row.products ? row.products.length : 0})
+                    Məhsulları ({row.products?.length || 0})
                   </Link>
                 </td>
                 <td>
                   <span
                     className={`statusBadge ${
                       row.status === "ACTIVE" ? "active" : "passive"
-                    }`}>
+                    }`}
+                    onClick={() => toggleStatus(row)}
+                    style={{ cursor: "pointer" }}
+                    title="Statusu dəyişmək üçün kliklə">
                     {row.status === "ACTIVE" ? "Aktiv" : "Passiv"}
                   </span>
                 </td>
@@ -130,6 +145,8 @@ function ProductCategory() {
             ))}
           </tbody>
         </table>
+        {loading && <p>Yüklənir...</p>}
+        {error && <p style={{ color: "red" }}>Xəta: {error.message}</p>}
       </div>
     </div>
   );

@@ -56,10 +56,10 @@ const useRecipeStore = create((set) => ({
     }
   },
 
-  updateStatus: async (id, status) => {
+  updateStatus: async (id, statusData) => {
     set({ loading: true, error: null });
     try {
-      await updateRecipeStatus(id, status);
+      await updateRecipeStatus(id, statusData);
       await useRecipeStore.getState().fetchRecipes();
     } catch (err) {
       set({ error: err, loading: false });

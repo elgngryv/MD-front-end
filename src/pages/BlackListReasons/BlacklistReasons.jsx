@@ -1,23 +1,29 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
-// Icons
 import { FiDownload, FiEdit3 } from "react-icons/fi";
 import { IoMdAdd } from "react-icons/io";
 import { CiSearch } from "react-icons/ci";
 import { GoTrash } from "react-icons/go";
 import { HiOutlineArrowsUpDown } from "react-icons/hi2";
 
-// Store
 import useBlackListResultStore from "../../../stores/blacklistReasonStore";
 
 function BlacklistReasons() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
+  const [refreshKey, setRefreshKey] = useState(0); // 👈
 
-  const { results, fetchResults, removeResult, exportToExcel, loading, error } =
-    useBlackListResultStore();
+  const {
+    results,
+    fetchResults,
+    removeResult,
+    updateResultStatus,
+    exportToExcel,
+    loading,
+    error,
+  } = useBlackListResultStore();
 
   useEffect(() => {
     fetchResults();
@@ -42,7 +48,22 @@ function BlacklistReasons() {
       await removeResult(row.id);
     }
   };
-
+  const toggleStatus = async (row) => {
+    if (!row.id) {
+      alert("Xəta: ID tapılmadı, status dəyişdirilə bilməz!");
+      return;
+    }
+    const newStatus = row.status === "ACTIVE" ? "PASSIVE" : "ACTIVE";
+    try {
+      await updateResultStatus(row.id, { status: newStatus });
+      setRefreshKey((prev) => prev + 1); // 👈 komponenti yenidən render et
+    } catch {
+      alert("Status yenilənərkən xəta baş verdi");
+    }
+  };
+  useEffect(() => {
+    fetchResults();
+  }, [refreshKey]); // 👈 refresh olduqda yenidən fetch et
   return (
     <div className="specialitiesContainer">
       <div className="specialitiesContainerTopPart">
@@ -105,9 +126,12 @@ function BlacklistReasons() {
                   <td className="specialityName">{row.statusName}</td>
                   <td>
                     <span
+                      onClick={() => toggleStatus(row)}
                       className={`statusBadge ${
                         row.status === "ACTIVE" ? "active" : "passive"
-                      }`}>
+                      }`}
+                      style={{ cursor: "pointer" }}
+                      title="Statusu dəyişmək üçün kliklə">
                       {row.status === "ACTIVE" ? "Aktiv" : "Passiv"}
                     </span>
                   </td>

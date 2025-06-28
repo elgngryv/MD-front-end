@@ -85,18 +85,20 @@ const useCeramicsStore = create((set) => ({
       set({ error, loading: false });
     }
   },
-
-  // Update Status
   updateCeramicStatus: async (id, statusData) => {
     set({ loading: true, error: null });
     try {
-      const data = await updateCeramicsStatus(id, statusData);
+      const updatedCeramic = await updateCeramicsStatus(id, statusData);
       set((state) => ({
-        ceramics: state.ceramics.map((c) => (c.id === id ? data : c)),
+        ceramics: state.ceramics.map((c) =>
+          c.id === id ? { ...c, ...updatedCeramic } : c
+        ),
         loading: false,
+        error: null,
       }));
     } catch (error) {
-      set({ error, loading: false });
+      const errorMessage = error?.message || error.toString();
+      set({ error: new Error(errorMessage), loading: false });
     }
   },
 

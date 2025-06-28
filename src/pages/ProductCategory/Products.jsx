@@ -10,14 +10,20 @@ import { useProductStore } from "../../../stores/productStore";
 
 function Products() {
   const navigate = useNavigate();
-  const { name } = useParams(); 
+  const { name } = useParams();
   const [searchTerm, setSearchTerm] = useState("");
-  const { removeProduct } = useProductStore();
-  const { products, fetchProducts, loading, error } = useProductStore();
+  const {
+    products,
+    fetchProducts,
+    removeProduct,
+    changeProductStatus,
+    loading,
+    error,
+  } = useProductStore();
 
   useEffect(() => {
     fetchProducts();
-  }, [fetchProducts]);
+  }, []);
 
   const filteredByCategory = name
     ? products.filter(
@@ -35,19 +41,35 @@ function Products() {
     navigate(`/product-categories/${name}/edit-product/${row.id}`);
   };
 
-  const handleDelete = (row) => {
+  const handleDelete = async (row) => {
     const confirmDelete = window.confirm(
       `${row.productName} məhsulunu silmək istədiyinizə əminsiniz?`
     );
     if (!confirmDelete) return;
 
-    removeProduct(row.id)
-      .then(() => {
-        alert(`${row.productName} uğurla silindi.`);
-      })
-      .catch((error) => {
-        alert("Silərkən xəta baş verdi: " + error.message);
-      });
+    try {
+      await removeProduct(row.id);
+      alert(`${row.productName} silindi`);
+    } catch (err) {
+      alert("Silərkən xəta baş verdi: " + err.message);
+    }
+  };
+
+  const toggleStatus = async (row) => {
+    const currentStatus = row.status?.toUpperCase() || "";
+    const newStatus = currentStatus === "ACTIVE" ? "PASSIVE" : "ACTIVE";
+    console.log("Status update payload:", {
+      productId: row.id,
+      status: newStatus,
+    });
+
+    try {
+      await changeProductStatus({ productId: row.id, status: newStatus });
+      console.log("Status changed successfully");
+    } catch (err) {
+      console.error("Status change error:", err);
+      alert("Status dəyişdirilə bilmədi");
+    }
   };
 
   return (
@@ -84,7 +106,7 @@ function Products() {
       {loading ? (
         <p>Yüklənir...</p>
       ) : error ? (
-        <p>Xəta baş verdi: {error}</p>
+        <p>Xəta baş verdi: {error.message}</p>
       ) : (
         <div className="productPageTableWrapper">
           <table className="productPageTable">
@@ -105,7 +127,8 @@ function Products() {
                 </th>
                 <th>
                   <span>
-                    <HiOutlineArrowsUpDown className="arrowIconsNow" /> Özəllikləri
+                    <HiOutlineArrowsUpDown className="arrowIconsNow" />{" "}
+                    Özəllikləri
                   </span>
                 </th>
                 <th>
@@ -126,10 +149,16 @@ function Products() {
                   <td>
                     <span
                       className={`statusBadge ${
-                        row.status === "Aktiv" ? "active" : "passive"
+                        (row.status?.toUpperCase() || "") === "ACTIVE"
+                          ? "active"
+                          : "passive"
                       }`}
-                    >
-                      {row.status}
+                      style={{ cursor: "pointer" }}
+                      onClick={() => toggleStatus(row)}
+                      title="Statusu dəyişmək üçün kliklə">
+                      {(row.status?.toUpperCase() || "") === "ACTIVE"
+                        ? "Aktiv"
+                        : "Passiv"}
                     </span>
                   </td>
                   <td>

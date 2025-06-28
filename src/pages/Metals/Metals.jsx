@@ -16,7 +16,7 @@ import useMetalStore from "../../../stores/metalsStore";
 
 function Metal() {
   const navigate = useNavigate();
-  const { metals, fetchMetals, deleteMetal, loading, error } = useMetalStore();
+  const { metals, fetchMetals, deleteMetal, updateMetalStatus, loading, error } = useMetalStore();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -25,22 +25,22 @@ function Metal() {
     fetchMetals();
   }, [fetchMetals]);
 
-  // Backend status -> UI label mapping
   const statusLabels = {
     ACTIVE: "Aktiv",
     PASSIVE: "Passiv",
   };
 
-  // Filtrlənmiş data
+  // Status toggle funksiyası
+  const toggleStatus = async (metal) => {
+    const newStatus = metal.status === "ACTIVE" ? "PASSIVE" : "ACTIVE";
+    await updateMetalStatus(metal.id, { status: newStatus });
+  };
+
   const filteredData = metals.filter((metal) => {
     const name = metal.name?.toLowerCase() || "";
     const search = searchTerm.toLowerCase();
-
     const nameMatches = name.includes(search);
-
-    // statusFilter dəyərlərini backend statusları ilə eyniləşdiririk
     const statusMatches = statusFilter ? metal.status === statusFilter : true;
-
     return nameMatches && statusMatches;
   });
 
@@ -58,11 +58,7 @@ function Metal() {
     <div className="metalContainer">
       <div className="metalContainerTopPart">
         <div className="leftPart">
-          {/* Backend status dəyərlərini seçirik */}
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
+          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
             <option value="">Status</option>
             <option value="ACTIVE">Aktiv</option>
             <option value="PASSIVE">Passiv</option>
@@ -129,9 +125,12 @@ function Metal() {
                   <td className="MetalName">{metal.name}</td>
                   <td>
                     <span
+                      onClick={() => toggleStatus(metal)}
+                      style={{ cursor: "pointer", userSelect: "none" }}
                       className={`statusBadge ${
                         metal.status === "ACTIVE" ? "active" : "passive"
                       }`}
+                      title="Statusu dəyişmək üçün klikləyin"
                     >
                       {statusLabels[metal.status] || metal.status}
                     </span>

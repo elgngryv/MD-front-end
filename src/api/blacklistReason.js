@@ -22,7 +22,7 @@ export const updateBlackListResult = async (id, data) => {
 
 // ✔ Update status
 export const updateBlackListResultStatus = async (id, statusData) => {
-  const response = await axiosInstance.put(
+  const response = await axiosInstance.patch(
     `${API_BASE_URL}/blacklist-results/update/status/${id}`,
     statusData
   );

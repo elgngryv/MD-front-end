@@ -11,8 +11,13 @@ const OperationList = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const { operationItemsType, fetchAllOp, remove, exportToExcel } =
-    useOperationItemsTypeStore();
+  const {
+    operationItemsType,
+    fetchAllOp,
+    remove,
+    exportToExcel,
+    updateStatus // 🔥 Status dəyişmə funksiyası store-dan
+  } = useOperationItemsTypeStore();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -53,6 +58,17 @@ const OperationList = () => {
 
   const handleExport = async () => {
     await exportToExcel();
+  };
+
+  // ✅ STATUS DƏYİŞMƏ FUNKSİYASI
+  const handleStatusToggle = async (item) => {
+    const newStatus = item.status === "ACTIVE" ? "PASSIVE" : "ACTIVE";
+    try {
+      await updateStatus(item.id, { status: newStatus });
+      await fetchAllOp(id); // siyahını yenilə
+    } catch (error) {
+      alert("Status dəyişdirilə bilmədi.");
+    }
   };
 
   return (
@@ -109,9 +125,9 @@ const OperationList = () => {
           </thead>
           <tbody>
             {filteredOperations.length > 0 ? (
-              filteredOperations.map((item) => (
+              filteredOperations.map((item, index) => (
                 <tr key={item.id}>
-                  <td>{item.id}</td>
+                  <td>{index + 1}</td>
                   <td>{item.operationName}</td>
                   <td>{item.operationCode}</td>
 
@@ -129,7 +145,9 @@ const OperationList = () => {
                   })}
 
                   <td>{item.productUsage || 0}</td>
-                  <td>
+                  <td
+                    onClick={() => handleStatusToggle(item)}
+                    style={{ cursor: "pointer" }}>
                     <span
                       className={`operationsList-status-badge ${
                         item.status === "ACTIVE" ? "active" : "passive"

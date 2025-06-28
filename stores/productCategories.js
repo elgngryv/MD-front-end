@@ -52,13 +52,15 @@ export const useProductCategoryStore = create((set, get) => ({
     }
   },
 
-  changeCategoryStatus: async (statusPayload) => {
+  changeCategoryStatus: async ({ id, status }) => {
     try {
-      await updateCategoryStatus(statusPayload);
+      await updateCategoryStatus({ id, status });
+      await get().fetchCategories(); // Status dəyişəndən sonra yenilə
     } catch (error) {
       set({ error });
     }
   },
+  
 
   removeCategory: async (id) => {
     try {

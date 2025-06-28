@@ -1,19 +1,24 @@
+import React, { useEffect, useState } from "react";
 import "../../assets/style/Anamnesis/anamnesislist.css";
 import { CiSearch } from "react-icons/ci";
 import { FiDownload, FiEdit3 } from "react-icons/fi";
 import { GoTrash } from "react-icons/go";
 import { HiOutlineArrowsUpDown } from "react-icons/hi2";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
 import useAnamnesisListStore from "../../../stores/anamnesStore";
 
 function AnamnesisList() {
   const navigate = useNavigate();
-  const { name } = useParams();
   const [searchTerm, setSearchTerm] = useState("");
 
-  const { anamnesisList, fetchAnamnesisList, removeAnamnesis, loading, error } =
-    useAnamnesisListStore();
+  const {
+    anamnesisList,
+    fetchAnamnesisList,
+    removeAnamnesis,
+    updateAnamnesisStatus,
+    loading,
+    error,
+  } = useAnamnesisListStore();
 
   useEffect(() => {
     fetchAnamnesisList();
@@ -37,6 +42,12 @@ function AnamnesisList() {
     alert(`${row.name} uğurla silindi.`);
   };
 
+  // Status toggle funksiyası
+  const toggleStatus = async (row) => {
+    const newStatus = row.status === "ACTIVE" ? "PASSIVE" : "ACTIVE";
+    await updateAnamnesisStatus(row.id, { status: newStatus });
+  };
+
   return (
     <div className="anamnesisPageWrapper">
       <div className="anamnesisCategoryQuickSearch">
@@ -44,7 +55,7 @@ function AnamnesisList() {
           <select>
             <option value="">Status</option>
             <option value="ACTIVE">Aktiv</option>
-            <option value="INACTIVE">Passiv</option>
+            <option value="PASSIVE">Passiv</option>
           </select>
           <div className="searchForNameAnamnesis">
             <input
@@ -84,8 +95,7 @@ function AnamnesisList() {
               </th>
               <th>
                 <span>
-                  <HiOutlineArrowsUpDown className="arrowIconsNow" /> Anamnezin
-                  adı
+                  <HiOutlineArrowsUpDown className="arrowIconsNow" /> Anamnezin adı
                 </span>
               </th>
               <th>
@@ -103,9 +113,13 @@ function AnamnesisList() {
                 <td className="anamnesisNameCol">{row.name}</td>
                 <td>
                   <span
+                    onClick={() => toggleStatus(row)}
+                    style={{ cursor: "pointer" }}
                     className={`statusBadge ${
                       row.status === "ACTIVE" ? "active" : "passive"
-                    }`}>
+                    }`}
+                    title="Statusu dəyişmək üçün klikləyin"
+                  >
                     {row.status === "ACTIVE" ? "Aktiv" : "Passiv"}
                   </span>
                 </td>

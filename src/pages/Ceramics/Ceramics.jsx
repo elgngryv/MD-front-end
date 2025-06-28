@@ -1,17 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
-// Icons
 import { FiDownload, FiEdit3 } from "react-icons/fi";
 import { IoMdAdd } from "react-icons/io";
 import { CiSearch } from "react-icons/ci";
 import { GoTrash } from "react-icons/go";
 import { HiOutlineArrowsUpDown } from "react-icons/hi2";
 
-// Style
 import "../../assets/style/Ceramics/ceramics.css";
 
-// Store
 import useCeramicsStore from "../../../stores/ceramicStore";
 
 function Ceramics() {
@@ -19,8 +16,14 @@ function Ceramics() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
-  const { ceramics, fetchCeramics, deleteCeramic, loading, error } =
-    useCeramicsStore();
+  const {
+    ceramics,
+    fetchCeramics,
+    deleteCeramic,
+    updateCeramicStatus,
+    loading,
+    error,
+  } = useCeramicsStore();
 
   useEffect(() => {
     fetchCeramics();
@@ -47,7 +50,7 @@ function Ceramics() {
       try {
         await deleteCeramic(row.id);
         alert(`Silindi: ${row.name}`);
-      } catch (error) {
+      } catch {
         alert("Silinərkən xəta baş verdi");
       }
     }
@@ -58,13 +61,28 @@ function Ceramics() {
     PASSIVE: "Passiv",
   };
 
+  const toggleStatus = async (row) => {
+    if (!row.id) {
+      alert("Xəta: ID tapılmadı, status dəyişdirilə bilməz!");
+      return;
+    }
+    const newStatus = row.status === "ACTIVE" ? "PASSIVE" : "ACTIVE";
+    try {
+      await updateCeramicStatus(row.id, { status: newStatus });
+      await fetchCeramics();  // Status dəyişdikdən sonra siyahını yenilə
+    } catch {
+      alert("Status yenilənərkən xəta baş verdi");
+    }
+  };
+
   return (
     <div className="ceramicsContainer">
       <div className="ceramicsContainerTopPart">
         <div className="leftPart">
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}>
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
             <option value="">Status</option>
             <option value="ACTIVE">Aktiv</option>
             <option value="PASSIVE">Passiv</option>
@@ -88,7 +106,8 @@ function Ceramics() {
             className="exportceramics"
             title="Excel-ə export et"
             disabled={loading}
-            onClick={() => alert("Export funksiyası burada olacaq")}>
+            onClick={() => alert("Export funksiyası burada olacaq")}
+          >
             <FiDownload className="exportceramicsIcon" />
           </button>
         </div>
@@ -104,13 +123,10 @@ function Ceramics() {
         <table className="ceramicsTable">
           <thead>
             <tr>
-              <th>
-                {filteredData.length !== 0 ? `1-${filteredData.length}` : 0}
-              </th>
+              <th>{filteredData.length !== 0 ? `1-${filteredData.length}` : 0}</th>
               <th className="ceramicsName">
                 <span>
-                  <HiOutlineArrowsUpDown className="arrowIconsNow" />{" "}
-                  Keramikanın adı
+                  <HiOutlineArrowsUpDown className="arrowIconsNow" /> Keramikanın adı
                 </span>
               </th>
               <th>
@@ -135,9 +151,13 @@ function Ceramics() {
                   <td className="ceramicsName">{row.name}</td>
                   <td>
                     <span
+                      onClick={() => toggleStatus(row)}
                       className={`statusBadge ${
                         row.status === "ACTIVE" ? "active" : "passive"
-                      }`}>
+                      }`}
+                      style={{ cursor: "pointer" }}
+                      title="Statusu dəyişmək üçün kliklə"
+                    >
                       {statusMap[row.status] || row.status}
                     </span>
                   </td>

@@ -12,29 +12,34 @@ function MedicinesList() {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const { medicines, fetchMedicines, removeMedicine, downloadExcel } =
-    useMedicineStore();
+  const {
+    medicines,
+    fetchMedicines,
+    removeMedicine,
+    downloadExcel,
+    changeMedicineStatus, // <-- status update funksiyası
+  } = useMedicineStore();
 
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Get data on mount
+  // Data yüklə
   useEffect(() => {
     if (id) {
       fetchMedicines(Number(id));
     }
   }, [id]);
 
-  // Filter
+  // Filtrləmə
   const filteredData = medicines.filter((row) =>
     row.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Edit
+  // Edit funksiyası
   const handleEdit = (row) => {
     navigate(`/recepts/${row.recipeId}/edit/${row.id}`);
   };
 
-  // Delete
+  // Silmə funksiyası
   const handleDelete = async (row) => {
     const confirmDelete = window.confirm(
       `${row.name} dərmanını silmək istədiyinizə əminsiniz?`
@@ -46,6 +51,16 @@ function MedicinesList() {
       alert(`${row.name} uğurla silindi.`);
     } catch (err) {
       alert("Silinərkən xəta baş verdi.");
+    }
+  };
+
+  // Statusa kliklə dəyişmə funksiyası
+  const toggleStatus = async (row) => {
+    const newStatus = row.status === "ACTIVE" ? "PASSIVE" : "ACTIVE";
+    try {
+      await changeMedicineStatus(row.id, { status: newStatus });
+    } catch (err) {
+      alert("Status dəyişdirilə bilmədi!");
     }
   };
 
@@ -115,9 +130,13 @@ function MedicinesList() {
                   <td>{row.description || "-"}</td>
                   <td>
                     <span
+                      onClick={() => toggleStatus(row)}
+                      style={{ cursor: "pointer" }}
                       className={`statusBadge ${
                         row.status === "ACTIVE" ? "active" : "passive"
-                      }`}>
+                      }`}
+                      title="Statusu dəyişmək üçün kliklə"
+                    >
                       {row.status === "ACTIVE" ? "Aktiv" : "Passiv"}
                     </span>
                   </td>
@@ -137,9 +156,7 @@ function MedicinesList() {
               ))
             ) : (
               <tr>
-                <td
-                  colSpan="5"
-                  style={{ textAlign: "center", padding: "20px" }}>
+                <td colSpan="5" style={{ textAlign: "center", padding: "20px" }}>
                   Dərman tapılmadı.
                 </td>
               </tr>

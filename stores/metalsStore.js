@@ -74,15 +74,12 @@ const useMetalStore = create((set) => ({
     }
   },
 
-  // ✔ Update Status
   updateMetalStatus: async (id, statusData) => {
     set({ loading: true, error: null });
     try {
-      const data = await updateMetalsStatus(id, statusData);
-      set((state) => ({
-        metals: state.metals.map((m) => (m.id === id ? data : m)),
-        loading: false,
-      }));
+      await updateMetalsStatus(id, statusData); // burada id undefined olmamalıdır
+      await useMetalStore.getState().fetchMetals();
+      set({ loading: false });
     } catch (error) {
       set({ error, loading: false });
     }

@@ -11,8 +11,14 @@ const OperationCategoryList = () => {
   const navigate = useNavigate();
 
   // Store-dan state və funksiyaları çəkmək
-  const { operationTypes, loading, error, fetchAll, remove } =
-    useOperationTypesStore();
+  const {
+    operationTypes,
+    loading,
+    error,
+    fetchAll,
+    remove,
+    updateStatus // 🔥 Status dəyişmə funksiyası
+  } = useOperationTypesStore();
 
   // Komponent mount olanda data yüklə
   useEffect(() => {
@@ -24,9 +30,7 @@ const OperationCategoryList = () => {
   };
 
   const handleDelete = async (id) => {
-    if (
-      window.confirm("Əməliyyat kateqoriyasını silmək istədiyinizə əminsiniz?")
-    ) {
+    if (window.confirm("Əməliyyat kateqoriyasını silmək istədiyinizə əminsiniz?")) {
       try {
         await remove(id);
       } catch (err) {
@@ -35,7 +39,17 @@ const OperationCategoryList = () => {
     }
   };
 
-  // Status-un istifadəçi üçün oxunaqlı formata çevrilməsi
+  // ✅ STATUS DƏYİŞMƏ FUNKSİYASI
+  const handleStatusToggle = async (row) => {
+    const newStatus = row.status === "ACTIVE" ? "PASSIVE" : "ACTIVE";
+    try {
+      await updateStatus(row.id, { status: newStatus });
+    } catch (err) {
+      alert("Status dəyişdirilə bilmədi.");
+    }
+  };
+
+  // Status formatlama
   const formatStatus = (status) => {
     if (!status) return "";
     if (status.toUpperCase() === "ACTIVE") return "Aktiv";
@@ -57,7 +71,6 @@ const OperationCategoryList = () => {
               type="text"
               placeholder="Axtarış"
               className="operationsList-search-input"
-              // Axtarış funksionallığını əlavə etmək istəyirsənsə burada əlavə et
             />
             <button className="operationsList-search-button">
               <CiSearch className="operationsList-search-icon" />
@@ -128,11 +141,15 @@ const OperationCategoryList = () => {
                       Əməliyyatların sayı ({row.opTypeItemCount || 0})
                     </Link>
                   </td>
-                  <td>
+                  <td
+                    onClick={() => handleStatusToggle(row)}
+                    style={{ cursor: "pointer" }}
+                  >
                     <span
                       className={`operationsList-status-badge ${
                         row.status === "ACTIVE" ? "active" : "passive"
-                      }`}>
+                      }`}
+                    >
                       {formatStatus(row.status)}
                     </span>
                   </td>

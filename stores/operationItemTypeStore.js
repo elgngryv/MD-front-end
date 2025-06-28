@@ -64,11 +64,10 @@ const useOperationItemsTypeStore = create((set) => ({
     }
   },
 
-  // Status yenilə
   updateStatus: async (id, statusData) => {
     try {
       await updateOperationItemsTypeStatus(id, statusData);
-      await useOperationItemsTypeStore.getState().fetchAllOp();
+      await useOperationItemsTypeStore.getState().fetchAllOp(); // siyahını yenilə
     } catch (err) {
       console.error("Status update error:", err);
     }

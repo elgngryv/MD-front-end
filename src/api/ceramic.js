@@ -22,13 +22,15 @@ export const updateCeramics = async (id, data) => {
 
 // ✔ Update status
 export const updateCeramicsStatus = async (id, statusData) => {
+  if (!id) {
+    throw new Error("ID göndərilməyib");
+  }
   const response = await axiosInstance.patch(
     `${API_BASE_URL}/metal/update/status/${id}`,
     statusData
   );
   return response.data;
 };
-
 // ✔ Search
 export const searchCeramics = async (params) => {
   const response = await axiosInstance.get(`${API_BASE_URL}/metal/search`, {

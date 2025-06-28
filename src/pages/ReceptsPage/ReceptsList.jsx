@@ -11,7 +11,7 @@ import useMedicineStore from "../../../stores/medicineStore";
 function ReceptsList() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  const { recipes, fetchRecipes, deleteRecipeById, exportExcel } =
+  const { recipes, fetchRecipes, deleteRecipeById, exportExcel, updateStatus } =
     useRecipeStore();
   const { medicines, fetchMedicines } = useMedicineStore();
 
@@ -23,6 +23,7 @@ function ReceptsList() {
   const getMedicineCount = (recipeId) => {
     return medicines.filter((m) => m.recipeId === recipeId).length;
   };
+
   const handleEdit = (id) => {
     navigate(`/recepts/edit/${id}`);
   };
@@ -36,6 +37,16 @@ function ReceptsList() {
 
     await deleteRecipeById(id);
     alert(`${recept.name} uğurla silindi.`);
+  };
+
+  // Statusa kliklə dəyişmə funksiyası
+  const toggleStatus = async (item) => {
+    const newStatus = item.status === "ACTIVE" ? "PASSIVE" : "ACTIVE";
+    try {
+      await updateStatus(item.id, { status: newStatus });
+    } catch (error) {
+      alert("Status dəyişdirilə bilmədi!");
+    }
   };
 
   const filteredRecepts = recipes.filter((r) =>
@@ -121,9 +132,13 @@ function ReceptsList() {
                 </td>
                 <td>
                   <span
+                    onClick={() => toggleStatus(row)}
+                    style={{ cursor: "pointer" }}
                     className={`receptsList-status-badge ${
                       row.status === "ACTIVE" ? "active" : "passive"
-                    }`}>
+                    }`}
+                    title="Statusu dəyişmək üçün kliklə"
+                  >
                     {row.status === "ACTIVE" ? "Aktiv" : "Passiv"}
                   </span>
                 </td>

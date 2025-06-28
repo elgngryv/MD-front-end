@@ -57,15 +57,18 @@ export const useProductStore = create((set, get) => ({
     }
   },
 
-
-
-  
-  changeProductStatus: async (statusPayload) => {
+  // ✅ Status dəyişmə və avtomatik refresh
+  changeProductStatus: async ({ productId, status }) => {
     set({ loading: true });
     try {
-      await updateProductStatus(statusPayload);
-      const updatedProducts = await getAllProducts();
-      set({ products: updatedProducts, loading: false });
+      await updateProductStatus({ productId, status });
+      // Update the local state directly instead of refetching
+      set((state) => ({
+        products: state.products.map((product) =>
+          product.id === productId ? { ...product, status: status } : product
+        ),
+        loading: false,
+      }));
     } catch (error) {
       set({ error, loading: false });
     }

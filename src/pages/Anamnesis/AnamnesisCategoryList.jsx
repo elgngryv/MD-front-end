@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import "../../assets/style/Anamnesis/anamnesiscategorylist.css";
 import { CiSearch } from "react-icons/ci";
 import { FiDownload, FiEdit3 } from "react-icons/fi";
@@ -6,11 +6,13 @@ import { GoTrash } from "react-icons/go";
 import { HiOutlineArrowsUpDown } from "react-icons/hi2";
 import { Link, useNavigate } from "react-router-dom";
 import useAnamnesisCategoryStore from "../../../stores/anamnesisCategoryStore";
-// Comment
+
 const AnamnesisList = () => {
   const navigate = useNavigate();
-  const { categories, fetchCategories, deleteCategory, loading } =
+  const { categories, fetchCategories, deleteCategory, loading, updateCategoryStatus } =
     useAnamnesisCategoryStore();
+
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     fetchCategories();
@@ -19,6 +21,7 @@ const AnamnesisList = () => {
   const handleEdit = (id) => {
     navigate(`/anamnesis/edit/${id}`);
   };
+
   const handleDelete = async (id, name) => {
     const confirmed = window.confirm(
       `${name} kateqoriyasını silmək istədiyinizə əminsiniz?`
@@ -32,11 +35,30 @@ const AnamnesisList = () => {
       alert("Silinmə zamanı xəta baş verdi.");
     }
   };
+
+  // Statusu kliklə dəyişmək üçün funksiya
+  const toggleStatus = async (row) => {
+    const newStatus = row.status === "ACTIVE" ? "PASSIVE" : "ACTIVE";
+    try {
+      await updateCategoryStatus(row.id, { status: newStatus });
+    } catch (err) {
+      alert("Status dəyişdirilə bilmədi!");
+    }
+  };
+
+  // Kateqoriyaları axtarışla da filtr et
+  const filteredCategories = categories.filter(category =>
+    category.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="anamnesisList-container">
       <div className="anamnesisList-controls-section">
         <div className="anamnesisList-filters">
-          <select className="anamnesisList-status-dropdown">
+          <select
+            className="anamnesisList-status-dropdown"
+            onChange={(e) => setSearchTerm(e.target.value)} // Burada statusa görə filtr də əlavə edə bilərsən
+          >
             <option value="">Status</option>
             <option value="ACTIVE">Aktiv</option>
             <option value="PASSIVE">Passiv</option>
@@ -46,6 +68,8 @@ const AnamnesisList = () => {
               type="text"
               placeholder="Axtarış"
               className="anamnesisList-search-input"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
             <button className="anamnesisList-search-button">
               <CiSearch className="anamnesisList-search-icon" />
@@ -69,7 +93,7 @@ const AnamnesisList = () => {
               <th>
                 <span className="firstElementOfTHS">
                   <HiOutlineArrowsUpDown />
-                  {categories.length ? `1-${categories.length}` : "0"}
+                  {filteredCategories.length ? `1-${filteredCategories.length}` : "0"}
                 </span>
               </th>
               <th>
@@ -97,12 +121,12 @@ const AnamnesisList = () => {
               <tr>
                 <td colSpan="5">Yüklənir...</td>
               </tr>
-            ) : categories.length === 0 ? (
+            ) : filteredCategories.length === 0 ? (
               <tr>
                 <td colSpan="5">Heç bir kateqoriya tapılmadı.</td>
               </tr>
             ) : (
-              categories.map((row, index) => (
+              filteredCategories.map((row, index) => (
                 <tr key={row.id}>
                   <td>{index + 1}</td>
                   <td>{row.name}</td>
@@ -113,9 +137,13 @@ const AnamnesisList = () => {
                   </td>
                   <td>
                     <span
+                      onClick={() => toggleStatus(row)}
+                      style={{ cursor: "pointer" }}
                       className={`anamnesisList-status-badge ${
                         row.status === "ACTIVE" ? "active" : "passive"
-                      }`}>
+                      }`}
+                      title="Statusu dəyişmək üçün kliklə"
+                    >
                       {row.status === "ACTIVE" ? "Aktiv" : "Passiv"}
                     </span>
                   </td>

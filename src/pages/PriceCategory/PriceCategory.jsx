@@ -25,11 +25,12 @@ const PriceCategory = () => {
     fetchCategories,
     exportToExcel,
     removeCategory,
+    updateCategoryStatus, // Status update funksiyası
   } = usePriceCategoryStore();
 
   useEffect(() => {
     fetchCategories();
-  }, []);
+  }, [fetchCategories]);
 
   const handleEdit = (id) => {
     navigate(`${id}/edit`);
@@ -38,6 +39,15 @@ const PriceCategory = () => {
   const handleDelete = (id) => {
     if (window.confirm("Bu kateqoriyanı silmək istədiyinizə əminsiniz?")) {
       removeCategory(id);
+    }
+  };
+
+  const handleStatusToggle = async (item) => {
+    const newStatus = item.status === "ACTIVE" ? "PASSIVE" : "ACTIVE";
+    try {
+      await updateCategoryStatus(item.id, { status: newStatus });
+    } catch (error) {
+      alert("Status dəyişdirilə bilmədi.");
     }
   };
 
@@ -55,7 +65,8 @@ const PriceCategory = () => {
             <select
               className="priceCategoryStatusSelect"
               value={status}
-              onChange={(e) => setStatus(e.target.value)}>
+              onChange={(e) => setStatus(e.target.value)}
+            >
               {statusOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
@@ -79,7 +90,8 @@ const PriceCategory = () => {
             <button
               className="exportDataOfPriceCategory"
               title="Export"
-              onClick={exportToExcel}>
+              onClick={exportToExcel}
+            >
               <CiExport size={22} className="exportPriceCategoryDataIcon" />
             </button>
           </div>
@@ -119,11 +131,15 @@ const PriceCategory = () => {
                   <tr key={item.id}>
                     <td>{idx + 1}</td>
                     <td>{item.name}</td>
-                    <td>
+                    <td
+                      onClick={() => handleStatusToggle(item)}
+                      style={{ cursor: "pointer" }}
+                    >
                       <span
                         className={`status ${
                           item.status === "ACTIVE" ? "active" : "passive"
-                        }`}>
+                        }`}
+                      >
                         {item.status === "ACTIVE" ? "Aktiv" : "Passiv"}
                       </span>
                     </td>
