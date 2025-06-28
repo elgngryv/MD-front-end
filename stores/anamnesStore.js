@@ -1,12 +1,11 @@
-// stores/anamnesisListStore.js
 import { create } from "zustand";
 import {
   createAnamnesis,
   updateAnamnesis,
   deleteAnamnesis,
-  getAnamnesisList,
+  getAnamnesisListByCategory,
   getAnamnesisById,
-  updateAnamnesisStatus,  // <-- status update API funksiyası olmalıdır
+  updateAnamnesisStatus,
 } from "../src/api/anamnes";
 
 const useAnamnesisListStore = create((set) => ({
@@ -14,58 +13,62 @@ const useAnamnesisListStore = create((set) => ({
   selectedAnamnesis: null,
   loading: false,
   error: null,
-
-  // Bütün anamnezləri yüklə (id - categoryId ola bilər)
   fetchAnamnesisList: async (categoryId) => {
     set({ loading: true, error: null });
     try {
-      const res = await getAnamnesisList(categoryId);
+      console.log("Fetching anamnesis for category:", categoryId);
+      const res = await getAnamnesisListByCategory(categoryId);
+      console.log("API response:", res);
+
       set({
-        anamnesisList: res.data.data || [],
+        anamnesisList: Array.isArray(res.data) ? res.data : [],
         loading: false,
       });
     } catch (error) {
+      console.error("Error fetching anamnesis:", error);
       set({ error, loading: false });
     }
   },
-
-  // Yeni anamnez əlavə et
   addAnamnesis: async (data) => {
     set({ loading: true, error: null });
     try {
       await createAnamnesis(data);
-      await useAnamnesisListStore.getState().fetchAnamnesisList();
+      await useAnamnesisListStore
+        .getState()
+        .fetchAnamnesisList(data.anamnesisCategoryId);
       set({ loading: false });
+      return true;
     } catch (error) {
       set({ error, loading: false });
+      throw error;
     }
   },
 
-  // Anamnezi yenilə
   editAnamnesis: async (id, data) => {
     set({ loading: true, error: null });
     try {
       await updateAnamnesis(id, data);
-      await useAnamnesisListStore.getState().fetchAnamnesisList();
+      await useAnamnesisListStore
+        .getState()
+        .fetchAnamnesisList(data.anamnesisCategoryId);
       set({ loading: false });
     } catch (error) {
       set({ error, loading: false });
     }
   },
 
-  // Anamnezi sil
   removeAnamnesis: async (id) => {
     set({ loading: true, error: null });
     try {
       await deleteAnamnesis(id);
-      await useAnamnesisListStore.getState().fetchAnamnesisList();
       set({ loading: false });
+      return true;
     } catch (error) {
       set({ error, loading: false });
+      throw error;
     }
   },
 
-  // ID-yə görə bir anamnez al
   fetchAnamnesisById: async (id) => {
     set({ loading: true, error: null });
     try {
@@ -76,12 +79,10 @@ const useAnamnesisListStore = create((set) => ({
     }
   },
 
-  // Status yenilə (məsələn, "ACTIVE" <-> "PASSIVE")
   updateAnamnesisStatus: async (id, statusData) => {
     set({ loading: true, error: null });
     try {
-      await updateAnamnesisStatus(id, statusData); // API-də status update üçün patch/put endpoint olmalıdır
-      await useAnamnesisListStore.getState().fetchAnamnesisList();
+      await updateAnamnesisStatus(id, statusData);
       set({ loading: false });
     } catch (error) {
       set({ error, loading: false });

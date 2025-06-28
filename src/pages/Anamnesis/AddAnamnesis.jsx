@@ -1,11 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import "../../assets/style/Anamnesis/addanamnesis.css";
-
 import acceptButton from "../../assets/images/EmployeesPage/verifyProcess.png";
 import cancelButton from "../../assets/images/EmployeesPage/cancelProcess.png";
-
-import useAnamnesisListStore from "../../../stores/anamnesStore"; // zustand
+import useAnamnesisListStore from "../../../stores/anamnesStore";
 
 function AddAnamnesis() {
   const [formData, setFormData] = useState({
@@ -14,7 +12,7 @@ function AddAnamnesis() {
   });
 
   const navigate = useNavigate();
-  const { id } = useParams(); // <-- Bu categoryId olacaq
+  const { categoryId } = useParams();
   const { addAnamnesis } = useAnamnesisListStore();
 
   const handleChange = (e) => {
@@ -28,22 +26,22 @@ function AddAnamnesis() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const categoryId = Number(id);
+    const numericCategoryId = Number(categoryId);
 
-    if (isNaN(categoryId)) {
+    if (isNaN(numericCategoryId)) {
       alert("Category ID düzgün deyil.");
       return;
     }
 
     const dataToSend = {
       ...formData,
-      anamnesisCategoryId: categoryId,
+      anamnesisCategoryId: numericCategoryId,
     };
 
     try {
       await addAnamnesis(dataToSend);
       alert("Anamnez uğurla yaradıldı");
-      navigate(`/anamnesis`);
+      navigate(`/anamnesis/anamnesis-details/${categoryId}`);
     } catch (error) {
       alert("Xəta baş verdi: " + (error?.message || "Bilinməyən xəta"));
     }
@@ -83,8 +81,7 @@ function AddAnamnesis() {
                 name: "",
                 status: "ACTIVE",
               })
-            }
-          >
+            }>
             <img src={cancelButton} alt="Cancel" />
             İmtina et
           </button>

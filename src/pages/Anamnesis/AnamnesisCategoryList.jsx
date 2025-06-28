@@ -1,5 +1,6 @@
+// AnamnesisList.js
 import React, { useEffect, useState } from "react";
-import "../../assets/style/Anamnesis/anamnesiscategorylist.css";
+import "../../assets/style/Anamnesis/anamnesislist.css";
 import { CiSearch } from "react-icons/ci";
 import { FiDownload, FiEdit3 } from "react-icons/fi";
 import { GoTrash } from "react-icons/go";
@@ -9,8 +10,13 @@ import useAnamnesisCategoryStore from "../../../stores/anamnesisCategoryStore";
 
 const AnamnesisList = () => {
   const navigate = useNavigate();
-  const { categories, fetchCategories, deleteCategory, loading, updateCategoryStatus } =
-    useAnamnesisCategoryStore();
+  const {
+    categories,
+    fetchCategories,
+    deleteCategory,
+    loading,
+    updateCategoryStatus,
+  } = useAnamnesisCategoryStore();
 
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -19,7 +25,7 @@ const AnamnesisList = () => {
   }, []);
 
   const handleEdit = (id) => {
-    navigate(`/anamnesis/edit/${id}`);
+    navigate(`/anamnesis/edit-category/${id}`);
   };
 
   const handleDelete = async (id, name) => {
@@ -36,7 +42,6 @@ const AnamnesisList = () => {
     }
   };
 
-  // Statusu kliklə dəyişmək üçün funksiya
   const toggleStatus = async (row) => {
     const newStatus = row.status === "ACTIVE" ? "PASSIVE" : "ACTIVE";
     try {
@@ -46,10 +51,14 @@ const AnamnesisList = () => {
     }
   };
 
-  // Kateqoriyaları axtarışla da filtr et
-  const filteredCategories = categories.filter(category =>
-    category.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredCategories = categories
+    .filter((category) =>
+      category.name.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .map((category) => ({
+      ...category,
+      anamnesisCount: category.anemnesisListReadResponse?.length || 0,
+    }));
 
   return (
     <div className="anamnesisList-container">
@@ -57,8 +66,7 @@ const AnamnesisList = () => {
         <div className="anamnesisList-filters">
           <select
             className="anamnesisList-status-dropdown"
-            onChange={(e) => setSearchTerm(e.target.value)} // Burada statusa görə filtr də əlavə edə bilərsən
-          >
+            onChange={(e) => setSearchTerm(e.target.value)}>
             <option value="">Status</option>
             <option value="ACTIVE">Aktiv</option>
             <option value="PASSIVE">Passiv</option>
@@ -77,12 +85,9 @@ const AnamnesisList = () => {
           </div>
         </div>
         <div className="anamnesisList-actions">
-          <Link to={"./add"} className="anamnesisList-add-new-button">
-            <span>+</span> Yenisini əlavə et
+          <Link to="./add-category" className="anamnesisList-add-new-button">
+            <span>+</span> Yeni kateqoriya əlavə et
           </Link>
-          <button className="anamnesisList-download-button">
-            <FiDownload className="anamnesisList-download-icon" />
-          </button>
         </div>
       </div>
 
@@ -90,12 +95,7 @@ const AnamnesisList = () => {
         <table className="anamnesisList-table">
           <thead>
             <tr>
-              <th>
-                <span className="firstElementOfTHS">
-                  <HiOutlineArrowsUpDown />
-                  {filteredCategories.length ? `1-${filteredCategories.length}` : "0"}
-                </span>
-              </th>
+              <th>#</th>
               <th>
                 <span>
                   <HiOutlineArrowsUpDown /> Kategoriyanın adı
@@ -111,9 +111,7 @@ const AnamnesisList = () => {
                   <HiOutlineArrowsUpDown /> Status
                 </span>
               </th>
-              <th>
-                <span>Düzəliş</span>
-              </th>
+              <th>Düzəliş</th>
             </tr>
           </thead>
           <tbody>
@@ -131,8 +129,8 @@ const AnamnesisList = () => {
                   <td>{index + 1}</td>
                   <td>{row.name}</td>
                   <td>
-                    <Link to={`./anamnesis-details/${row.id}`}>
-                      Anamnezləri ({row.anamnesisCount || 0})
+                    <Link to={`/anamnesis/anamnesis-details/${row.id}`}>
+                      Anamnezləri ({row.anamnesisCount})
                     </Link>
                   </td>
                   <td>
@@ -142,8 +140,7 @@ const AnamnesisList = () => {
                       className={`anamnesisList-status-badge ${
                         row.status === "ACTIVE" ? "active" : "passive"
                       }`}
-                      title="Statusu dəyişmək üçün kliklə"
-                    >
+                      title="Statusu dəyişmək üçün kliklə">
                       {row.status === "ACTIVE" ? "Aktiv" : "Passiv"}
                     </span>
                   </td>
