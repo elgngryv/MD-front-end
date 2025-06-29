@@ -12,7 +12,7 @@ import {
 
 const useWorkerStore = create((set, get) => ({ // Added 'get' to access other state actions
   workers: [],
-  searchResult: [], // This will be the main data source for your table after a search
+  searchResult: [],
   selectedWorker: null,
   statusList: [],
   loading: false,
@@ -80,18 +80,13 @@ const useWorkerStore = create((set, get) => ({ // Added 'get' to access other st
     }
   },
 
-  // This action allows direct manipulation of searchResult if needed
   setSearchResult: (data) => set({ searchResult: data }),
 
   searchWorkers: async (params) => {
     set({ loading: true, error: null });
     try {
-      // Ensure params are correctly formatted from the component
       const data = await searchWorkers(params);
-      set({ searchResult: data, loading: false });
-      // If the search is empty or returns all workers, you might want to also update 'workers'
-      // This depends on whether 'workers' should always represent *all* workers or just a base list.
-      // For a table that *only* displays search results, 'searchResult' is sufficient.
+      set({ searchResult: data, loading: false, error: null });
     } catch (err) {
       set({ error: err.message, loading: false });
       throw err; // Re-throw to allow component to catch and display specific error

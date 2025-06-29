@@ -114,9 +114,21 @@ function ProductCategory() {
                 <td>{index + 1}</td>
                 <td className="productCategoryName">{row.categoryName}</td>
                 <td>
-                  <Link to={`./${row.categoryName}`}>
-                    Məhsulları ({row.products?.length || 0})
-                  </Link>
+                  {row.status === "PASSIVE" ? (
+                    <span
+                      style={{
+                        color: "#999",
+                        cursor: "not-allowed",
+                        userSelect: "none",
+                      }}
+                    >
+                      Məhsulları (0)
+                    </span>
+                  ) : (
+                    <Link to={`./${row.categoryName}`}>
+                      Məhsulları ({row.products?.length || 0})
+                    </Link>
+                  )}
                 </td>
                 <td>
                   <span
@@ -125,7 +137,8 @@ function ProductCategory() {
                     }`}
                     onClick={() => toggleStatus(row)}
                     style={{ cursor: "pointer" }}
-                    title="Statusu dəyişmək üçün kliklə">
+                    title="Statusu dəyişmək üçün kliklə"
+                  >
                     {row.status === "ACTIVE" ? "Aktiv" : "Passiv"}
                   </span>
                 </td>

@@ -149,8 +149,12 @@ const EmployeesList = () => {
 
   return (
     <>
+<<<<<<< HEAD
     <div className="employeeListPageContainer"> 
       <div className="employeesListWrapper">
+=======
+      <div className="employeesListWrapper  ">
+>>>>>>> 548667b490832379e4c7a3d68987f2292ac8d76f
         <OrdinaryListHeader
           title="İşçilər"
           addText="Yenisini əlavə et"

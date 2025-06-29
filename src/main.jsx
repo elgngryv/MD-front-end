@@ -1,4 +1,4 @@
-import { StrictMode } from "react";
+import { StrictMode, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import {
   BrowserRouter,
@@ -15,6 +15,9 @@ import {
 } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { AnimatePresence, motion } from "framer-motion";
+
+// stores
+import useAuthStore from "../stores/authStore";
 
 // Style
 import "./assets/style/index.css";
@@ -316,8 +319,14 @@ const PageTransition = ({ children }) => {
 
 // Test
 const AnimatedRoutes = () => {
+  const loadTokenFromStorage = useAuthStore(
+    (state) => state.loadTokenFromStorage
+  );
   const location = useLocation();
 
+  useEffect(() => {
+    loadTokenFromStorage();
+  }, [loadTokenFromStorage]);
   return (
     <AnimatePresence mode="wait">
       <div className="app-wrapper">
