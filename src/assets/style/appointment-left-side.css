@@ -18,7 +18,7 @@
 .doctors-container {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
+  gap: 20px;
   overflow-y: auto;
   max-height: calc(100vh - 200px);
 }
@@ -32,7 +32,27 @@
   transition: all 0.3s ease;
 }
 
-.doctor-card.selected .doctor-image-container {
-  border-color: #4CAF50;
-  box-shadow: 0 0 0 2px #4CAF50;
-} 
+.doctor-info{
+  text-align: center;
+}
+
+.doctor-image-container{
+  display: flex;
+  justify-content: center;
+  >img{
+    height: 80px;
+  }
+  >p{
+    width: 100%;
+    text-align: center;
+  }
+}
+
+
+.doctor-image-container{
+  &:hover{
+    >img{
+      transform: scale(1.1);
+    }
+  }
+}

@@ -40,6 +40,7 @@
 }
 
 .employeeListPageContainer{
+  height: 100vh;
 }
 
 .employeesListWrapper{

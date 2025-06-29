@@ -1,3 +1,4 @@
+// src/api/add-worker.js
 import axiosInstance from "./temp-axios-auth";
 
 const API_BASE_URL = import.meta.env.VITE_BASE_URL;
@@ -8,27 +9,22 @@ export const createWorker = async (workerData) => {
       "Creating worker with data:",
       JSON.stringify(workerData, null, 2)
     );
-
     const response = await axiosInstance.post(
       `${API_BASE_URL}/add-worker/create`,
       workerData
     );
-
     console.log("Worker created successfully:", response.data);
     return response.data;
   } catch (error) {
     console.error("❌ Error creating worker:", error);
-
     if (error.response) {
       console.error("Error response data:", error.response.data);
       console.error("Error response status:", error.response.status);
-      console.error("Error response headers:", error.response.headers);
     } else if (error.request) {
       console.error("Error request:", error.request);
     } else {
       console.error("Error message:", error.message);
     }
-
     throw error;
   }
 };
@@ -69,7 +65,6 @@ export const getWorkerInfo = async (id) => {
 
 export const updateWorker = async (workerData) => {
   console.log("🔧 Göndərilən worker data:", workerData);
-
   try {
     const response = await axiosInstance.put(
       `${API_BASE_URL}/add-worker/update`,
@@ -87,7 +82,7 @@ export const updateWorker = async (workerData) => {
 
 export const searchWorkers = async (searchParams) => {
   try {
-    // Axtarış parametrlərini qismən uyğunluq üçün çeviririk
+    // Transform search parameters for partial matching
     const transformedParams = {};
     for (const key in searchParams) {
       if (
@@ -95,8 +90,7 @@ export const searchWorkers = async (searchParams) => {
         searchParams[key] !== null &&
         searchParams[key] !== ""
       ) {
-        // String tipli sahələr üçün ətrafına wildcard (%) əlavə edirik.
-        // Bu, backendin SQL LIKE sorğusu ilə qismən uyğunluq etməsini təmin edir.
+        // Add wildcards (%) for string type fields for SQL LIKE queries
         if (typeof searchParams[key] === "string") {
           transformedParams[key] = `%${searchParams[key]}%`;
         } else {
@@ -105,13 +99,19 @@ export const searchWorkers = async (searchParams) => {
       }
     }
 
+    console.log("Sending search parameters:", transformedParams); // Added for debugging
     const response = await axiosInstance.post(
       `${API_BASE_URL}/add-worker/search`,
-      transformedParams // Çevrilmiş parametrləri göndəririk
+      transformedParams
     );
+    console.log("Search results received:", response.data); // Added for debugging
     return response.data;
   } catch (error) {
     console.error("Error searching workers:", error);
+    if (error.response) {
+      console.error("Search error response data:", error.response.data);
+      console.error("Search error response status:", error.response.status);
+    }
     throw error;
   }
 };
@@ -119,17 +119,14 @@ export const searchWorkers = async (searchParams) => {
 export const deleteWorker = async (id) => {
   try {
     console.log("Attempting to delete worker with id:", id);
-
     const response = await axiosInstance.delete(
       `${API_BASE_URL}/add-worker/delete/${id}`
     );
-
     if (response.status === 200) {
       console.log("✅ Worker deleted successfully");
     } else {
       console.error("❌ Worker deletion failed:", response);
     }
-
     return response.data;
   } catch (error) {
     console.error(

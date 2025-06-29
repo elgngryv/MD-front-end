@@ -1,3 +1,4 @@
+// src/store/useWorkerStore.js (Assuming this path for import)
 import { create } from "zustand";
 import {
   createWorker,
@@ -6,12 +7,12 @@ import {
   updateWorker,
   deleteWorker,
   readWorkerStatus,
-  searchWorkers,
-} from "../src/api/add-worker.js";
+  searchWorkers, // Ensure this import path is correct
+} from "../src/api/add-worker"; // Corrected relative path assumption
 
-const useWorkerStore = create((set) => ({
+const useWorkerStore = create((set, get) => ({ // Added 'get' to access other state actions
   workers: [],
-  searchResult: [], // Bu, masanın əsas məlumat mənbəyi olacaq
+  searchResult: [], // This will be the main data source for your table after a search
   selectedWorker: null,
   statusList: [],
   loading: false,
@@ -21,7 +22,7 @@ const useWorkerStore = create((set) => ({
     set({ loading: true, error: null });
     try {
       const data = await readWorkers();
-      set({ workers: data, loading: false });
+      set({ workers: data, searchResult: data, loading: false }); // Also update searchResult on initial fetch
     } catch (err) {
       set({ error: err.message, loading: false });
     }
@@ -37,51 +38,63 @@ const useWorkerStore = create((set) => ({
   },
 
   fetchWorkerById: async (id) => {
+    set({ loading: true, error: null }); // Set loading for individual worker fetch too
     try {
       const data = await getWorkerInfo(id);
-      set({ selectedWorker: data });
+      set({ selectedWorker: data, loading: false });
     } catch (err) {
-      set({ error: err.message });
+      set({ error: err.message, loading: false });
     }
   },
 
   addWorker: async (workerData) => {
+    set({ loading: true, error: null });
     try {
       await createWorker(workerData);
-      await useWorkerStore.getState().fetchWorkers();
+      await get().fetchWorkers(); // Use get() to call other actions in the store
     } catch (err) {
-      set({ error: err.message });
+      set({ error: err.message, loading: false });
+      throw err; // Re-throw to allow component to catch and display specific error
     }
   },
 
   editWorker: async (workerData) => {
+    set({ loading: true, error: null });
     try {
       await updateWorker(workerData);
-      await useWorkerStore.getState().fetchWorkers();
+      await get().fetchWorkers(); // Use get() to call other actions in the store
     } catch (err) {
-      set({ error: err.message });
+      set({ error: err.message, loading: false });
+      throw err; // Re-throw to allow component to catch and display specific error
     }
   },
 
   removeWorker: async (id) => {
+    set({ loading: true, error: null });
     try {
       await deleteWorker(id);
-      await useWorkerStore.getState().fetchWorkers();
+      await get().fetchWorkers(); // Use get() to call other actions in the store
     } catch (err) {
-      set({ error: err.message });
+      set({ error: err.message, loading: false });
+      throw err; // Re-throw to allow component to catch and display specific error
     }
   },
 
-  // searchResult state-ini komponentdən birbaşa idarə etmək üçün yeni aksiya
+  // This action allows direct manipulation of searchResult if needed
   setSearchResult: (data) => set({ searchResult: data }),
 
   searchWorkers: async (params) => {
-    set({ loading: true });
+    set({ loading: true, error: null });
     try {
-      const data = await searchWorkers(params); // Bu, API çağırışıdır
-      set({ searchResult: data, loading: false, error: null });
+      // Ensure params are correctly formatted from the component
+      const data = await searchWorkers(params);
+      set({ searchResult: data, loading: false });
+      // If the search is empty or returns all workers, you might want to also update 'workers'
+      // This depends on whether 'workers' should always represent *all* workers or just a base list.
+      // For a table that *only* displays search results, 'searchResult' is sufficient.
     } catch (err) {
       set({ error: err.message, loading: false });
+      throw err; // Re-throw to allow component to catch and display specific error
     }
   },
 }));
