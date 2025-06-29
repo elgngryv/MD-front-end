@@ -149,7 +149,7 @@ const EmployeesList = () => {
 
   return (
     <>
-      <div className="employeesListWrapper">
+      <div className="employeesListWrapper  ">
         <OrdinaryListHeader
           title="İşçilər"
           addText="Yenisini əlavə et"

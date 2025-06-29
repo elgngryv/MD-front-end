@@ -1,52 +1,71 @@
 import { create } from "zustand";
 import { login as loginApi } from "../src/api/login";
 
+// Token içindən userId çıxaran helper
+function getUserIdFromToken(token) {
+  try {
+    const base64Payload = token.split(".")[1];
+    const payload = JSON.parse(atob(base64Payload));
+    return payload.sub;
+  } catch (err) {
+    return null;
+  }
+}
+
 const useAuthStore = create((set) => ({
   user: null,
   token: null,
   loading: false,
   error: null,
 
-  // Login funksiyası
   login: async ({ username, password }) => {
     set({ loading: true, error: null });
     try {
       const response = await loginApi({ username, password });
       const token = response.tokenPair?.accessToken;
-      const user = response.user || null;
+      const refreshToken = response.tokenPair?.refreshToken;
+      const userId = getUserIdFromToken(token);
 
-      if (token) {
+      if (token && userId) {
         localStorage.setItem("token", token);
-        localStorage.setItem("refreshToken", response.tokenPair.refreshToken);
-        set({ user, token, loading: false });
-        return true; 
+        localStorage.setItem("refreshToken", refreshToken);
+        localStorage.setItem("userId", userId);
+
+        set({
+          token,
+          user: { id: userId, username },
+          loading: false,
+        });
+
+        return true;
       } else {
-        throw new Error("No token received");
+        throw new Error("Token və ya userId tapılmadı");
       }
     } catch (err) {
       set({
         error: err.response?.data?.message || "Login failed",
         loading: false,
       });
-      return false; 
+      return false;
     }
   },
 
-  // Logout funksiyası
   logout: () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("userId");
+
     set({ user: null, token: null });
   },
 
-  // Tokeni localStorage-dan yükləmək
   loadTokenFromStorage: () => {
     const token = localStorage.getItem("token");
-    if (token) {
-      set({ token });
+    const userId = localStorage.getItem("userId");
+    if (token && userId) {
+      set({ token, user: { id: userId } });
     }
   },
 
-  // Error-u yeniləmək üçün setError funksiyası əlavə et
   setError: (error) => set({ error }),
 }));
 

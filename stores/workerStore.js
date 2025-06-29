@@ -11,7 +11,7 @@ import {
 
 const useWorkerStore = create((set) => ({
   workers: [],
-  searchResult: [], // Bu, masanın əsas məlumat mənbəyi olacaq
+  searchResult: [],
   selectedWorker: null,
   statusList: [],
   loading: false,
@@ -72,13 +72,12 @@ const useWorkerStore = create((set) => ({
     }
   },
 
-  // searchResult state-ini komponentdən birbaşa idarə etmək üçün yeni aksiya
   setSearchResult: (data) => set({ searchResult: data }),
 
   searchWorkers: async (params) => {
     set({ loading: true });
     try {
-      const data = await searchWorkers(params); // Bu, API çağırışıdır
+      const data = await searchWorkers(params);
       set({ searchResult: data, loading: false, error: null });
     } catch (err) {
       set({ error: err.message, loading: false });
