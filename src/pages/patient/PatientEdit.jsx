@@ -51,8 +51,14 @@ const PatientForm = ({
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
+        const token = localStorage.getItem("token");
         const response = await axios.get(
-          `${import.meta.env.VITE_BASE_URL}/general-calendar/read-doctors`
+          `${import.meta.env.VITE_BASE_URL}/general-calendar/read-doctors`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`, 
+            },
+          }
         );
         setDoctors(response.data);
       } catch (error) {
@@ -60,6 +66,7 @@ const PatientForm = ({
         toast.error("Həkimlər siyahısı yüklənə bilmədi");
       }
     };
+
     fetchDoctors();
   }, []);
 
@@ -95,11 +102,10 @@ const PatientForm = ({
   const handleColorChange = (color) => {
     formRefs.colorCode.current.value = color.hex;
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
+  
     const requestData = {
       patientId: initialData.id,
       name: formRefs.name.current.value,
@@ -121,9 +127,8 @@ const PatientForm = ({
       isVip: formRefs.isVip.current.checked,
       isBlacklisted: formRefs.isBlacklisted.current.checked,
     };
-
+  
     try {
-      console.log("Sending request:", requestData);
       const response = await axios.put(
         `${import.meta.env.VITE_BASE_URL}/patient/update`,
         requestData,
@@ -134,26 +139,32 @@ const PatientForm = ({
           },
         }
       );
+  
+      // Əgər 200-dürsə:
       if (response.status === 200) {
         setPatientData(response.data);
-      }
-
-      console.log("Received response:", response);
-
-      toast.success("Pasiyent məlumatları uğurla yeniləndi");
-
-      if (typeof onSubmit === "function") {
-        setTimeout(() => {
+        toast.success("Pasiyent məlumatları uğurla yeniləndi");
+  
+        // success-dən sonra yönləndir və ya callback
+        if (typeof onSubmit === "function") {
           onSubmit(response.data);
-        }, 100);
+        }
+  
+        navigate("/patients");
       }
     } catch (error) {
-      // console.error("Update error:", error);
-      // toast.error(error.response?.data?.message || "Error updating patient");
+      const errMsg =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Pasiyent məlumatları yenilənərkən xəta baş verdi";
+      console.error("Update error:", errMsg);
+      toast.error(errMsg);
     } finally {
       setLoading(false);
     }
   };
+  
+  
 
   const handleCancel = () => {
     if (onCancel) onCancel();
