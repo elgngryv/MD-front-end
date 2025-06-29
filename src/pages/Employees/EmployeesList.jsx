@@ -138,7 +138,6 @@ const EmployeesList = () => {
     },
   ];
 
-  // Pagination hesablamaları
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentEmployees = searchResult.slice(
@@ -149,12 +148,7 @@ const EmployeesList = () => {
 
   return (
     <>
-<<<<<<< HEAD
-    <div className="employeeListPageContainer"> 
       <div className="employeesListWrapper">
-=======
-      <div className="employeesListWrapper  ">
->>>>>>> 548667b490832379e4c7a3d68987f2292ac8d76f
         <OrdinaryListHeader
           title="İşçilər"
           addText="Yenisini əlavə et"
@@ -208,7 +202,8 @@ const EmployeesList = () => {
               className="workersStatusChecker"
               name="status"
               value={searchParams.status}
-              onChange={handleInputChange}>
+              onChange={handleInputChange}
+            >
               <option value="">Hamısı</option>
               <option value="Aktiv">Aktiv</option>
               <option value="Passiv">Passiv</option>
@@ -227,8 +222,7 @@ const EmployeesList = () => {
                     <th>
                       <div className="th-content">
                         <span>
-                          <HiArrowsUpDown className="tableArrowIcon" />{" "}
-                          İstifadəçi adı
+                          <HiArrowsUpDown className="tableArrowIcon" /> İstifadəçi adı
                         </span>
                       </div>
                     </th>
@@ -270,8 +264,7 @@ const EmployeesList = () => {
                     <th>
                       <div className="th-content">
                         <span>
-                          <HiArrowsUpDown className="tableArrowIcon" /> İş
-                          qrafiki
+                          <HiArrowsUpDown className="tableArrowIcon" /> İş qrafiki
                         </span>
                       </div>
                     </th>
@@ -299,16 +292,17 @@ const EmployeesList = () => {
                       <td>
                         <Link
                           className="employeeScheduleTableData"
-                          to={`work-schedule/${emp.id}`}>
-                          <CiCalendar className="employeeScheduleTableDataIcon" />{" "}
-                          İş qrafiki
+                          to={`work-schedule/${emp.id}`}
+                        >
+                          <CiCalendar className="employeeScheduleTableDataIcon" /> İş qrafiki
                         </Link>
                       </td>
                       <td>
                         <span
                           className={`status ${
                             emp.enabled ? "active" : "passive"
-                          }`}>
+                          }`}
+                        >
                           {getStatus(emp)}
                         </span>
                       </td>
@@ -328,7 +322,6 @@ const EmployeesList = () => {
                 </tbody>
               </table>
 
-              {/* Pagination düymələri */}
               {totalPages > 1 && (
                 <div className="pagination">
                   {Array.from({ length: totalPages }, (_, i) => (
@@ -337,7 +330,8 @@ const EmployeesList = () => {
                       className={`pagination-button ${
                         currentPage === i + 1 ? "active" : ""
                       }`}
-                      onClick={() => setCurrentPage(i + 1)}>
+                      onClick={() => setCurrentPage(i + 1)}
+                    >
                       {i + 1}
                     </button>
                   ))}
@@ -347,7 +341,6 @@ const EmployeesList = () => {
           )}
         </div>
       </div>
-    </div>
     </>
   );
 };
