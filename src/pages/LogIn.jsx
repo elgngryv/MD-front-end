@@ -46,7 +46,7 @@ function LogIn() {
         console.log("Login Success ✅");
 
         setTimeout(() => {
-          navigate("/patients");
+          navigate("/Home");
         }, 800);
       } else {
         console.log("Login failed ❌");

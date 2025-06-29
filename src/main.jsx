@@ -228,6 +228,7 @@ import AddExaminationPicture from "./pages/Teeth/AddExaminationPicture";
 import InfoPermission from "./pages/PermissionsPage/InfoPermission";
 import EditMedicine from "./pages/ReceptsPage/EditMedicine";
 import EditCheckList from "./pages/ChecklistPage/EditChecklist";
+import Home from "./pages/Home/HomePhoto";
 
 // Constants
 const roomOptions = [
@@ -404,6 +405,8 @@ const AnimatedRoutes = () => {
                 element={<ViewPrescription mode="edit" />}
               />
             </Route>
+
+            <Route path="/Home" element={<Home />} />
 
             {/* Employee Routes */}
             <Route path="/employees" element={<EmployeesList />} />
