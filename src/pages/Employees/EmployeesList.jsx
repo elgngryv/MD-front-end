@@ -132,6 +132,7 @@ const EmployeesList = () => {
 
   return (
     <>
+    <div className="employeeListPageContainer"> 
       <div className="employeesListWrapper">
         <OrdinaryListHeader
           title="İşçilər"
@@ -203,6 +204,7 @@ const EmployeesList = () => {
           )}
         </div>
       </div>
+    </div>
     </>
   );
 };
