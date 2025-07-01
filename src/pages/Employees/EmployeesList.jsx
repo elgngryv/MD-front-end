@@ -120,12 +120,15 @@ const EmployeesList = () => {
           try {
             await removeWorker(row.id);
             alert("İşçi uğurla silindi!");
+
             const allSearchParamsEmpty = Object.values(searchParams).every(
               (val) => !val
             );
+
             if (allSearchParamsEmpty) {
               await fetchWorkers();
-              setSearchResult(workers);
+              const updatedWorkers = useEmployeeStore.getState().workers;
+              setSearchResult(updatedWorkers);
             } else {
               handleSearch();
             }
@@ -202,8 +205,7 @@ const EmployeesList = () => {
               className="workersStatusChecker"
               name="status"
               value={searchParams.status}
-              onChange={handleInputChange}
-            >
+              onChange={handleInputChange}>
               <option value="">Hamısı</option>
               <option value="Aktiv">Aktiv</option>
               <option value="Passiv">Passiv</option>
@@ -222,7 +224,8 @@ const EmployeesList = () => {
                     <th>
                       <div className="th-content">
                         <span>
-                          <HiArrowsUpDown className="tableArrowIcon" /> İstifadəçi adı
+                          <HiArrowsUpDown className="tableArrowIcon" />{" "}
+                          İstifadəçi adı
                         </span>
                       </div>
                     </th>
@@ -264,7 +267,8 @@ const EmployeesList = () => {
                     <th>
                       <div className="th-content">
                         <span>
-                          <HiArrowsUpDown className="tableArrowIcon" /> İş qrafiki
+                          <HiArrowsUpDown className="tableArrowIcon" /> İş
+                          qrafiki
                         </span>
                       </div>
                     </th>
@@ -292,17 +296,16 @@ const EmployeesList = () => {
                       <td>
                         <Link
                           className="employeeScheduleTableData"
-                          to={`work-schedule/${emp.id}`}
-                        >
-                          <CiCalendar className="employeeScheduleTableDataIcon" /> İş qrafiki
+                          to={`work-schedule/${emp.id}`}>
+                          <CiCalendar className="employeeScheduleTableDataIcon" />{" "}
+                          İş qrafiki
                         </Link>
                       </td>
                       <td>
                         <span
                           className={`status ${
                             emp.enabled ? "active" : "passive"
-                          }`}
-                        >
+                          }`}>
                           {getStatus(emp)}
                         </span>
                       </td>
@@ -330,8 +333,7 @@ const EmployeesList = () => {
                       className={`pagination-button ${
                         currentPage === i + 1 ? "active" : ""
                       }`}
-                      onClick={() => setCurrentPage(i + 1)}
-                    >
+                      onClick={() => setCurrentPage(i + 1)}>
                       {i + 1}
                     </button>
                   ))}
