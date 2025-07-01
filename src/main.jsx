@@ -230,6 +230,11 @@ import EditMedicine from "./pages/ReceptsPage/EditMedicine";
 import EditCheckList from "./pages/ChecklistPage/EditChecklist";
 import Home from "./pages/Home/HomePhoto";
 
+import Redirecter from "./components/Redirecter";
+
+
+
+
 // Constants
 const roomOptions = [
   { value: "1", label: "Otaq 1" },
@@ -330,10 +335,12 @@ const AnimatedRoutes = () => {
   }, [loadTokenFromStorage]);
   return (
     <AnimatePresence mode="wait">
+
       <div className="app-wrapper">
+        <Redirecter/>
         <Routes location={location} key={location.pathname}>
           {/* Auth Routes */}
-          <Route path="/" element={<LogIn />} />
+          {/* <Route path="/" element={<LogIn />} /> */}
           <Route path="/login" element={<LogIn />} />
 
           <Route element={<Layout />}>
@@ -367,6 +374,7 @@ const AnimatedRoutes = () => {
               path="stock/export/:date/detail/edit"
               element={<EditExportStock />}
             />
+
             <Route
               path="stock/export/:date/edit"
               element={<EditExportStock />}
@@ -406,7 +414,7 @@ const AnimatedRoutes = () => {
               />
             </Route>
 
-            <Route path="/Home" element={<Home />} />
+            <Route path="/" element={<Home />} />
 
             {/* Employee Routes */}
             <Route path="/employees" element={<EmployeesList />} />

@@ -1,14 +1,12 @@
-// React-Icons
+// src/components/SidebarMenu.jsx
+import React, { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import {
   IoIosArrowBack,
   IoIosArrowForward,
   IoIosArrowDown,
   IoIosArrowForward as IoIosChevronRight,
 } from "react-icons/io";
-
-// Libraries
-import React, { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
 
 // Style
 import "../assets/style/sidebar-menu.css";
@@ -25,13 +23,18 @@ import LaboratoryIcon from "./sidebar-icons/LaboratoryIcon.jsx";
 import WarehouseIcon from "./sidebar-icons/WarehouseIcon.jsx";
 import SettingsIcon from "./sidebar-icons/SettingsIcon.jsx";
 import ExitIcon from "./sidebar-icons/ExitIcon.jsx";
+
+// Zustand Store importları
+  import useSidebarStore from "../../stores/sidebarStore.js";
 import useAuthStore from "../../stores/authStore.js";
+
 import "../../logout.css";
 
 const SidebarMenu = () => {
   const { logout } = useAuthStore();
+  // Sidebar vəziyyətini Zustand-dan alırıq
+  const { isCollapsed, toggleSidebar } = useSidebarStore();
 
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const [expandedItems, setExpandedItems] = useState([]);
   const location = useLocation();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -44,7 +47,7 @@ const SidebarMenu = () => {
       localStorage.removeItem("refreshToken");
       localStorage.removeItem("user");
 
-      window.location.href = "/";
+      window.location.href = "/login";
     }, 1000); // 1 saniyəlik gözləmə (animasiya üçün)
   };
 
@@ -78,8 +81,6 @@ const SidebarMenu = () => {
       children: [
         { id: 22, title: "Randevular", path: "/appointments" },
         { id: 21, title: "Növbə gözləyənlər", path: "/queue" },
-        // { id: 23, title: "Yeni Randevu", path: "/appointment/add" },
-        // { id: 24, title: "Randevu Kartı", path: "/appointment/card" },
       ],
     },
     {
@@ -93,16 +94,12 @@ const SidebarMenu = () => {
           stroke={isActive ? "#fff" : "#155EEF"}
         />
       ),
-      children: [
-        // { id: 31, title: "Pasiyent Siyahısı", path: "/patients" },
-        // { id: 32, title: "Yeni Pasiyent", path: "/add-patient" },
-        // { id: 33, title: "Növbə", path: "/queue" },
-      ],
+      children: [], // Boş buraxın, çünki path var və alt element yoxdur
     },
     {
       id: 4,
       title: "Görülmüş işlər",
-      path: "reports",
+      path: "reports", // path-i düzgün olduğundan əmin olun
       icon: (isActive) => (
         <WorkDoneIcon
           width={20}
@@ -110,10 +107,7 @@ const SidebarMenu = () => {
           stroke={isActive ? "#fff" : "#155EEF"}
         />
       ),
-      children: [
-        // { id: 41, title: "Həkim Siyahısı", path: "/employees" },
-        // { id: 42, title: "Yeni Həkim", path: "/user/add" },
-      ],
+      children: [], // Boş buraxın
     },
     {
       id: 5,
@@ -172,7 +166,7 @@ const SidebarMenu = () => {
         { id: 77, title: "Dişlər", path: "/teeth" },
         { id: 78, title: "Rənglər", path: "/colors" },
         { id: 79, title: "İmplantlar", path: "/implants" },
-        { id: 80, title: "Qarniturlar", path: "/dental-set" }, 
+        { id: 80, title: "Qarniturlar", path: "/dental-set" },
         { id: 81, title: "Sığorta şirkətləri", path: "/insurance" },
         { id: 82, title: "Qiymət kateqoriyaları", path: "/price-category" },
         { id: 83, title: "Kabinetlər", path: "/cabinets" },
@@ -188,7 +182,6 @@ const SidebarMenu = () => {
         { id: 93, title: "Ümumi tənzimləmələr", path: "/general-settings" },
         { id: 94, title: "Məhsul kateqoriyaları", path: "/product-categories" },
       ],
-      
     },
   ];
 
@@ -208,10 +201,6 @@ const SidebarMenu = () => {
     setExpandedItems(expanded);
   }, [location.pathname]);
 
-  const toggleSidebar = () => {
-    setIsCollapsed(!isCollapsed);
-  };
-
   const toggleItem = (itemId) => {
     setExpandedItems((prev) =>
       prev.includes(itemId)
@@ -230,9 +219,11 @@ const SidebarMenu = () => {
   return (
     <div className={`sidebar-menu ${isCollapsed ? "collapsed" : ""}`}>
       <div className="sidebar-header">
+        {/* Logo sadəcə isCollapsed false olduqda görünür */}
         {!isCollapsed && (
           <img src={mdLogo} alt="MD Logo" className="logo-image" />
         )}
+        {/* Sidebar-ın öz toggle düyməsi */}
         <button className="toggle-button" onClick={toggleSidebar}>
           {isCollapsed ? <IoIosArrowForward /> : <IoIosArrowBack />}
         </button>
@@ -242,44 +233,85 @@ const SidebarMenu = () => {
         {menuItems.map((item) => {
           const isItemActive = expandedItems.includes(item.id);
           const isItemPathActive = isActive(item.path);
-          const hasActiveChild = item.children?.some((child) =>
-            isActive(child.path)
+          const hasActiveChild = item.children?.some(
+            (child) => isActive(child.path)
           );
           const isHighlighted = isItemPathActive || hasActiveChild;
 
           return (
             <div key={item.id}>
-              <Link to={item.path}
-                className={`menu-item-header ${
-                  isHighlighted ? "active-header" : ""
-                }`}
-                onClick={() => {
-                  if (item.children.length > 0) {
-                    toggleItem(item.id);
-                  }
-                }}>
-                <span
-                  className={`menu-item-icon ${isHighlighted ? "active" : ""}`}>
-                  {typeof item.icon === "function"
-                    ? item.icon(isHighlighted)
-                    : item.icon}
-                </span>
-                {!isCollapsed && (
-                  <>
-                    <span className="menu-item-title">{item.title}</span>
-                    {item.children.length > 0 && (
-                      <IoIosArrowDown
-                        className={`arrow-icon ${
-                          expandedItems.includes(item.id) ? "rotated" : ""
-                        }`}
-                      />
-                    )}
-                  </>
-                )}
-              </Link>
+              {/* Əgər item.path varsa Link, yoxdursa div istifadə edin */}
+              {item.path ? (
+                <Link
+                  to={item.path}
+                  className={`menu-item-header ${
+                    isHighlighted ? "active-header" : ""
+                  }`}
+                  onClick={(e) => {
+                    // Əgər alt elementləri varsa, linkin default keçidini əngəlləyin
+                    if (item.children && item.children.length > 0) {
+                      e.preventDefault();
+                      toggleItem(item.id);
+                    }
+                  }}
+                >
+                  <span
+                    className={`menu-item-icon ${isHighlighted ? "active" : ""}`}
+                  >
+                    {typeof item.icon === "function"
+                      ? item.icon(isHighlighted)
+                      : item.icon}
+                  </span>
+                  {!isCollapsed && (
+                    <>
+                      <span className="menu-item-title">{item.title}</span>
+                      {item.children && item.children.length > 0 && (
+                        <IoIosArrowDown
+                          className={`arrow-icon ${
+                            expandedItems.includes(item.id) ? "rotated" : ""
+                          }`}
+                        />
+                      )}
+                    </>
+                  )}
+                </Link>
+              ) : (
+                <div
+                  className={`menu-item-header ${
+                    isHighlighted ? "active-header" : ""
+                  }`}
+                  onClick={() => {
+                    if (item.children && item.children.length > 0) {
+                      toggleItem(item.id);
+                    }
+                  }}
+                >
+                  <span
+                    className={`menu-item-icon ${isHighlighted ? "active" : ""}`}
+                  >
+                    {typeof item.icon === "function"
+                      ? item.icon(isHighlighted)
+                      : item.icon}
+                  </span>
+                  {!isCollapsed && (
+                    <>
+                      <span className="menu-item-title">{item.title}</span>
+                      {item.children && item.children.length > 0 && (
+                        <IoIosArrowDown
+                          className={`arrow-icon ${
+                            expandedItems.includes(item.id) ? "rotated" : ""
+                          }`}
+                        />
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
 
+              {/* Submenu-nun render olunma məntiqi */}
               {!isCollapsed &&
                 expandedItems.includes(item.id) &&
+                item.children &&
                 item.children.length > 0 && (
                   <div className="submenu">
                     {item.children.map((child) => {
@@ -290,7 +322,8 @@ const SidebarMenu = () => {
                           to={child.path}
                           className={`submenu-item ${
                             isChildActive ? "active-rov" : ""
-                          }`}>
+                          }`}
+                        >
                           {isChildActive && (
                             <IoIosChevronRight className="submenu-active-indicator" />
                           )}
@@ -307,17 +340,11 @@ const SidebarMenu = () => {
         })}
 
         {isLoggingOut && <Spinner />}
-        <div
-          onClick={handleLogout}
-          className="menu-item-header logout-button">
+        <div onClick={handleLogout} className="menu-item-header logout-button">
           <span className="menu-item-icon">
-           <ExitIcon width={20} height={20} fill="#155EEF" />
+            <ExitIcon width={20} height={20} fill="#155EEF" />
           </span>
-           {!isCollapsed && <span className="menu-item-title">Çıxış</span>}
-         </div>
-
-        <div className={`sidebar-container ${isCollapsed ? "collapsed" : ""}`}>
-          {/* qalan sidebar menyu kodları */}
+          {!isCollapsed && <span className="menu-item-title">Çıxış</span>}
         </div>
       </div>
     </div>
@@ -325,13 +352,3 @@ const SidebarMenu = () => {
 };
 
 export default SidebarMenu;
-{
-  /* <button
-className="menu-item-header logout-button"
-onClick={handleLogout}>
-<span className="menu-item-icon">
-  <ExitIcon width={20} height={20} fill="#155EEF" />
-</span>
-{!isCollapsed && <span className="menu-item-title">Çıxış</span>}
-</button> */
-}

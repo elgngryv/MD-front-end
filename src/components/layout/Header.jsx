@@ -67,7 +67,7 @@ function Header() {
                 className="headerDropdownItem"
                 onClick={() => {
                   logout();
-                  window.location.href = "/";
+                  window.location.href = "/login";
                 }}
                 style={{ cursor: "pointer" }}>
                 <FiLogOut className="headerDropdownIcon" />
