@@ -10,9 +10,7 @@ import HomeImage from "../../assets/images/login-page-images/login-background-no
 function Home() {
   return (
     <>
-      <div className="HomeWrapper">
-        <img className="w-[1700px] h-[750px]" src={HomeImage} alt={HomeImage} />
-      </div>
+      <div className="HomeWrapper"></div>
     </>
   );
 }
