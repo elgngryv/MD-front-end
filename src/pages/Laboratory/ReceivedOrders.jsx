@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 // Style
 import "../../assets/style/LaboratoryPage/sentorders.css";
@@ -14,18 +14,25 @@ import { HiArrowsUpDown } from "react-icons/hi2";
 function ReceivedOrders() {
   const navigate = useNavigate();
 
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
 
   const slugify = (text) =>
     text
       .toLowerCase()
-      .normalize('NFD')                       // diakritik işarələri ayır
-      .replace(/[\u0300-\u036f]/g, '')       // ayırılmış işarələri sil
-      .replace(/[^a-z0-9\s-]/g, '')          // xüsusi simvolları sil
+      .normalize("NFD") // diakritik işarələri ayır
+      .replace(/[\u0300-\u036f]/g, "") // ayırılmış işarələri sil
+      .replace(/[^a-z0-9\s-]/g, "") // xüsusi simvolları sil
       .trim()
-      .replace(/\s+/g, '-');                 // boşluqları tire ilə əvəzlə
+      .replace(/\s+/g, "-"); // boşluqları tire ilə əvəzlə
 
-  const tableHead = [ "Sifariş tarixi","Göndərən", "Pasiyent", "Yoxlanılma tarixi", "Təhvil tarixi", "Status"];
+  const tableHead = [
+    "Sifariş tarixi",
+    "Göndərən",
+    "Pasiyent",
+    "Yoxlanılma tarixi",
+    "Təhvil tarixi",
+    "Status",
+  ];
 
   const tableData = [
     {
@@ -37,7 +44,7 @@ function ReceivedOrders() {
       statusType: "hakim",
       sender: "Dr. Elşad Abbasov",
       name: "Rüstəm Məmmədov",
-      deliveryDate: "2025-04-05"
+      deliveryDate: "2025-04-05",
     },
     {
       id: 2,
@@ -48,7 +55,7 @@ function ReceivedOrders() {
       orderDate: "2025-04-03",
       sender: "Dr. Zeynəb Quliyeva",
       checkDate: "2025-04-04",
-      deliveryDate: "2025-04-07"
+      deliveryDate: "2025-04-07",
     },
     {
       id: 3,
@@ -59,7 +66,7 @@ function ReceivedOrders() {
       orderDate: "2025-04-05",
       sender: "Dr. Kamran Hüseynov",
       checkDate: "2025-04-06",
-      deliveryDate: "2025-04-08"
+      deliveryDate: "2025-04-08",
     },
 
     {
@@ -71,7 +78,7 @@ function ReceivedOrders() {
       orderDate: "2025-04-12",
       sender: "Dr. Xəyalə Muradova",
       checkDate: "2025-04-13",
-      deliveryDate: "2025-04-15"
+      deliveryDate: "2025-04-15",
     },
     {
       id: 6,
@@ -82,22 +89,23 @@ function ReceivedOrders() {
       statusType: "texnika",
       orderDate: "2025-04-14",
       checkDate: "2025-04-15",
-      deliveryDate: "2025-04-17"
-    }
+      deliveryDate: "2025-04-17",
+    },
   ];
 
   const icons = [
     {
       icon: CiCircleInfo,
       action: (row) => navigate(`/details/${row.id}`),
-      className: "info-icon"
-    }
+      className: "info-icon",
+    },
   ];
 
   // Handle search filter
-  const filteredData = tableData.filter(row =>
-    row.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    row.status.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredData = tableData.filter(
+    (row) =>
+      row.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      row.status.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   console.log("Filtered Data: ", filteredData); // Debugging the filtered data
@@ -119,19 +127,13 @@ function ReceivedOrders() {
             <CiSearch className="search-btn" />
           </div>
         </div>
-        <div className="rightPartHeader">
-          <p className="addNowOrder" onClick={() => navigate('/lab/order/add')}>
-            <FaPlus className="plusBTN" /> Yenisini əlavə et
-          </p>
-          <FiDownload className="exportDataNow" onClick={() => navigate('/data/export')} />
-        </div>
       </div>
 
       <div className="tableWrapper">
         <table className="labTable">
           <thead>
             <tr>
-              <th>{tableData.length===0?'0':`1-${tableData.length}`}</th>
+              <th>{tableData.length === 0 ? "0" : `1-${tableData.length}`}</th>
               {tableHead.map((title, idx) => (
                 <th key={idx}>
                   <div className="th-content">
@@ -153,7 +155,11 @@ function ReceivedOrders() {
           <tbody>
             {filteredData.length === 0 ? (
               <tr>
-                <td colSpan={tableHead.length + (icons.length > 0 ? 1 : 0)} style={{ textAlign: "center" }}>No orders found.</td>
+                <td
+                  colSpan={tableHead.length + (icons.length > 0 ? 1 : 0)}
+                  style={{ textAlign: "center" }}>
+                  No orders found.
+                </td>
               </tr>
             ) : (
               filteredData.map((row, rowIndex) => (
@@ -167,9 +173,8 @@ function ReceivedOrders() {
                   <td>{row.sender}</td>
                   <td
                     onClick={() => navigate(`/details/${row.id}`)} // Navigate to details page on click
-                    className='patinetTD'
-                    style={{ cursor: "pointer", color: "#155EEF" }}
-                  >
+                    className="patinetTD"
+                    style={{ cursor: "pointer", color: "#155EEF" }}>
                     {row.name}
                   </td>
                   <td>{row.orderDate}</td>
@@ -187,8 +192,7 @@ function ReceivedOrders() {
                           <span
                             key={iconIdx}
                             onClick={() => iconObj.action(row)}
-                            style={{ cursor: "pointer" }}
-                          >
+                            style={{ cursor: "pointer" }}>
                             {React.createElement(iconObj.icon, {
                               className: `icon ${iconObj.className || ""}`,
                             })}
