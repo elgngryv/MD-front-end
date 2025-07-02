@@ -161,23 +161,31 @@ function PatientsList() {
             <thead>
               <tr>
                 <th>ID</th>
-                <th>Pasiyent</th>
+                <th>Ad</th>
+                <th>Soyad</th>
+                <th>Ata adı</th>
                 <th>Fin kodu</th>
                 <th>Cinsiyyət</th>
                 <th>Mobil nömrə</th>
                 <th>Doğum Tarixi</th>
                 <th>Status</th>
                 <th>Qara siyahı</th>
-                <th>Aksiyalar</th>
+                <th>Düzəliş</th>
               </tr>
             </thead>
             <tbody>
               {filteredData.map((item) => (
                 <tr key={item.id}>
                   <td>{item.id}</td>
-                  <td>
-                    {item.name} {item.surname}
-                  </td>
+                    <td>
+                      {item.name} 
+                    </td>
+                    <td>
+                      {item.surname} 
+                    </td>
+                    <td>
+                      {item.patronymic} 
+                    </td>
                   <td>{item.finCode}</td>
                   <td>{item.genderStatus === "MAN" ? "Kişi" : "Qadın"}</td>
                   <td>{item.phone}</td>
