@@ -5,6 +5,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "../../assets/style/Teeth/addteeth.css";
 import useTeethStore from "../../../stores/teethStore";
+import useTeethImageStore from "../../../stores/TeethİmageStore";
 
 const toothTypes = ["Yetkin", "Uşaq"];
 const locations = ["Üst sol", "Üst sağ", "Alt sol", "Alt sağ"];
@@ -32,9 +33,10 @@ const AddTeeth = () => {
   const [selectedLocation, setSelectedLocation] = useState("");
   const [images, setImages] = useState([]);
   const fileInputRef = useRef();
-
-  const { addTooth, loading } = useTeethStore();
   const navigate = useNavigate();
+
+  const { addTooth, loading: toothLoading } = useTeethStore();
+  const { createTeethImage, loading: imageLoading } = useTeethImageStore();
 
   const maxToothNumber = selectedType
     ? toothTypeCountMap[typeMap[selectedType]]
@@ -56,30 +58,39 @@ const AddTeeth = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!selectedNumber || !selectedType || !selectedLocation) {
-      toast.error("Zəhmət olmasa bütün sahələri doldurun.");
+    if (
+      !selectedNumber ||
+      !selectedType ||
+      !selectedLocation ||
+      images.length === 0
+    ) {
+      toast.error("Zəhmət olmasa bütün sahələri doldurun və şəkil əlavə edin.");
       return;
     }
 
-    const payload = {
-      toothNo: Number(selectedNumber),
-      toothType: typeMap[selectedType],
-      toothLocation: locationMap[selectedLocation],
-    };
-
     try {
+      // 1. Faylı birbaşa createTeethImage funksiyasına ötür (upload və backendə URL göndərmə işi içəridədir)
+      const { data } = await createTeethImage(images[0]);
+      const imageUrl = data?.data?.image;
+
+      // 2. Diş məlumatını backendə göndər
+      const payload = {
+        toothNo: Number(selectedNumber),
+        toothType: typeMap[selectedType],
+        toothLocation: locationMap[selectedLocation],
+        image: imageUrl,
+      };
+
       await addTooth(payload);
       toast.success("Diş uğurla əlavə olundu!");
 
-      // 1.5 saniyə sonra yönləndirmə
-      setTimeout(() => {
-        navigate("/teeth");
-      }, 1500);
-
+      // reset
       setSelectedNumber("");
       setSelectedType("");
       setSelectedLocation("");
       setImages([]);
+
+      setTimeout(() => navigate("/teeth"), 1500);
     } catch (err) {
       toast.error("Xəta baş verdi!");
     }
@@ -190,8 +201,8 @@ const AddTeeth = () => {
           <button
             type="submit"
             className="addteeth-save-btn"
-            disabled={loading}>
-            {loading ? "Yüklənir..." : "Yadda saxla"}
+            disabled={toothLoading || imageLoading}>
+            {toothLoading || imageLoading ? "Yüklənir..." : "Yadda saxla"}
           </button>
         </div>
       </form>
