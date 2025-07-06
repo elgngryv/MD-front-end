@@ -36,7 +36,7 @@ const Prescription = () => {
           />
         </div>
         <div className="flex gap-4">
-          <button className="flex justify-center items-center bg-transparent text-[#155EEF] w-[178px] h-[36px] rounded-lg p-2 border border-[#155EEF] hover:bg-[#155EEF] hover:text-white transition-all duration-300">
+          <button onClick={()=>navigate('add')} className="flex justify-center items-center bg-transparent text-[#155EEF] w-[178px] h-[36px] rounded-lg p-2 border border-[#155EEF] hover:bg-[#155EEF] hover:text-white transition-all duration-300">
             + Yenisini əlavə et
           </button>
           <button>
@@ -55,13 +55,13 @@ const Prescription = () => {
           enableDelete={true}
           enableView={true}
           handleEdit={(id) => {
-            navigate(`/patient/prescription/${id}/edit`);
+            navigate(`${id}/edit`);
           }}
           handleDelete={(id) => {
             console.log("delete");
           }}
           handleView={(id) => {
-            navigate(`/patient/prescription/${id}`);
+            navigate(`${id}`);
           }}
         />
       </div>

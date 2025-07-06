@@ -30,7 +30,7 @@ const Breadcrumb = () => {
               case 'insurance':
                 return 'Sığorta #' + segment;
               case 'prescription':
-                return 'Reçete #' + segment;
+                return 'Resept #' + segment;
               default:
                 return '#' + segment;
             }
@@ -51,6 +51,8 @@ const Breadcrumb = () => {
         return 'Məxaric';
       case 'anamnesis-details':
         return 'Anamnezlər';
+      case 'prescription':
+        return 'Reseptlər';
       case 'anamnesis':
         return 'Anamnezlərin siyahısı';
       case 'edit-permission':

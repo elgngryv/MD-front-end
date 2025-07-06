@@ -231,6 +231,7 @@ import EditCheckList from "./pages/ChecklistPage/EditChecklist";
 import Home from "./pages/Home/HomePhoto";
 
 import Redirecter from "./components/Redirecter";
+import AddPrescription from "./pages/patient/AddPrescription";
 
 
 
@@ -407,6 +408,10 @@ const AnimatedRoutes = () => {
               <Route
                 path="prescription/:id"
                 element={<ViewPrescription mode="view" />}
+              />
+              <Route
+                path="prescription/add"
+                element={<AddPrescription mode="view" />}
               />
               <Route
                 path="prescription/:id/edit"

@@ -39,15 +39,15 @@ const ViewPrescription = ({ mode }) => {
         <div className='flex flex-col gap-4'>
             <div className='flex gap-4 justify-between items-center'>
                 <label className='flex-1 '>Ad</label>
-                <CustomDropdown />
+                <CustomDropdown placeholder='Reseptin adı' className='flex-5' />
             </div>
             <div className='flex gap-4 justify-between items-center'>
                 <label className='flex-1'>Tarix</label>
-                <input disabled={currentMode === 'view'} type='text' className='flex-5 border border-gray-300 rounded-md p-2 h-[44px]' placeholder='Tarix' />
+                <input disabled={currentMode === 'view'} type='date' className='flex-5 border border-gray-300 rounded-md p-2 h-[44px]' placeholder='Tarix' />
             </div>
             <div className='flex gap-4 justify-between items-center'>
-                <label className='flex-1'>Tarix</label>
-                <input disabled={currentMode === 'view'} type='text' className='flex-5 border border-gray-300 rounded-md p-2 h-[44px]' placeholder='Tarix' />
+                <label className='flex-1'>Reseptin müddəti</label>
+                <input disabled={currentMode === 'view'}  type='text' className='flex-5 border border-gray-300 rounded-md p-2 h-[44px]' placeholder='Reseptin müddəti' />
             </div>
         </div>
         {currentMode === 'edit' && (
