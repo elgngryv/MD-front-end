@@ -233,7 +233,9 @@ import Home from "./pages/Home/HomePhoto";
 import Redirecter from "./components/Redirecter";
 import AddPrescription from "./pages/patient/AddPrescription";
 
-
+import InfoXray from "./pages/patient/InfoXray";
+import EditXray from "./pages/patient/EditXray";
+import AddXRay from "./pages/patient/AddXray";
 
 
 // Constants
@@ -404,6 +406,9 @@ const AnimatedRoutes = () => {
               <Route path="insurance/create" element={<CreateInsurance />} />
               <Route path="treatment" element={<Treatment />} />
               <Route path="xray" element={<XRay />} />
+              <Route path="xray/info/:id" element={<InfoXray />} />
+              <Route path="xray/edit/:id" element={<EditXray />} />
+              <Route path="xray/add" element={<AddXRay />} />
               <Route path="prescription" element={<Prescription />} />
               <Route
                 path="prescription/:id"

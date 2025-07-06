@@ -72,6 +72,8 @@ const Breadcrumb = () => {
 
       case 'general-settings':
         return 'Ümumi tənzimləmələr';
+      case 'info':
+        return 'Ətraflı';
       case 'other-objects':
         return 'Digər obyektlər';
       case 'general':
