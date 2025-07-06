@@ -1,37 +1,69 @@
-import React, { useState } from 'react';
-import '../../assets/style/Implants/implantslist.css';
+import React, { useEffect, useState } from "react";
+import "../../assets/style/Implants/implantslist.css";
 import { CiSearch } from "react-icons/ci";
 import { FiDownload, FiEdit3 } from "react-icons/fi";
 import { GoTrash } from "react-icons/go";
 import { HiOutlineArrowsUpDown } from "react-icons/hi2";
 import { Link, useNavigate } from "react-router-dom";
+import useImplantStore from "../../../stores/implantStore";
 
 const ImplantsList = () => {
   const navigate = useNavigate();
-  // Nümunə məlumatları (bu real API çağırışı ilə dəyişdirilə bilər)
-  const [implantsData, setImplantsData] = useState([
-    { id: 1, brandName: "Nobel Active", sizeCount: 0, status: "ACTIVE" },
-    { id: 2, brandName: "Straumann", sizeCount: 0, status: "ACTIVE" },
-    { id: 3, brandName: "Astra Tech", sizeCount: 0, status: "ACTIVE" },
-  ]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
 
-  const totalImplantsCount = implantsData.length;
+  const { implants, fetchImplants, removeImplant, changeStatus, loading } =
+    useImplantStore();
 
-  const handleEdit = (id) => {
-    navigate(`/implants/edit/${id}`);
+  useEffect(() => {
+    fetchImplants();
+  }, []);
+
+  const filteredImplants = implants.filter((row) => {
+    return (
+      row.implantBrandName.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      (statusFilter ? row.status === statusFilter : true)
+    );
+  });
+
+  const handleStatusChange = async (id, currentStatus) => {
+    const newStatus = currentStatus === "ACTIVE" ? "PASSIVE" : "ACTIVE";
+    const confirmMessage =
+      newStatus === "ACTIVE"
+        ? "İmplantı aktiv etmək istəyirsiniz?"
+        : "İmplantı passiv etmək istəyirsiniz?";
+
+    if (window.confirm(confirmMessage)) {
+      await changeStatus(id, newStatus);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Silmək istədiyinizə əminsiniz?")) {
+      await removeImplant(id);
+    }
   };
 
   return (
     <div className="implantsList-container">
       <div className="implantsList-controls-section">
         <div className="implantsList-filters">
-          <select className="implantsList-status-dropdown">
+          <select
+            className="implantsList-status-dropdown"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}>
             <option value="">Status</option>
             <option value="ACTIVE">Aktiv</option>
             <option value="PASSIVE">Passiv</option>
           </select>
           <div className="implantsList-search-box">
-            <input type="text" placeholder="Axtarış" className="implantsList-search-input" />
+            <input
+              type="text"
+              placeholder="Axtarış"
+              className="implantsList-search-input"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
             <button className="implantsList-search-button">
               <CiSearch className="implantsList-search-icon" />
             </button>
@@ -51,42 +83,60 @@ const ImplantsList = () => {
         <table className="implantsList-table">
           <thead>
             <tr>
+              <th>№</th>
               <th>
-                <span className='firstElementOfTHS'><HiOutlineArrowsUpDown className="implantsList-sort-icon" />{totalImplantsCount === 0 ? '0' : `1-${totalImplantsCount}`}</span>
+                <HiOutlineArrowsUpDown /> Marka
               </th>
               <th>
-                <span><HiOutlineArrowsUpDown className="implantsList-sort-icon" /> Markanın adı</span>
+                <HiOutlineArrowsUpDown /> Ölçülər
               </th>
               <th>
-                <span><HiOutlineArrowsUpDown className="implantsList-sort-icon" /> Ölçüləri</span>
+                <HiOutlineArrowsUpDown /> Status
               </th>
-              <th>
-                <span><HiOutlineArrowsUpDown className="implantsList-sort-icon" /> Status</span>
-              </th>
-              <th>
-                <span>Düzəliş</span>
-              </th>
+              <th>Düzəliş</th>
             </tr>
           </thead>
           <tbody>
-            {implantsData.map((row, index) => (
-              <tr key={row.id}>
-                <td>{index + 1}</td>
-                <td>{row.brandName}</td>
-                <td><Link to={`./sizes/${row.brandName}`}>Ölçüləri ({row.sizeCount})</Link></td>
-                <td>
-                  <span className={`implantsList-status-badge ${row.status === "ACTIVE" ? "active" : "passive"}`}>
-                    {row.status === "ACTIVE" ? "Aktiv" : "Passiv"}
-                  </span>
-                </td>
-                <td>
-                  <div className="implantsList-action-icons">
-                    <FiEdit3 className="implantsList-edit-button" onClick={() => handleEdit(row.id)} />
-                    <GoTrash className="implantsList-delete-button" onClick={() => console.log('Delete', row.id)} />
-                  </div>
-                </td>
+            {loading ? (
+              <tr>
+                <td colSpan="5">Yüklənir...</td>
               </tr>
-            ))}
+            ) : filteredImplants.length > 0 ? (
+              filteredImplants.map((row, index) => (
+                <tr key={row.id}>
+                  <td>{index + 1}</td>
+                  <td>{row.implantBrandName}</td>
+                  <td>
+                    <Link to={`./sizes/${row.implantBrandName}`}>
+                      Ölçüləri ({row.implantSizesReads?.length || 0})
+                    </Link>
+                  </td>
+                  <td className="cursor-pointer">
+                    <span
+                      className={`implantsList-status-badge ${
+                        row.status === "ACTIVE" ? "active" : "passive"
+                      }`}
+                      onClick={() => handleStatusChange(row.id, row.status)}>
+                      {row.status === "ACTIVE" ? "Aktiv" : "Passiv"}
+                    </span>
+                  </td>
+                  <td>
+                    <FiEdit3
+                      className="implantsList-edit-button"
+                      onClick={() => navigate(`/implants/edit/${row.id}`)}
+                    />
+                    <GoTrash
+                      className="implantsList-delete-button"
+                      onClick={() => handleDelete(row.id)}
+                    />
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="5">Heç bir implant tapılmadı</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -94,4 +144,4 @@ const ImplantsList = () => {
   );
 };
 
-export default ImplantsList; 
+export default ImplantsList;

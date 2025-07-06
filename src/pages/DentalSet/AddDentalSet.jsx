@@ -3,16 +3,17 @@ import { useNavigate } from "react-router-dom";
 import "../../assets/style/DentalSet/adddentalset.css";
 import acceptButton from "../../assets/images/EmployeesPage/verifyProcess.png";
 import cancelButton from "../../assets/images/EmployeesPage/cancelProcess.png";
+import useGarnitureStore from "../../../stores/garnitureStore";
 
 function AddDentalSet() {
   const [formData, setFormData] = useState({
-    setName: "",
-    status: "active"
+    name: "",
   });
 
   const [formErrors, setFormErrors] = useState({});
-
   const navigate = useNavigate();
+
+  const addGarniture = useGarnitureStore((state) => state.addGarniture); // <-- store-dan funksiyanı alırıq
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -31,15 +32,8 @@ function AddDentalSet() {
       return;
     }
 
-    const payload = {
-      setName: formData.setName,
-      status: formData.status,
-    };
-
-    console.log("AddDentalSet payload:", payload);
-
     try {
-      // Here you would typically make an API call
+      await addGarniture(formData);
       alert("Qarnitur uğurla əlavə edildi!");
       navigate("/dental-set");
     } catch (err) {
@@ -49,8 +43,7 @@ function AddDentalSet() {
 
   const validateForm = () => {
     const errors = {};
-    if (!formData.setName.trim())
-      errors.setName = "Qarniturun adı tələb olunur";
+    if (!formData.name.trim()) errors.name = "Qarniturun adı tələb olunur";
     return errors;
   };
 
@@ -58,28 +51,29 @@ function AddDentalSet() {
     <form className="addDentalSetWrapper" onSubmit={handleSubmit}>
       <div className="addDentalSetContainer">
         <div className="addDentalSetInput">
-          <p>Qarniturun adı<span>*</span></p>
+          <p>
+            Qarniturun adı<span>*</span>
+          </p>
           <input
             type="text"
             placeholder="Qarniturun adı"
-            name="setName"
-            value={formData.setName}
+            name="name"
+            value={formData.name}
             onChange={handleChange}
             required
           />
+          {formErrors.name && <p className="error">{formErrors.name}</p>}
         </div>
-      
+
         <div className="addDentalSetButtons">
           <button
             type="button"
             className="cancelFormCondition"
             onClick={() =>
               setFormData({
-                setName: "",
-                status: "active"
+                name: "",
               })
-            }
-          >
+            }>
             <img src={cancelButton} alt="Cancel" />
             İmtina et
           </button>
@@ -93,4 +87,4 @@ function AddDentalSet() {
   );
 }
 
-export default AddDentalSet; 
+export default AddDentalSet;

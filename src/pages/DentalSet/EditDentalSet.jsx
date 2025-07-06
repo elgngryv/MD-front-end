@@ -3,33 +3,49 @@ import { useParams, useNavigate } from "react-router-dom";
 import "../../assets/style/DentalSet/editdentalset.css";
 import acceptButton from "../../assets/images/EmployeesPage/verifyProcess.png";
 import cancelButton from "../../assets/images/EmployeesPage/cancelProcess.png";
-
-// Static data for example
-const staticDentalSetData = [
-  { id: 1, setName: "Qarnitur 1", status: "active" },
-  { id: 2, setName: "Qarnitur 2", status: "active" },
-  { id: 3, setName: "Qarnitur 3", status: "passive" },
-];
+import useGarnitureStore from "../../../stores/garnitureStore";
 
 function EditDentalSet() {
   const { id } = useParams();
   const navigate = useNavigate();
 
+  const {
+    selectedGarniture,
+    fetchGarnitureById,
+    editGarniture,
+    loading,
+    error,
+  } = useGarnitureStore();
+
   const [formData, setFormData] = useState({
     setName: "",
-    status: "active"
   });
   const [formErrors, setFormErrors] = useState({});
 
+  // Backenddən seçilmiş garniture-ni gətir
   useEffect(() => {
-    const dentalSetToEdit = staticDentalSetData.find((d) => d.id.toString() === id);
-    if (dentalSetToEdit) {
+    if (id) {
+      (async () => {
+        await fetchGarnitureById(id);
+      })();
+    }
+  }, [id, fetchGarnitureById]);
+
+  // selectedGarniture dəyişəndə formu doldur
+  useEffect(() => {
+    console.log("selectedGarniture:", selectedGarniture);
+    if (selectedGarniture) {
+      // Backenddən gələn data strukturuna uyğun yoxlama
+      const nameValue =
+        selectedGarniture.name ??
+        selectedGarniture.setName ??
+        selectedGarniture.title ??
+        "";
       setFormData({
-        setName: dentalSetToEdit.setName || "",
-        status: dentalSetToEdit.status || "active",
+        setName: nameValue,
       });
     }
-  }, [id]);
+  }, [selectedGarniture]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -42,26 +58,11 @@ function EditDentalSet() {
     }
   };
 
-  const handleStatusChange = (e) => {
-    const newStatus = e.target.value;
-    const confirmMessage = newStatus === "active" 
-      ? "Qarnituru aktiv etmək istədiyinizə əminsiniz?" 
-      : "Qarnituru passiv etmək istədiyinizə əminsiniz?";
-
-    if (window.confirm(confirmMessage)) {
-      setFormData(prev => ({
-        ...prev,
-        status: newStatus
-      }));
-    } else {
-      e.target.value = formData.status;
-    }
-  };
-
   const validateForm = () => {
     const errors = {};
-    if (!formData.setName.trim())
+    if (!formData.setName.trim()) {
       errors.setName = "Qarniturun adı tələb olunur";
+    }
     return errors;
   };
 
@@ -75,15 +76,11 @@ function EditDentalSet() {
     }
 
     const payload = {
-      id: Number(id),
-      setName: formData.setName,
-      status: formData.status,
+      name: formData.setName,
     };
 
-    console.log("EditDentalSet payload:", payload);
-
     try {
-      // Here you would typically make an API call
+      await editGarniture(id, payload);
       alert("Qarnitur uğurla yeniləndi!");
       navigate("/dental-set");
     } catch (err) {
@@ -109,6 +106,7 @@ function EditDentalSet() {
             value={formData.setName}
             onChange={handleChange}
             required
+            disabled={loading}
           />
           {formErrors.setName && (
             <span className="error">{formErrors.setName}</span>
@@ -119,20 +117,30 @@ function EditDentalSet() {
           <button
             type="button"
             className="cancelFormCondition"
-            onClick={handleCancel}>
+            onClick={handleCancel}
+            disabled={loading}
+          >
             <img src={cancelButton} alt="İmtina et" />
             İmtina et
           </button>
           <button
             type="submit"
-            className="acceptFormCondition">
+            className="acceptFormCondition"
+            disabled={loading}
+          >
             <img src={acceptButton} alt="Yadda saxla" />
             Yadda saxla
           </button>
         </div>
+
+        {error && (
+          <p className="error" style={{ marginTop: 10 }}>
+            {error}
+          </p>
+        )}
       </form>
     </div>
   );
 }
 
-export default EditDentalSet; 
+export default EditDentalSet;

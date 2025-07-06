@@ -1,4 +1,3 @@
-// React
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -13,49 +12,52 @@ import cancelButton from "../../assets/images/EmployeesPage/cancelProcess.png";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-// Static data
-const staticImplantData = [
-  { id: "1", brandName: "Nobel Active" },
-  { id: "2", brandName: "Straumann" },
-  { id: "3", brandName: "Astra Tech" },
-];
+// Zustand store importu
+import useImplantStore from "../../../stores/implantStore";
 
 function EditImplant() {
-  const [brandName, setBrandName] = useState("");
-  const navigate = useNavigate();
   const { id } = useParams();
+  const navigate = useNavigate();
+
+  const { implants, fetchImplants, editImplant, loading, error } =
+    useImplantStore();
+
+  const [brandName, setBrandName] = useState("");
 
   useEffect(() => {
-    // Find implant from static data
-    const implant = staticImplantData.find(item => item.id === id);
-    if (implant) {
-      setBrandName(implant.brandName);
+    if (implants.length > 0 && id) {
+      const implant = implants.find((item) => item.id.toString() === id);
+      if (implant) {
+        setBrandName(implant.implantBrandName || "");
+      }
     }
-  }, [id]);
+  }, [implants, id]);
+
+  useEffect(() => {
+    fetchImplants();
+  }, [fetchImplants]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!brandName.trim()) return;
+    if (!brandName.trim()) {
+      toast.error("Markanın adı boş ola bilməz!");
+      return;
+    }
 
     try {
-      // Static data update example
-      const updatedImplant = {
-        id,
-        brandName: brandName.trim(),
-      };
-
-      console.log("Updated Implant:", updatedImplant);
+      await editImplant(id, { implantBrandName: brandName.trim() });
       toast.success("İmplant uğurla yeniləndi!");
       navigate("/implants");
-    } catch (error) {
-      console.error("İmplant yenilənərkən xəta:", error);
+    } catch (err) {
       toast.error("İmplant yenilənərkən xəta baş verdi!");
+      console.error(err);
     }
   };
 
   return (
     <div className="editImplantWrapper">
+      <ToastContainer />
       <form className="editImplantContainer" onSubmit={handleSubmit}>
         <div className="editImplantInput">
           <p>
@@ -66,6 +68,7 @@ function EditImplant() {
             placeholder="Markanın adı"
             value={brandName}
             onChange={(e) => setBrandName(e.target.value)}
+            disabled={loading}
           />
         </div>
 
@@ -73,19 +76,29 @@ function EditImplant() {
           <button
             type="button"
             className="cancelFormCondition"
-            onClick={() => navigate("/implants")}>
+            onClick={() => navigate("/implants")}
+            disabled={loading}>
             <img src={cancelButton} alt="cancel" />
             İmtina et
           </button>
 
-          <button type="submit" className="acceptFormCondition">
+          <button
+            type="submit"
+            className="acceptFormCondition"
+            disabled={loading}>
             <img src={acceptButton} alt="accept" />
             Yadda saxla
           </button>
         </div>
+
+        {error && (
+          <p className="error" style={{ marginTop: 10 }}>
+            {error}
+          </p>
+        )}
       </form>
     </div>
   );
 }
 
-export default EditImplant; 
+export default EditImplant;
