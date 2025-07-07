@@ -240,12 +240,12 @@ function EditPermission() {
     });
 
     const payload = {
-      id: Number(id), // bu ümumi permission ID-dir
+      id: Number(id),
       permissionName: name,
-      permissions, // backend-in istədiyi struktura uyğun
+      permissions,
     };
 
-    console.log("Göndərilən payload:", payload); // yoxlamaq üçün
+    console.log("Göndərilən payload:", payload);
 
     await updatePermission(payload);
     navigate("/permissions");
