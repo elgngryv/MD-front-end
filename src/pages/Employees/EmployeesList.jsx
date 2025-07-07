@@ -26,7 +26,7 @@ const EmployeesList = () => {
     surname: "",
     patronymic: "",
     phone: "",
-    status: "",
+    enabled: "", // Changed from 'status' to 'enabled'
   });
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -40,7 +40,7 @@ const EmployeesList = () => {
     if (
       workers.length > 0 &&
       searchResult.length === 0 &&
-      Object.values(searchParams).every((val) => !val)
+      Object.values(searchParams).every((val) => val === "" || val === undefined) // Adjusted check for empty search params
     ) {
       setSearchResult(workers);
     }
@@ -51,22 +51,25 @@ const EmployeesList = () => {
 
   const handleSearch = async () => {
     try {
+      // Check if all search parameters are empty (including the new 'enabled' field)
       const allSearchParamsEmpty = Object.values(searchParams).every(
-        (val) => !val
+        (val) => val === "" || val === undefined
       );
 
       if (allSearchParamsEmpty) {
         await fetchWorkers();
-        setSearchResult(workers);
+        const updatedWorkers = useEmployeeStore.getState().workers;
+        setSearchResult(updatedWorkers);
         setCurrentPage(1); // reset page
         return;
       }
 
-      const enabled =
-        searchParams.status === "Aktiv"
-          ? true
-          : searchParams.status === "Passiv"
+      // Convert 'enabled' string value from select to boolean or undefined
+      const enabledBoolean =
+        searchParams.enabled === "true"
           ? false
+          : searchParams.enabled === "true"
+          ? true
           : undefined;
 
       await searchWorkers({
@@ -75,7 +78,7 @@ const EmployeesList = () => {
         surname: searchParams.surname || undefined,
         patronymic: searchParams.patronymic || undefined,
         phone: searchParams.phone || undefined,
-        enabled,
+        enabled: enabledBoolean, // Use the converted boolean value
       });
 
       setCurrentPage(1); // reset page
@@ -85,13 +88,34 @@ const EmployeesList = () => {
     }
   };
 
-  const handleInputChange = (e) => {
+  const handleInputChange = async (e) => {
     const { name, value } = e.target;
     setSearchParams((prev) => ({
       ...prev,
       [name]: value,
     }));
+
+    // To ensure the state is updated before running the check for all empty,
+    // we can use the callback form of setSearchParams or use a setTimeout
+    // for immediate search after state update.
+    // For simplicity, we'll re-evaluate based on the *new* state for the debounce.
+    const newSearchParams = { ...searchParams, [name]: value };
+
+    // Trigger search immediately if the input is cleared
+    // Check if ALL search parameters are now empty (considering the new value)
+    if (Object.values(newSearchParams).every((val) => val === "" || val === undefined)) {
+        await fetchWorkers();
+        const updatedWorkers = useEmployeeStore.getState().workers;
+        setSearchResult(updatedWorkers);
+        setCurrentPage(1);
+    } else {
+        // Debounce search for other changes (typing, clearing just one field)
+        setTimeout(() => {
+            handleSearch();
+        }, 300); // Increased debounce to 300ms for better user experience
+    }
   };
+
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
@@ -122,7 +146,7 @@ const EmployeesList = () => {
             alert("İşçi uğurla silindi!");
 
             const allSearchParamsEmpty = Object.values(searchParams).every(
-              (val) => !val
+              (val) => val === "" || val === undefined
             );
 
             if (allSearchParamsEmpty) {
@@ -203,12 +227,12 @@ const EmployeesList = () => {
           <div className="rightPart">
             <select
               className="workersStatusChecker"
-              name="status"
-              value={searchParams.status}
+              name="enabled" // Changed name to 'enabled'
+              value={searchParams.enabled}
               onChange={handleInputChange}>
               <option value="">Hamısı</option>
-              <option value="Aktiv">Aktiv</option>
-              <option value="Passiv">Passiv</option>
+              <option value="true">Aktiv</option> {/* Value is "true" string */}
+              <option value="false">Passiv</option> {/* Value is "false" string */}
             </select>
           </div>
         </div>
@@ -267,8 +291,7 @@ const EmployeesList = () => {
                     <th>
                       <div className="th-content">
                         <span>
-                          <HiArrowsUpDown className="tableArrowIcon" /> İş
-                          qrafiki
+                          <CiCalendar className="tableArrowIcon" /> İş qrafiki
                         </span>
                       </div>
                     </th>
