@@ -1,27 +1,45 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { FiCheck } from "react-icons/fi";
 import { RxCross2 } from "react-icons/rx";
-import "../../assets/style/PermissionPage/editpermission.css"
+import usePermissionStore from "../../../stores/permissionStore";
+import "../../assets/style/PermissionPage/editpermission.css";
 
-const permissions = [
+const permissionsList = [
   {
     group: null,
     items: [
-      "Ümumi təqvim", "Pasientlər", "Müayinələri", "Planları", "Müalicələr", "Anamnez", "Sığortaları", "Reseptləri", "Rentgen", "Fotolar", "Videolar", "Hesabat"
-    ]
+      "Ümumi təqvim",
+      "Pasientlər",
+      "Müayinələri",
+      "Planları",
+      "Müalicələr",
+      "Anamnez",
+      "Sığortaları",
+      "Reseptləri",
+      "Rentgen",
+      "Fotolar",
+      "Videolar",
+      "Hesabat",
+    ],
   },
   {
     group: "QRAFİKLƏR",
     items: [
-      "Mənim təqvimim", "Növbə gözləyənlər", "Həkimlər", "Həkimlərin iş qrafiki", "Görülmüş işlər"
-    ]
+      "Mənim təqvimim",
+      "Növbə gözləyənlər",
+      "Həkimlər",
+      "Həkimlərin iş qrafiki",
+      "Görülmüş işlər",
+    ],
   },
   {
     group: "LABORATORİYA",
     items: [
-      "Göndərilən sifarişlər", "Gələn sifarişlər", "Texniklər üzrə hesabat"
-    ]
+      "Göndərilən sifarişlər",
+      "Gələn sifarişlər",
+      "Texniklər üzrə hesabat",
+    ],
   },
   {
     group: "ANBAR ƏMƏLİYYATLARI",
@@ -33,8 +51,8 @@ const permissions = [
       "Anbardan maxaric",
       "Anbardan daxilolmalar",
       "Anbardan silinmə",
-      "Məhsul istifadəsi"
-    ]
+      "Məhsul istifadəsi",
+    ],
   },
   {
     group: "TƏNZİMLƏMƏLƏR",
@@ -60,125 +78,218 @@ const permissions = [
       "İxtisaslar",
       "Məhsul kateqoriyaları",
       "Qara siyahı səbəbləri",
-      "Ümumi tənzimləmələr"
-    ]
-  }
+      "Ümumi tənzimləmələr",
+    ],
+  },
 ];
+
 const actions = ["Oxuma", "Yaratma", "Redaktə", "Silmə", "Status", "Sıralama"];
 
 function EditPermission() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { selectedPermission, fetchPermissionById, updatePermission } =
+    usePermissionStore();
+
   const [name, setName] = useState("");
-  // Mövcud permission-ları API-dən və ya prop-dan yükləmək üçün ayrıca state
-  const [checked, setChecked] = useState(() => {
-    const obj = {};
-    permissions.forEach(group => {
-      group.items.forEach(item => {
-        obj[item] = {};
-        actions.forEach(action => {
-          obj[item][action] = false;
+  const [checked, setChecked] = useState({});
+
+  useEffect(() => {
+    const initial = {};
+    permissionsList.forEach((group) => {
+      group.items.forEach((item) => {
+        initial[item] = {};
+        actions.forEach((action) => {
+          initial[item][action] = false;
         });
       });
     });
-    return obj;
-  });
+    setChecked(initial);
+  }, []);
 
-  // Simulyasiya: mövcud permission-ları yüklə (əslində API çağırışı olmalıdır)
   useEffect(() => {
-    // Burada id ilə permission-ları API-dən çəkib setName və setChecked-ə doldura bilərsən
-    // Məsələn:
-    // fetch(`/api/permissions/${id}`).then(...)
-    // setName(response.name)
-    // setChecked(response.permissions)
-    // Demo üçün bir neçə dəyəri true edək:
-    setName("Redaktə olunan icazə adı");
-    setChecked(prev => ({
-      ...prev,
-      "Ümumi təqvim": { ...prev["Ümumi təqvim"], "Oxuma": true, "Yaratma": true },
-      "Klinikanın stoku": { ...prev["Klinikanın stoku"], "Oxuma": true }
-    }));
+    if (id) {
+      fetchPermissionById(Number(id));
+    }
   }, [id]);
 
-  // Sütun başlığı üçün: bütün item-lər checked-dirsə true, yoxsa false
-  const isActionAllChecked = (action) => {
-    return Object.keys(checked).every(item => checked[item][action]);
+  useEffect(() => {
+    if (selectedPermission) {
+      setName(selectedPermission.permissionName || "");
+
+      const updatedChecked = {};
+      permissionsList.forEach((group) => {
+        group.items.forEach((item) => {
+          updatedChecked[item] = {};
+          actions.forEach((action) => {
+            updatedChecked[item][action] = false;
+          });
+        });
+      });
+
+      selectedPermission.modulePermissions?.forEach((p) => {
+        const { moduleUrl, actions: backendActions } = p;
+        backendActions.forEach((action) => {
+          const frontendAction = convertBackendAction(action);
+          if (updatedChecked[moduleUrl]) {
+            updatedChecked[moduleUrl][frontendAction] = true;
+          }
+        });
+      });
+
+      setChecked(updatedChecked);
+    }
+  }, [selectedPermission]);
+
+  const convertBackendAction = (action) => {
+    switch (action) {
+      case "READ":
+        return "Oxuma";
+      case "CREATE":
+        return "Yaratma";
+      case "UPDATE":
+        return "Redaktə";
+      case "DELETE":
+        return "Silmə";
+      case "STATUS":
+        return "Status";
+      case "SORT":
+        return "Sıralama";
+      default:
+        return action;
+    }
   };
 
-  // Row üçün: bütün action-lar checked-dirsə true, yoxsa false
-  const isRowAllChecked = (item) => {
-    return actions.every(action => checked[item][action]);
+  const convertFrontendAction = (action) => {
+    switch (action) {
+      case "Oxuma":
+        return "READ";
+      case "Yaratma":
+        return "CREATE";
+      case "Redaktə":
+        return "UPDATE";
+      case "Silmə":
+        return "DELETE";
+      case "Status":
+        return "STATUS";
+      case "Sıralama":
+        return "SORT";
+      default:
+        return action;
+    }
   };
 
-  // Sütun başlığındakı inputa basanda bütün item-lər üçün həmin action-u dəyiş
+  const isActionAllChecked = (action) =>
+    Object.keys(checked).every((item) => checked[item]?.[action]);
+
+  const isRowAllChecked = (item) =>
+    checked[item] ? actions.every((action) => checked[item][action]) : false;
+
   const handleCheckAll = (action) => {
     const allChecked = isActionAllChecked(action);
-    setChecked(prev => {
+    setChecked((prev) => {
       const updated = { ...prev };
-      Object.keys(updated).forEach(item => {
+      Object.keys(updated).forEach((item) => {
         updated[item][action] = !allChecked;
       });
       return updated;
     });
   };
 
-  // Row başındakı inputa basanda bütün action-ları dəyiş
   const handleCheckRow = (item) => {
     const allChecked = isRowAllChecked(item);
-    setChecked(prev => ({
+    setChecked((prev) => ({
       ...prev,
       [item]: actions.reduce((acc, action) => {
         acc[action] = !allChecked;
         return acc;
-      }, {})
+      }, {}),
     }));
   };
 
-  // Əgər hər hansı bir action/row dəyişərsə, başlıqlar avtomatik yenilənəcək (çünki state-dən oxunur)
-
   const handleCheck = (item, action) => {
-    setChecked(prev => ({
+    setChecked((prev) => ({
       ...prev,
       [item]: {
         ...prev[item],
-        [action]: !prev[item][action]
-      }
+        [action]: !prev[item][action],
+      },
     }));
   };
 
-  const handleSave = () => {
-    // Burada redaktə olunan icazələri göndərə bilərsiniz
-    console.log("Edit ID:", id, "Yeni ad:", name, checked);
+  const handleSave = async () => {
+    const permissions = [];
+
+    Object.entries(checked).forEach(([moduleUrl, actionMap]) => {
+      const selectedActions = Object.entries(actionMap)
+        .filter(([_, isChecked]) => isChecked)
+        .map(([action]) => convertFrontendAction(action));
+
+      if (selectedActions.length > 0) {
+        // doğru modul icazə ID-ni tap
+        const matchedModule = selectedPermission?.modulePermissions?.find(
+          (m) => m.moduleUrl === moduleUrl
+        );
+
+        permissions.push({
+          modulePermissionId: matchedModule?.modulePermissionId || 0,
+          moduleUrl,
+          actions: selectedActions,
+        });
+      }
+    });
+
+    const payload = {
+      id: Number(id), // bu ümumi permission ID-dir
+      permissionName: name,
+      permissions, // backend-in istədiyi struktura uyğun
+    };
+
+    console.log("Göndərilən payload:", payload); // yoxlamaq üçün
+
+    await updatePermission(payload);
     navigate("/permissions");
   };
 
   return (
     <div className="addPermissionContainer">
       <div className="addPermissionWrapper">
-        <form className="addPermissionForm" onSubmit={e => e.preventDefault()}>
+        <form
+          className="addPermissionForm"
+          onSubmit={(e) => e.preventDefault()}>
           <div className="topPartForm">
-            <label htmlFor="name">İcazənin adı <span style={{ color: 'red' }}>*</span></label>
+            <label htmlFor="name">
+              İcazənin adı <span style={{ color: "red" }}>*</span>
+            </label>
             <input
               type="text"
               id="name"
               value={name}
               placeholder="İcazənin adı"
-              onChange={e => setName(e.target.value)}
+              onChange={(e) => setName(e.target.value)}
               required
             />
           </div>
-          <label style={{marginTop:20, fontWeight:'bold'}}>İcazələr (redaktə)</label>
+
+          <label style={{ marginTop: 20, fontWeight: "bold" }}>
+            İcazələr (redaktə)
+          </label>
           <div className="permissionTableWrapper">
-            <table className='permissionTable' style={{width:'100%', borderCollapse:'collapse', background:'#f8f9fa'}}>
+            <table
+              className="permissionTable"
+              style={{
+                width: "100%",
+                borderCollapse: "collapse",
+                background: "#f8f9fa",
+              }}>
               <thead>
                 <tr>
-                  <th style={{padding:'8px', textAlign:'left'}}>İcazələr</th>
-                  {actions.map(action => (
-                    <th key={action} style={{padding:'8px', textAlign:'center'}}>
+                  <th>İcazələr</th>
+                  {actions.map((action) => (
+                    <th key={action}>
                       <input
                         type="checkbox"
                         checked={isActionAllChecked(action)}
-                        indeterminate={!isActionAllChecked(action) && Object.keys(checked).some(item => checked[item][action])}
                         onChange={() => handleCheckAll(action)}
                       />
                       <div>{action}</div>
@@ -187,30 +298,37 @@ function EditPermission() {
                 </tr>
               </thead>
               <tbody>
-                {permissions.map((group, idx) => (
-                  <React.Fragment key={group.group || 'main'}>
+                {permissionsList.map((group, idx) => (
+                  <React.Fragment key={group.group || "main-" + idx}>
                     {group.group && (
                       <tr>
-                        <td colSpan={actions.length+1} style={{fontWeight:'bold', fontSize:'14px',textAlign:'left',paddingLeft:'20px',color:'#155EEF', padding:'8px'}}>{group.group}</td>
+                        <td
+                          colSpan={actions.length + 1}
+                          style={{
+                            fontWeight: "bold",
+                            fontSize: "14px",
+                            color: "#155EEF",
+                          }}>
+                          {group.group}
+                        </td>
                       </tr>
                     )}
-                    {group.items.map(item => (
+                    {group.items.map((item) => (
                       <tr key={item}>
-                        <td style={{padding:'8px'}}>
+                        <td>
                           <input
                             type="checkbox"
                             checked={isRowAllChecked(item)}
-                            indeterminate={!isRowAllChecked(item) && actions.some(action => checked[item][action])}
                             onChange={() => handleCheckRow(item)}
-                            style={{marginRight:8}}
+                            style={{ marginRight: 8 }}
                           />
                           {item}
                         </td>
-                        {actions.map(action => (
-                          <td key={action} style={{textAlign:'center'}}>
+                        {actions.map((action) => (
+                          <td key={action} style={{ textAlign: "center" }}>
                             <input
                               type="checkbox"
-                              checked={checked[item][action]}
+                              checked={checked[item]?.[action] || false}
                               onChange={() => handleCheck(item, action)}
                             />
                           </td>
@@ -222,19 +340,15 @@ function EditPermission() {
               </tbody>
             </table>
           </div>
+
           <div className="addPermissionActions">
             <button
               type="button"
               className="cancelBtn"
-              onClick={() => navigate("/permissions")}
-            >
+              onClick={() => navigate("/permissions")}>
               <RxCross2 /> İmtina et
             </button>
-            <button
-              type="submit"
-              className="saveBtn"
-              onClick={handleSave}
-            >
+            <button type="submit" className="saveBtn" onClick={handleSave}>
               <FiCheck /> Yadda saxla (redaktə)
             </button>
           </div>

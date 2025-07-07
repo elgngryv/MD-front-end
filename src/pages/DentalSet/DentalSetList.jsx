@@ -25,13 +25,15 @@ function DentalSetList() {
     fetchGarnitures();
   }, []);
 
-  useEffect(() => {
-    console.log("Garnitures:", garnitures);
-  }, [garnitures]);
+  useEffect(() => {}, [garnitures]);
 
   const filteredData = garnitures.filter((row) => {
-    const matchesName = row.name?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter ? row.status.toLowerCase() === statusFilter : true;
+    const matchesName = row.name
+      ?.toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter
+      ? row.status.toLowerCase() === statusFilter
+      : true;
     return matchesName && matchesStatus;
   });
 
@@ -54,7 +56,8 @@ function DentalSetList() {
   };
 
   const handleStatusChange = async (id, currentStatus) => {
-    const newStatus = currentStatus.toLowerCase() === "active" ? "passive" : "active";
+    const newStatus =
+      currentStatus.toLowerCase() === "active" ? "passive" : "active";
     const confirmMessage =
       newStatus === "active"
         ? "Qarnituru aktiv etmək istədiyinizə əminsiniz?"
@@ -80,8 +83,7 @@ function DentalSetList() {
         <div className="dentalSetCategoryLeftPart">
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
+            onChange={(e) => setStatusFilter(e.target.value)}>
             <option value="">Status</option>
             <option value="active">Aktiv</option>
             <option value="passive">Passiv</option>
@@ -112,10 +114,13 @@ function DentalSetList() {
         <table className="dentalSetPageTable">
           <thead>
             <tr>
-              <th>{garnitures.length === 0 ? "0" : `1-${garnitures.length}`}</th>
+              <th>
+                {garnitures.length === 0 ? "0" : `1-${garnitures.length}`}
+              </th>
               <th>
                 <span>
-                  <HiOutlineArrowsUpDown className="arrowIconsNow" /> Qarniturun adı
+                  <HiOutlineArrowsUpDown className="arrowIconsNow" /> Qarniturun
+                  adı
                 </span>
               </th>
               <th>
@@ -139,12 +144,15 @@ function DentalSetList() {
                   <td>
                     <span
                       className={`statusBadge ${
-                        row.status.toLowerCase() === "active" ? "active" : "passive"
+                        row.status.toLowerCase() === "active"
+                          ? "active"
+                          : "passive"
                       }`}
                       onClick={() => handleStatusChange(row.id, row.status)}
-                      style={{ cursor: "pointer" }}
-                    >
-                      {row.status.toLowerCase() === "active" ? "Aktiv" : "Passiv"}
+                      style={{ cursor: "pointer" }}>
+                      {row.status.toLowerCase() === "active"
+                        ? "Aktiv"
+                        : "Passiv"}
                     </span>
                   </td>
                   <td>
@@ -168,7 +176,9 @@ function DentalSetList() {
             )}
           </tbody>
         </table>
-        {error && <div style={{ color: "red", marginTop: 10 }}>Xəta: {error}</div>}
+        {error && (
+          <div style={{ color: "red", marginTop: 10 }}>Xəta: {error}</div>
+        )}
       </div>
     </div>
   );

@@ -21,10 +21,7 @@ const useGarnitureStore = create((set) => ({
   fetchGarnitures: async () => {
     set({ loading: true, error: null });
     try {
-      // getAllGarnitures() async funksiyası backenddən data obyektini qaytarır
       const response = await getAllGarnitures();
-      console.log("Backend cavabı:", response);
-      // Burada response.data yox, response birbaşa data obyektidir
       const garnitures = response.data || [];
       set({ garnitures, loading: false });
     } catch (error) {

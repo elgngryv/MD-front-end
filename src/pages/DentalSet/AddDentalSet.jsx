@@ -13,7 +13,7 @@ function AddDentalSet() {
   const [formErrors, setFormErrors] = useState({});
   const navigate = useNavigate();
 
-  const addGarniture = useGarnitureStore((state) => state.addGarniture); // <-- store-dan funksiyanı alırıq
+  const addGarniture = useGarnitureStore((state) => state.addGarniture); 
 
   const handleChange = (e) => {
     const { name, value } = e.target;

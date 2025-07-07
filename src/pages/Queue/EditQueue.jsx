@@ -203,7 +203,7 @@ function EditQueue() {
         {displayError && <div className="error-message">{displayError}</div>}
 
         {/* Debug information - remove in production */}
-        <div
+        {/* <div
           style={{
             background: "#f0f0f0",
             padding: "10px",
@@ -232,7 +232,7 @@ function EditQueue() {
               </div>
             </div>
           )}
-        </div>
+        </div> */}
 
         <div className="queuePageWrapperInputRow">
           <div className="queuePageWrapperInput">
