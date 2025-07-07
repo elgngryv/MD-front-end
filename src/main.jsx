@@ -237,6 +237,8 @@ import InfoXray from "./pages/patient/InfoXray";
 import EditXray from "./pages/patient/EditXray";
 import AddXRay from "./pages/patient/AddXray";
 
+import InfoInsurancePatient from "./pages/patient/InfoInsurancePatient.jsx";
+
 
 // Constants
 const roomOptions = [
@@ -246,6 +248,13 @@ const roomOptions = [
   { value: "4", label: "Otaq 4" },
   { value: "5", label: "Otaq 5" },
 ];
+
+import AddInsurancePatient from "./pages/patient/AddInsurancePatient.jsx";
+import EditInsurancePatient from "./pages/patient/EditInsurancePatient.jsx";
+import PatientInsuranceBalance from "./pages/patient/PatientInsuranceBalance.JSX";
+import PatientInsuranceBalanceAdd from "./pages/patient/PatientInsuranceBalanceAdd.jsx";
+import PatientInsuranceBalanceEdit from "./pages/patient/PatientInsuranceBalanceEdit.jsx";
+import PatientInsuranceBalanceInfo from "./pages/patient/PatientInsuranceBalanceInfo.jsx";
 
 const employees = [
   {
@@ -395,14 +404,21 @@ const AnimatedRoutes = () => {
               <Route path="history" element={<History />} />
               <Route path="history/edit" element={<EditHistory />} />
               <Route path="insurance" element={<Insurance />} />
-              <Route
+              <Route path="insurance/add" element={<AddInsurancePatient />} />
+              <Route path="insurance/info/:id" element={<InfoInsurancePatient />} />
+              <Route path="insurance/edit/:id" element={<EditInsurancePatient />} />
+              <Route path="insurance/insurance-balance/:id" element={<PatientInsuranceBalance />} />
+              <Route path="insurance/insurance-balance/:id/add" element={<PatientInsuranceBalanceAdd />} />
+              <Route path="insurance/insurance-balance/:id/edit/:id" element={<PatientInsuranceBalanceEdit />} />
+              <Route path="insurance/insurance-balance/:id/info/:id" element={<PatientInsuranceBalanceInfo />} />
+              {/* <Route
                 path="insurance/:id"
                 element={<ViewInsurance mode="view" />}
-              />
-              <Route
+              /> */}
+              {/* <Route
                 path="insurance/:id/edit"
                 element={<ViewInsurance mode="edit" />}
-              />
+              /> */}
               <Route path="insurance/create" element={<CreateInsurance />} />
               <Route path="treatment" element={<Treatment />} />
               <Route path="xray" element={<XRay />} />
@@ -584,12 +600,12 @@ const AnimatedRoutes = () => {
             <Route path="/settings/color/add" element={<AddColor />} />
             <Route path="/settings/color/:id" element={<ColorDetail />} />
 
-            <Route path="/settings/insurance" element={<InsuranceList />} />
-            <Route path="/settings/insurance/add" element={<AddInsurance />} />
-            <Route
-              path="/settings/insurance/:id"
-              element={<InsuranceDetail />}
-            />
+            {/*<Route path="/settings/insurance" element={<InsuranceList />} />*/}
+            {/*<Route path="/settings/insurance/add" element={<AddInsurance />} />*/}
+            {/*<Route*/}
+            {/*  path="/settings/insurance/:id"*/}
+            {/*  element={<InsuranceDetail />}*/}
+            {/*/>*/}
 
             {/* Other Settings Routes */}
             <Route path="/admin-users" element={<AdminUser />} />
