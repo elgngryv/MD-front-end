@@ -82,7 +82,6 @@ export const updateWorker = async (workerData) => {
 
 export const searchWorkers = async (searchParams) => {
   try {
-    // Transform search parameters for partial matching
     const transformedParams = {};
     for (const key in searchParams) {
       if (
@@ -90,7 +89,6 @@ export const searchWorkers = async (searchParams) => {
         searchParams[key] !== null &&
         searchParams[key] !== ""
       ) {
-        // Add wildcards (%) for string type fields for SQL LIKE queries
         if (typeof searchParams[key] === "string") {
           transformedParams[key] = `%${searchParams[key]}%`;
         } else {
@@ -99,12 +97,12 @@ export const searchWorkers = async (searchParams) => {
       }
     }
 
-    console.log("Sending search parameters:", transformedParams); // Added for debugging
+    console.log("Sending search parameters:", transformedParams);
     const response = await axiosInstance.post(
       `${API_BASE_URL}/add-worker/search`,
       transformedParams
     );
-    console.log("Search results received:", response.data); // Added for debugging
+    console.log("Search results received:", response.data);
     return response.data;
   } catch (error) {
     console.error("Error searching workers:", error);
@@ -133,6 +131,28 @@ export const deleteWorker = async (id) => {
       "❌ Error deleting worker:",
       error.response?.data || error.message
     );
+    throw error;
+  }
+};
+
+export const fetchWorkersByPermission = async (permissionName) => {
+  try {
+    const response = await axiosInstance.post(
+      `${API_BASE_URL}/add-worker/read-permission/${permissionName}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error(`Rol ilə işçiləri gətirərkən xəta: ${permissionName}`, error);
+    throw error;
+  }
+};
+
+export const apiFetchPermissions = async () => {
+  try {
+    const response = await axiosInstance.get(`${API_BASE_URL}/permission/read`);
+    return response.data;
+  } catch (error) {
+    console.error("Permissions gətirərkən xəta:", error);
     throw error;
   }
 };

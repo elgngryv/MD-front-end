@@ -29,6 +29,8 @@ const usePermissionStore = create((set) => ({
     }
   },
 
+  
+
   // ✅ ID ilə icazə gətir
   fetchPermissionById: async (id) => {
     set({ loading: true, error: null });

@@ -1,4 +1,3 @@
-// src/store/useWorkerStore.js (Assuming this path for import)
 import { create } from "zustand";
 import {
   createWorker,
@@ -7,14 +6,17 @@ import {
   updateWorker,
   deleteWorker,
   readWorkerStatus,
-  searchWorkers, // Ensure this import path is correct
-} from "../src/api/add-worker"; // Corrected relative path assumption
+  searchWorkers,
+  fetchWorkersByPermission,
+  apiFetchPermissions,
+} from "../src/api/add-worker"; 
 
-const useWorkerStore = create((set, get) => ({ // Added 'get' to access other state actions
+const useWorkerStore = create((set, get) => ({
   workers: [],
   searchResult: [],
   selectedWorker: null,
   statusList: [],
+  permissions: [], 
   loading: false,
   error: null,
 
@@ -22,7 +24,7 @@ const useWorkerStore = create((set, get) => ({ // Added 'get' to access other st
     set({ loading: true, error: null });
     try {
       const data = await readWorkers();
-      set({ workers: data, searchResult: data, loading: false }); // Also update searchResult on initial fetch
+      set({ workers: data, searchResult: data, loading: false });
     } catch (err) {
       set({ error: err.message, loading: false });
     }
@@ -38,7 +40,7 @@ const useWorkerStore = create((set, get) => ({ // Added 'get' to access other st
   },
 
   fetchWorkerById: async (id) => {
-    set({ loading: true, error: null }); // Set loading for individual worker fetch too
+    set({ loading: true, error: null });
     try {
       const data = await getWorkerInfo(id);
       set({ selectedWorker: data, loading: false });
@@ -51,10 +53,10 @@ const useWorkerStore = create((set, get) => ({ // Added 'get' to access other st
     set({ loading: true, error: null });
     try {
       await createWorker(workerData);
-      await get().fetchWorkers(); // Use get() to call other actions in the store
+      await get().fetchWorkers();
     } catch (err) {
       set({ error: err.message, loading: false });
-      throw err; // Re-throw to allow component to catch and display specific error
+      throw err;
     }
   },
 
@@ -62,10 +64,10 @@ const useWorkerStore = create((set, get) => ({ // Added 'get' to access other st
     set({ loading: true, error: null });
     try {
       await updateWorker(workerData);
-      await get().fetchWorkers(); // Use get() to call other actions in the store
+      await get().fetchWorkers();
     } catch (err) {
       set({ error: err.message, loading: false });
-      throw err; // Re-throw to allow component to catch and display specific error
+      throw err;
     }
   },
 
@@ -73,10 +75,10 @@ const useWorkerStore = create((set, get) => ({ // Added 'get' to access other st
     set({ loading: true, error: null });
     try {
       await deleteWorker(id);
-      await get().fetchWorkers(); // Use get() to call other actions in the store
+      await get().fetchWorkers();
     } catch (err) {
       set({ error: err.message, loading: false });
-      throw err; // Re-throw to allow component to catch and display specific error
+      throw err;
     }
   },
 
@@ -89,7 +91,32 @@ const useWorkerStore = create((set, get) => ({ // Added 'get' to access other st
       set({ searchResult: data, loading: false, error: null });
     } catch (err) {
       set({ error: err.message, loading: false });
-      throw err; // Re-throw to allow component to catch and display specific error
+      throw err;
+    }
+  },
+
+  fetchByPermission: async (permissionName) => {
+    set({ loading: true, error: null });
+    try {
+      const data = await fetchWorkersByPermission(permissionName);
+      set({ searchResult: data, loading: false });
+    } catch (error) {
+      set({ error: error.message, loading: false });
+      console.error("Rol üzrə işçilər gətirilərkən xəta:", error);
+    }
+  },
+
+  fetchPermissions: async () => {
+    set({ loading: true, error: null });
+    try {
+      const data = await apiFetchPermissions();
+      set({ permissions: data, loading: false });
+    } catch (error) {
+      set({
+        error: error.message || "İcazələri gətirə bilmədik",
+        loading: false,
+      });
+      console.error("Permissions gətirərkən xəta:", error);
     }
   },
 }));

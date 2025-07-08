@@ -82,3 +82,4 @@ export const deletePermission = async (id) => {
     throw error;
   }
 };
+
