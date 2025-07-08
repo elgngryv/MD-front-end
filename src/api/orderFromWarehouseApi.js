@@ -27,7 +27,10 @@ export const deleteOrderFromWarehouse = async (id) => {
   return response.data;
 };
 
-export const deleteProductFromOrderFromWarehouse = async (orderId, productId) => {
+export const deleteProductFromOrderFromWarehouse = async (
+  orderId,
+  productId
+) => {
   const response = await axiosInstance.delete(
     `${API_BASE_URL}/delete-order-from-warehouse-product/order-from-warehouse/${orderId}/order-from-warehouse-product/${productId}`
   );

@@ -28,16 +28,12 @@ const StockImport = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    let ignore = false;
     const loadInitialData = async () => {
       await fetchWarehouseEntries();
       await fetchCategories();
       await fetchProducts();
     };
-    if (!ignore) loadInitialData();
-    return () => {
-      ignore = true;
-    };
+    loadInitialData();
   }, []);
 
   const handleSearch = async () => {
@@ -101,9 +97,11 @@ const StockImport = () => {
   const handleEdit = (id) => navigate(`/stock/import/edit/${id}`);
   const handleView = (id) => navigate(`/stock/import/${id}`);
 
-  const getDateTime = (dateStr, timeStr) => {
-    if (!dateStr || !timeStr) return null;
-    return new Date(`${dateStr}T${timeStr}`);
+  const getDateTime = (dateStr, timeObj) => {
+    if (!dateStr || !timeObj) return null;
+    const hour = timeObj.hour?.toString().padStart(2, "0") || "00";
+    const minute = timeObj.minute?.toString().padStart(2, "0") || "00";
+    return new Date(`${dateStr}T${hour}:${minute}`);
   };
 
   const formatTime = (dt) => {
@@ -131,7 +129,13 @@ const StockImport = () => {
     });
   }, [entryDetails, products, categories]);
 
-  // Listdə tarix və saat sütunları
+  const calculateTotalQuantity = (row) => {
+    return (row.warehouseEntryProducts || []).reduce(
+      (sum, item) => sum + (item.quantity || 0),
+      0
+    );
+  };
+
   const listColumns = [
     {
       key: "date",
@@ -149,7 +153,11 @@ const StockImport = () => {
         return formatTime(dt);
       },
     },
-    { key: "number", label: "Çeşid sayı" },
+    // {
+    //   key: "quantity",
+    //   label: "Məhsul sayı",
+    //   render: (row) => calculateTotalQuantity(row),
+    // },
     { key: "sumPrice", label: "Ümumi məbləğ" },
   ];
 
@@ -184,11 +192,7 @@ const StockImport = () => {
             onClick={() => navigate("/stock/import/add")}>
             Yenisini əlavə et
           </button>
-          <button
-            onClick={() => {
-              // Burada download funksionallığı əlavə edilə bilər
-              console.log("Yükləmə funksiyası əlavə olunmalıdır");
-            }}>
+          <button onClick={() => console.log("Yükləmə funksiyası əlavə olunmalıdır")}>
             <DownloadIcon />
           </button>
         </div>
@@ -221,10 +225,7 @@ const StockImport = () => {
             <div>
               <strong>Tarix:</strong>{" "}
               {entryDetails.date && entryDetails.time
-                ? getDateTime(
-                    entryDetails.date,
-                    entryDetails.time
-                  ).toLocaleDateString("az-AZ")
+                ? getDateTime(entryDetails.date, entryDetails.time).toLocaleDateString("az-AZ")
                 : "-"}
             </div>
             <div>
@@ -238,8 +239,11 @@ const StockImport = () => {
               {entryDetails.totalAmount || entryDetails.sumPrice || "0 ₼"}
             </div>
             <div>
-              <strong>Çeşid sayı:</strong>{" "}
-              {(entryDetails.warehouseEntryProducts || []).length}
+              <strong>Toplam məhsul sayı:</strong>{" "}
+              {(entryDetails.warehouseEntryProducts || []).reduce(
+                (sum, item) => sum + (item.quantity || 0),
+                0
+              )}
             </div>
           </div>
 

@@ -2,12 +2,16 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useProductCategoryStore } from "../../../stores/productCategories";
 import { useProductStore } from "../../../stores/productStore";
+import useWarehouseEntryStore from "../../../stores/warehouseEntryStore";
 
 const StockImportEdit = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+
   const { fetchCategories, categories } = useProductCategoryStore();
   const { fetchProducts, products } = useProductStore();
+  const { fetchWarehouseEntryInfo, selectedEntry, updateEntry } =
+    useWarehouseEntryStore();
 
   const [entryData, setEntryData] = useState(null);
 
@@ -19,7 +23,6 @@ const StockImportEdit = () => {
     })();
   }, [id]);
 
-  
   const fetchEntryDetail = async () => {
     try {
       const res = await fetch(
@@ -31,22 +34,24 @@ const StockImportEdit = () => {
         }
       );
       if (!res.ok) throw new Error("API-dən düzgün cavab gəlmədi");
+
       const data = await res.json();
 
       const transformedData = {
-        id: data.id || null,
+        id: id,
         date: data.date || "",
         time: data.time || "00:00:00",
         description: data.description || "",
-        warehouseEntryProductUpdateRequests: data.warehouseEntryProducts.map((p) => ({
-          warehouseEntryProductId: p.id, 
-          categoryId: 0,
-          productId: 0,
+        warehouseEntryProductUpdateRequests: (
+          data.warehouseEntryProducts || []
+        ).map((p) => ({
+          warehouseEntryProductId: p.id,
+          categoryId: p.categoryId || 0,
+          productId: p.productId || 0,
           quantity: p.quantity,
           price: p.price,
         })),
       };
-      
 
       setEntryData(transformedData);
     } catch (err) {
@@ -64,49 +69,37 @@ const StockImportEdit = () => {
   };
 
   const handleSubmit = async () => {
+    if (!entryData?.id) {
+      alert("Entry ID yoxdur, yenilənmə mümkün deyil.");
+      return;
+    }
     try {
-      // time: "HH:mm:ss" formatındadır, onu parçala
-      const [hour, minute, second] = entryData.time
-        ? entryData.time.split(":").map((v) => parseInt(v, 10))
-        : [0, 0, 0];
-
-      const dateTime = new Date(entryData.date);
-      dateTime.setHours(hour);
-      dateTime.setMinutes(minute);
-      dateTime.setSeconds(second);
+      let timeString = entryData.time || "00:00:00";
 
       const payload = {
         id: entryData.id,
-        localDateTime: dateTime.toISOString(),
+        date: entryData.date,
+        time: timeString,
         description: entryData.description,
         warehouseEntryProductUpdateRequests:
           entryData.warehouseEntryProductUpdateRequests.map((item) => ({
             warehouseEntryProductId: item.warehouseEntryProductId,
+            categoryId: item.categoryId,
             productId: item.productId,
             quantity: item.quantity,
             price: item.price,
           })),
       };
 
-      const res = await fetch(
-        `${import.meta.env.VITE_BASE_URL}/warehouse-entry/update`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: JSON.stringify(payload),
-        }
-      );
+      console.log("Payload to submit:", payload);
 
-      if (res.ok) {
+      const response = await updateEntry(payload);
+
+      if (response) {
         alert("Uğurla yeniləndi!");
         navigate("/stock/import");
       } else {
-        const errorData = await res.json();
-        console.error("Server xətası:", errorData);
-        throw new Error(errorData.message || "Yenilənmə zamanı xəta baş verdi");
+        alert("Yenilənmə zamanı xəta baş verdi");
       }
     } catch (err) {
       alert("Xəta baş verdi: " + err.message);
@@ -133,9 +126,10 @@ const StockImportEdit = () => {
       </div>
 
       <div className="mb-4">
-        <label className="block mb-1">Saat:</label>
+        <label className="block mb-1">Saat (HH:mm:ss):</label>
         <input
           type="time"
+          step="1"
           value={entryData.time}
           onChange={(e) => setEntryData({ ...entryData, time: e.target.value })}
           className="p-2 border rounded w-full"
@@ -152,7 +146,7 @@ const StockImportEdit = () => {
                 handleChange(index, "categoryId", +e.target.value)
               }
               className="p-2 border rounded w-full">
-              <option value="">Seçin</option>
+              <option value={0}>Seçin</option>
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
                   {cat.categoryName}
@@ -169,7 +163,7 @@ const StockImportEdit = () => {
                 handleChange(index, "productId", +e.target.value)
               }
               className="p-2 border rounded w-full">
-              <option value="">Seçin</option>
+              <option value={0}>Seçin</option>
               {products
                 .filter((p) => p.categoryId === item.categoryId)
                 .map((product) => (

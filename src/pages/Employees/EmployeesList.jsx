@@ -135,9 +135,7 @@ const EmployeesList = () => {
     }
   };
 
-  // Icons və digər JSX hissələri dəyişmir, onları olduğu kimi saxla.
 
-  // Pagination və table render hissələri aşağıdakılardır:
 
   const icons = [
     {
