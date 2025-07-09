@@ -10,7 +10,7 @@ export const createPatientRecipe = async (data) => {
 // READ - GET
 export const getPatientRecipes = async (patientId) => {
   return await axiosInstance.get(`${BASE_URL}/read`, {
-    params: { patientId }, 
+    params: { patientId },
   });
 };
 
