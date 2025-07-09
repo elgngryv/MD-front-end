@@ -25,7 +25,6 @@ function EmployeeEdit() {
     fetchWorkerById(id);
   }, [id, fetchWorkerById]);
 
-  // Form məlumatlarını local state-ə kopyalayırıq ki, inputlara düzgün otursun
   useEffect(() => {
     if (selectedWorker) {
       setLocalWorker({

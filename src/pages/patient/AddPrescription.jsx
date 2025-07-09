@@ -25,7 +25,7 @@ const AddPrescription = () => {
                 <input type='date' className='flex-5 border border-gray-300 rounded-md p-2 h-[44px]' placeholder='Tarix' />
             </div>
             <div className='flex gap-4 justify-between items-center'>
-                <label className='flex-1'>Reseptin müddəti</label>
+                <label className='flex-1'>Reseptin maddələri</label>
                 <input  type='text' className='flex-5 border border-gray-300 rounded-md p-2 h-[44px]' placeholder='Reseptin müddəti' />
             </div>
         </div>

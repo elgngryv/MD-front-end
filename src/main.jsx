@@ -406,7 +406,7 @@ const AnimatedRoutes = () => {
               <Route path="insurance" element={<Insurance />} />
               <Route path="insurance/add" element={<AddInsurancePatient />} />
               <Route path="insurance/info/:id" element={<InfoInsurancePatient />} />
-              <Route path="insurance/edit/:id" element={<EditInsurancePatient />} />
+              <Route path="insurance/edit/:insuranceId" element={<EditInsurancePatient />} />
               <Route path="insurance/insurance-balance/:id" element={<PatientInsuranceBalance />} />
               <Route path="insurance/insurance-balance/:id/add" element={<PatientInsuranceBalanceAdd />} />
               <Route path="insurance/insurance-balance/:id/edit/:id" element={<PatientInsuranceBalanceEdit />} />
