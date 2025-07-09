@@ -255,6 +255,7 @@ import PatientInsuranceBalance from "./pages/patient/PatientInsuranceBalance.JSX
 import PatientInsuranceBalanceAdd from "./pages/patient/PatientInsuranceBalanceAdd.jsx";
 import PatientInsuranceBalanceEdit from "./pages/patient/PatientInsuranceBalanceEdit.jsx";
 import PatientInsuranceBalanceInfo from "./pages/patient/PatientInsuranceBalanceInfo.jsx";
+import EditPrescription from "./pages/patient/EditPrescription.jsx";
 
 const employees = [
   {
@@ -427,7 +428,7 @@ const AnimatedRoutes = () => {
               <Route path="xray/add" element={<AddXRay />} />
               <Route path="prescription" element={<Prescription />} />
               <Route
-                path="prescription/:id"
+                path="prescription/:prescriptionId"
                 element={<ViewPrescription mode="view" />}
               />
               <Route
@@ -436,7 +437,7 @@ const AnimatedRoutes = () => {
               />
               <Route
                 path="prescription/:id/edit"
-                element={<ViewPrescription mode="edit" />}
+                element={<EditPrescription mode="edit" />}
               />
             </Route>
 
