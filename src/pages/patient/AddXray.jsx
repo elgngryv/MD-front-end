@@ -1,20 +1,32 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom"; // useParams əlavə edildi
 import TitleUpdater from "../../components/TitleUpdater";
-import { FaCalendarAlt } from "react-icons/fa"; // FaUpload artıq lazım deyil
+import { FaCalendarAlt } from "react-icons/fa";
 import { IoMdClose, IoMdCheckmarkCircleOutline } from "react-icons/io";
-import { MdDeleteForever } from "react-icons/md"; // Şəkil silmə ikonu
+import { MdDeleteForever } from "react-icons/md";
+
+// Tutaq ki, patientId URL-dən gəlir.
+// Məsələn, marşrutunuz `/patients/:patientId/xrays/add` kimi ola bilər.
+// Əgər ID başqa yerdən gəlirsə, ona uyğun tənzimləyin.
 
 const AddXRay = () => {
     const navigate = useNavigate();
+    const { patientId } = useParams(); // URL-dən patientId-ni alırıq
 
     const [newXray, setNewXray] = useState({
         date: "",
         description: "",
-        urls: [], // urls array olacaq
+        // patientId əlavə edildi (Əgər URL-dən gəlmirsə, başqa yolla əldə edin)
+        patientId: patientId || "", // useParams-dan gələn patientId istifadə olunur
     });
 
     const [newImages, setNewImages] = useState([]); // Yeni yüklənəcək şəkillər üçün state
+    const [loading, setLoading] = useState(false); // Yüklənmə vəziyyəti üçün state
+    const [error, setError] = useState(null); // Səhvlər üçün state
+
+    // API-nizin əsas URL-i (localhost, server ünvanı və s.)
+    // Bunu öz API-nizin ünvanına uyğun dəyişdirin!
+    const API_BASE_URL = "http://localhost:8080"; // Məsələn
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -31,11 +43,10 @@ const AddXRay = () => {
             ...files.map(file => ({
                 file,
                 preview: URL.createObjectURL(file), // Şəkil preview üçün URL
-                isNew: true // Yeni yüklənən şəkil olduğunu göstərir (AddXRay üçün həmişə isNew olacaq)
+                isNew: true // Yeni yüklənən şəkil olduğunu göstərir
             }))
         ]);
-        // Seçilmiş faylları təmizlə ki, eyni fayl təkrar seçilə bilsin
-        e.target.value = null;
+        e.target.value = null; // Seçilmiş faylları təmizlə ki, eyni fayl təkrar seçilə bilsin
     };
 
     const handleRemoveImage = (indexToRemove) => {
@@ -51,18 +62,85 @@ const AddXRay = () => {
         });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // Burda `newXray` (tarix və description) və `newImages` (yüklənmiş fayllar)
-        // API-yə göndərilməlidir. Məsələn, FormData istifadə edərək.
+        setLoading(true);
+        setError(null);
 
-        // Aşağıdakı konsol loqları yalnız nümunə üçündür, real tətbiqdə API çağırışı olacaq.
-        console.log("Yeni Rentgen Məlumatları:", newXray);
-        console.log("Yüklənmiş Şəkillər (fayl obyektləri):", newImages.map(img => img.file));
+        // Validasiya (məsələn, şəkil seçilibmi)
+        if (newImages.length === 0) {
+            setError("Zəhmət olmasa, ən azı bir şəkil seçin.");
+            setLoading(false);
+            return;
+        }
+        if (!newXray.date) {
+            setError("Rentgenin tarixi boş ola bilməz.");
+            setLoading(false);
+            return;
+        }
+        if (!newXray.patientId) {
+            setError("Xəstə ID-si təyin olunmayıb. Zəhmət olmasa, səhifəni yenidən yükləyin və ya ID-nin düzgün göndərildiyindən əmin olun.");
+            setLoading(false);
+            return;
+        }
 
-        // API çağırışından sonra navigasiya et
-        navigate('/xray');
-        alert("Yeni rentgen məlumatları uğurla əlavə edildi!");
+        const formData = new FormData();
+
+        // 'data' hissəsini JSON stringi kimi əlavə et
+        // Buradakı 'patientId' key-value cütü sizin back-end-inizin gözlədiyi kimi olmalıdır.
+        // Swagger-də "data" obyekti altında olduğu görünür.
+        const xrayData = {
+            date: newXray.date,
+            description: newXray.description,
+            patientId: parseInt(newXray.patientId), // patientId-ni int-ə çevirin, əgər backend int gözləyirsə
+            // urls sahəsi boş qalacaq, çünki server onu avtomatik dolduracaq
+        };
+
+        // FormData-ya 'data' JSON hissəsini əlavə edirik
+        // Blob olaraq əlavə etmək, Postman-dəki "JSON" tipi seçiminə bənzərdir
+        formData.append("data", new Blob([JSON.stringify(xrayData)], { type: "application/json" }));
+
+        // Faylları əlavə et (birdən çox ola bilər)
+        newImages.forEach((image, index) => {
+            // Server tərəfdə @RequestPart("file") deyə qəbul edilirsə, sadəcə "file" olaraq göndərilir.
+            // Əgər server tərəfdə List<MultipartFile> qəbul edilsə, bəzən "files" və ya "file[]" kimi göndərilir.
+            // Swagger-də "file" string($binary) yazıldığından, "file" olaraq tək-tək göndəririk.
+            formData.append("file", image.file);
+        });
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/v1/patient-xray/create`, {
+                method: "POST",
+                // Headers avtomatik olaraq 'multipart/form-data; boundary=...' təyin olunacaq
+                // FormData istifadə edərkən Content-Type başlığını əl ilə təyin etməyin!
+                headers: {
+                    // Məsələn, Authorization tokenini localStorage-dan oxuya bilərsiniz
+                    'Authorization': `Bearer ${localStorage.getItem('yourAuthToken')}`, // Tokeninizi buradan alın
+                    // 'Accept': 'application/json', // Opsiyonel: Yaxşı praktikadır
+                },
+                body: formData,
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || `API səhvi: ${response.status}`);
+            }
+
+            // Uğurlu cavab
+            alert("Yeni rentgen məlumatları uğurla əlavə edildi!");
+            navigate(`/patients/${patientId}/xrays`); // X-ray siyahısı səhifəsinə yönləndirmə
+        } catch (err) {
+            console.error("Rentgen əlavə edilərkən səhv baş verdi:", err);
+            setError(err.message || "Rentgen əlavə edilərkən gözlənilməyən səhv baş verdi.");
+        } finally {
+            setLoading(false);
+            // Preview URL-ləri təmizlə
+            newImages.forEach(img => {
+                if (img.preview) {
+                    URL.revokeObjectURL(img.preview);
+                }
+            });
+        }
     };
 
     const handleCancel = () => {
@@ -72,7 +150,7 @@ const AddXRay = () => {
                 URL.revokeObjectURL(img.preview);
             }
         });
-        navigate('/xray');
+        navigate(`/patients/${patientId}/xrays`); // X-ray siyahısı səhifəsinə yönləndirmə
     };
 
     return (
@@ -122,7 +200,7 @@ const AddXRay = () => {
                     {/* Şəkil Yüklə */}
                     <div className="flex items-start">
                         <label htmlFor="image-upload" className="w-1/4 text-md font-medium text-gray-800 mr-4 pt-2">
-                            Şəkil
+                            Şəkil <span className="text-red-500">*</span>
                         </label>
                         <div className="flex-1">
                             <input
@@ -163,20 +241,41 @@ const AddXRay = () => {
                         </div>
                     </div>
 
+                    {/* Error Mesajı */}
+                    {error && (
+                        <div className="flex justify-center text-red-600 text-sm mt-4">
+                            {error}
+                        </div>
+                    )}
+
                     {/* Düymələr */}
                     <div className="flex justify-end space-x-4 pt-4">
                         <button
                             type="button"
                             onClick={handleCancel}
                             className="flex items-center px-6 py-3 border border-blue-600 rounded-lg shadow-sm text-base font-medium text-blue-600 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            disabled={loading} // Yüklənərkən düyməni deaktiv et
                         >
                             <IoMdClose className="mr-2 text-lg" /> İmtina et
                         </button>
                         <button
                             type="submit"
                             className="flex items-center px-6 py-3 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            disabled={loading} // Yüklənərkən düyməni deaktiv et
                         >
-                            <IoMdCheckmarkCircleOutline className="mr-2 text-lg" /> Yadda saxla
+                            {loading ? (
+                                <>
+                                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Yüklənir...
+                                </>
+                            ) : (
+                                <>
+                                    <IoMdCheckmarkCircleOutline className="mr-2 text-lg" /> Yadda saxla
+                                </>
+                            )}
                         </button>
                     </div>
                 </form>

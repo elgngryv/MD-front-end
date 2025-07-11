@@ -1,6 +1,7 @@
-import axiosInstance from "./temp-axios-auth";
+// src/api/patient-recipe.js
+import axiosInstance from "./temp-axios-auth"; // Make sure this path is correct
 
-const API_BASE_URL = import.meta.env.VITE_BASE_URL;
+const API_BASE_URL = import.meta.env.VITE_BASE_URL; // Your base API URL from .env
 
 export const createPatientRecipe = async (recipeData) => {
   try {
@@ -28,13 +29,13 @@ export const createPatientRecipe = async (recipeData) => {
   }
 };
 
-export const readPatientRecipes = async (patientId) => { // patientId parametrini əlavə etdik
+export const readPatientRecipes = async (patientId) => {
   try {
     const response = await axiosInstance.get(
       `${API_BASE_URL}/patient-recipes/read`,
       {
         params: {
-          patientId: patientId, // patientId-ni query kimi göndəririk
+          patientId: patientId,
         },
       }
     );
@@ -85,6 +86,7 @@ export const deletePatientRecipe = async (id) => {
 
 export const readSingleRecipeById = async (id) => {
   try {
+    // This is the specific API call for GET /recipe/read-by-id with query parameter
     const response = await axiosInstance.get(
       `${API_BASE_URL}/recipe/read-by-id`,
       {
@@ -93,7 +95,9 @@ export const readSingleRecipeById = async (id) => {
         },
       }
     );
-    // Fərz edirik ki, cavab birbaşa resept obyektidir və 'name' sahəsi var.
+    // Assuming the API returns the recipe object directly in response.data,
+    // and that object contains a 'name' field (e.g., { id: 1, name: "Recipe A", ... }).
+    // If the field for the name is different (e.g., 'recipeName'), you'll adjust in the store.
     return response.data;
   } catch (error) {
     console.error(`Error reading single recipe with ID ${id}:`, error);

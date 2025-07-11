@@ -2,12 +2,14 @@ import React, { useEffect, useState } from "react";
 import DownloadIcon from "../../assets/icons/Download";
 import SimpleList from "../../components/list/SimpleList";
 import { useNavigate, useParams } from "react-router-dom";
-import usePatientRecipeStore from "../../../stores/usePatientRecipeStore"; // Path-i düzəldin
+import usePatientRecipeStore from "../../../stores/usePatientRecipeStore";
+import { toast } from "react-toastify";
+import Modal from "../../components/Modal"; // Import your Modal component
 
 const Prescription = () => {
   const navigate = useNavigate();
-  const { id: paramPatientId } = useParams();
-  const currentPatientId = parseInt(paramPatientId);
+  const { id } = useParams();
+  const currentPatientId = parseInt(id);
 
   const {
     patientRecipes,
@@ -15,11 +17,13 @@ const Prescription = () => {
     error,
     fetchPatientRecipes,
     removePatientRecipe,
-    fetchRecipeName, // <--- Yeni action
-    recipeNamesCache, // <--- Cache state
+    fetchRecipeName,
+    recipeNamesCache,
   } = usePatientRecipeStore();
 
   const [selectedDate, setSelectedDate] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false); // State for modal visibility
+  const [recipeToDeleteId, setRecipeToDeleteId] = useState(null); // State to store ID of recipe to delete
 
   useEffect(() => {
     console.log("Cari Xəstə ID:", currentPatientId);
@@ -31,18 +35,15 @@ const Prescription = () => {
     }
   }, [fetchPatientRecipes, currentPatientId]);
 
-  // Yeni useEffect: patientRecipes dəyişdikdə, hər birinin adını gətir
   useEffect(() => {
     const fetchMissingRecipeNames = async () => {
-      // Yalnız `recipeName` null olan və ya cache-də olmayan reseptlər üçün sorğu atırıq
-      // *** BURADA DA `patientRecipes`-in null/undefined olmaması üçün yoxlama əlavə edirik ***
       const recipesToFetch = (patientRecipes || []).filter(
         (recipe) =>
-          !recipe.recipeName && recipe.recipeId && !recipeNamesCache[recipe.recipeId] // recipe.recipeId yoxlaması əlavə edildi
+          !recipe.recipeName &&
+          recipe.recipeId &&
+          !recipeNamesCache[recipe.recipeId]
       );
 
-      // Bütün lazımi adları paralel şəkildə fetch etmək üçün Promise.all istifadə edirik
-      // (Performans üçün vacibdir!)
       await Promise.all(
         recipesToFetch.map(async (recipe) => {
           await fetchRecipeName(recipe.recipeId);
@@ -50,25 +51,28 @@ const Prescription = () => {
       );
     };
 
-    // *** BURADA DA `patientRecipes`-in null/undefined olmaması üçün yoxlama əlavə edirik ***
     if (patientRecipes && patientRecipes.length > 0) {
       fetchMissingRecipeNames();
     }
-  }, [patientRecipes, fetchRecipeName, recipeNamesCache]); // Asılılıqlara `recipeNamesCache` də əlavə etdik
+  }, [patientRecipes, fetchRecipeName, recipeNamesCache]);
 
-  // *** Əsas Dəyişiklik BURADA: patientRecipes-i map etməzdən əvvəl yoxlayırıq ***
-  const listData = (patientRecipes && patientRecipes.length > 0)
-    ? patientRecipes.map((recipe) => ({
-        id: recipe.recipeId,
-        // Adı cache-dən götürürük. Əgər API cavabında recipeName gəlirsə, onu üstün tuturuq.
-        // Əks halda cache-dən, o da yoxdursa fallback dəyər.
-        name: recipe.recipeName || recipeNamesCache[recipe.recipeId] || `Resept ${recipe.recipeId}`,
-        date: new Date(recipe.date).toLocaleDateString("az-AZ"),
-      }))
-    : []; // Əgər patientRecipes boşdursa və ya undefined-dirsə, boş bir array qaytarırıq.
+  const listData =
+    patientRecipes && patientRecipes.length > 0
+      ? patientRecipes.map((recipe) => ({
+          id: recipe.id,
+          name:
+            recipe.recipeName ||
+            recipeNamesCache[recipe.recipeId] ||
+            `Resept ${recipe.recipeId}`,
+          date: new Date(recipe.date).toLocaleDateString("az-AZ"),
+        }))
+      : [];
 
   const filteredData = selectedDate
-    ? listData.filter((item) => item.date === new Date(selectedDate).toLocaleDateString("az-AZ"))
+    ? listData.filter(
+        (item) =>
+          item.date === new Date(selectedDate).toLocaleDateString("az-AZ")
+      )
     : listData;
 
   const columns = [
@@ -82,19 +86,33 @@ const Prescription = () => {
     },
   ];
 
-  const handleDelete = async (id) => {
-    if (window.confirm("Bu resepti silmək istədiyinizə əminsinizmi?")) {
+  // Function to open the modal
+  const openDeleteModal = (id) => {
+    setRecipeToDeleteId(id);
+    setIsModalOpen(true);
+  };
+
+  // Function to close the modal
+  const closeDeleteModal = () => {
+    setIsModalOpen(false);
+    setRecipeToDeleteId(null);
+  };
+
+  // Function to handle the actual deletion after modal confirmation
+  const handleConfirmDelete = async () => {
+    if (recipeToDeleteId) {
       try {
-        await removePatientRecipe(id, currentPatientId);
-        console.log("Resept uğurla silindi!");
+        await removePatientRecipe(recipeToDeleteId, currentPatientId);
+        // Toast message handled by the store now
       } catch (err) {
         console.error("Resept silinərkən xəta:", err);
-        alert("Resept silinərkən xəta baş verdi: " + (err.message || "Naməlum xəta"));
+        // If the store's toast isn't enough, you could add a local toast.error here
+      } finally {
+        closeDeleteModal(); // Close modal whether success or fail
       }
     }
   };
 
-  // Loading state for initial fetch or when recipes are still empty
   if (loading && (!patientRecipes || patientRecipes.length === 0)) {
     return <div>Reseptlər yüklənir...</div>;
   }
@@ -131,7 +149,6 @@ const Prescription = () => {
         </div>
       </div>
       <div>
-        {/* SimpleList-i yalnız `filteredData` boş deyilsə render edirik */}
         {filteredData && filteredData.length > 0 ? (
           <SimpleList
             data={filteredData}
@@ -145,16 +162,27 @@ const Prescription = () => {
             handleEdit={(id) => {
               navigate(`${id}/edit?patientId=${currentPatientId}`);
             }}
-            handleDelete={handleDelete}
+            handleDelete={openDeleteModal} // Pass openDeleteModal here
             handleView={(id) => {
               navigate(`${id}?patientId=${currentPatientId}`);
             }}
           />
         ) : (
-          // Əgər loading bitibsə, xəta yoxdursa və data yoxdursa "Resept tapılmadı" mesajını göstəririk
-          !loading && !error && <div className="text-center py-4">Resept tapılmadı.</div>
+          !loading &&
+          !error && <div className="text-center py-4">Resept tapılmadı.</div>
         )}
       </div>
+
+      {/* Your Modal Component */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={closeDeleteModal}
+        title="Resepti Silmək"
+        message="Bu resepti silmək istədiyinizə əminsinizmi? Bu əməliyyat geri qaytarıla bilməz."
+        confirmText="Sil"
+        onConfirm={handleConfirmDelete} // Call handleConfirmDelete on confirm
+        confirmButtonClass="confirm-button delete-button" // Add a class for specific styling if needed
+      />
     </div>
   );
 };

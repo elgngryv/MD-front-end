@@ -19,6 +19,7 @@ import axios from "axios";
 const General = () => {
   const [isEditing, setIsEditing] = useState(false);
   const { id } = useParams();
+
   const { data: patient, isLoading, error } = usePatient(id);
   const { mutate: deletePatient, isPending: deletingPatient } =
     useDeletePatient();
@@ -28,7 +29,6 @@ const General = () => {
 
   const [doctors, setDoctors] = useState([]);
   const [doctorsLoading, setDoctorsLoading] = useState(true);
-
   useEffect(() => {
     const fetchDoctors = async () => {
       try {

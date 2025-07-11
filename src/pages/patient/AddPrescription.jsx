@@ -23,7 +23,6 @@ const AddPrescription = () => {
     // Local state for form inputs
     const [selectedRecipe, setSelectedRecipe] = useState(null);
     const [date, setDate] = useState('');
-    const [prescriptionItems, setPrescriptionItems] = useState('');
 
     // Fetch all general recipes when the component mounts
     useEffect(() => {
@@ -41,7 +40,7 @@ const AddPrescription = () => {
 
     const handleSave = async () => {
         // Basic validation
-        if (!selectedRecipe || !date || !prescriptionItems || !patientId) {
+        if (!selectedRecipe || !date  || !patientId) {
             toast.error("Lütfen tüm alanları doldurun ve hasta ID'sinin mevcut olduğundan emin olun."); // Toast for missing fields
             return;
         }
@@ -49,10 +48,8 @@ const AddPrescription = () => {
         const newRecipeData = {
             patientId: patientId,
             recipeId: selectedRecipe.value,
-            // Assuming your API expects 'name' for the recipe's name when creating
             name: selectedRecipe.label,
             date: date,
-            items: prescriptionItems, // Adjust 'items' if your API expects a different key
         };
 
         try {
@@ -95,16 +92,7 @@ const AddPrescription = () => {
                         onChange={(e) => setDate(e.target.value)}
                     />
                 </div>
-                <div className='flex gap-4 justify-between items-center'>
-                    <label className='flex-1'>Reseptin maddələri</label>
-                    <input
-                        type='text'
-                        className='flex-5 border border-gray-300 rounded-md p-2 h-[44px]'
-                        placeholder='Reseptin müddəti'
-                        value={prescriptionItems}
-                        onChange={(e) => setPrescriptionItems(e.target.value)}
-                    />
-                </div>
+                
             </div>
             <div className='flex self-end gap-4'>
                 <button

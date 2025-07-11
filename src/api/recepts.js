@@ -1,3 +1,4 @@
+// src/api/recepts.js
 import axiosInstance from "./temp-axios-auth";
 
 const API_BASE_URL = import.meta.env.VITE_BASE_URL;
@@ -39,6 +40,7 @@ export const readAllRecipes = async () => {
 };
 
 export const readRecipeList = async () => {
+  // This endpoint is for fetching a simplified list (e.g., ID and Name)
   const response = await axiosInstance.get(`${API_BASE_URL}/recipe/read-list`);
   return response.data;
 };
