@@ -4,20 +4,17 @@ import "../../assets/style/PatientsPage/addpatient.css";
 import cancelButton from "../../assets/images/EmployeesPage/cancelProcess.png";
 import verifyButton from "../../assets/images/EmployeesPage/verifyProcess.png";
 import usePatientStore from "../../../stores/patiendStore";
-import useBlackListResultStore from "../../../stores/blacklistReasonStore"; // Import the blacklist store
+import useBlackListResultStore from "../../../stores/blacklistReasonStore";
+import usePriceCategoryStore from "../../../stores/priceCategoryStore";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
-const priceCategories = [
-  { id: 1, name: "A - Yüksək qiymət" },
-  { id: 2, name: "B - Orta qiymət" },
-  { id: 3, name: "C - Aşağı qiymət" },
-];
 
 const PatientAdd = () => {
   const { addPatient } = usePatientStore();
   const { results: blacklistOptions, fetchResults: fetchBlacklistOptions } =
-    useBlackListResultStore(); // Destructure results and fetchResults
+    useBlackListResultStore();
+  const { categories: priceCategories, fetchCategories: fetchPriceCategories } =
+    usePriceCategoryStore();
 
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -30,10 +27,10 @@ const PatientAdd = () => {
     finCode: "",
     genderStatus: "",
     dateOfBirth: "",
-    priceCategoryStatus: "",
+    priceCategoryStatus: "", // Qiymət kateqoriyası ID-si string olaraq gələcək, sonra parseInt ediləcək
     specializationStatus: "",
     doctorId: null,
-    isVip: false,
+    isVip: false, // Bu sahənin "priceCategoryStatus" ilə əlaqəsi yoxdur, ayrı idarə olunur
     isBlacklisted: false,
     blacklistCategory: "",
     phone: "",
@@ -47,7 +44,7 @@ const PatientAdd = () => {
   });
 
   useEffect(() => {
-    // Fetch doctors
+    // Doktorları yüklə
     const fetchDoctors = async () => {
       try {
         const token = localStorage.getItem("token");
@@ -62,28 +59,35 @@ const PatientAdd = () => {
         setDoctors(response.data);
       } catch (error) {
         console.error("Doktorları alarkən xəta:", error);
-        alert("Doktor məlumatları yüklənərkən xəta baş verdi");
+        toast.error("Doktor məlumatları yüklənərkən xəta baş verdi.");
       }
     };
     fetchDoctors();
 
-    // Fetch blacklist options
+    // Qara siyahı seçimlərini yüklə
     fetchBlacklistOptions();
-  }, [fetchBlacklistOptions]); // Add fetchBlacklistOptions to dependency array
+
+    // Qiymət kateqoriyalarını yüklə
+    fetchPriceCategories();
+  }, [fetchBlacklistOptions, fetchPriceCategories]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    let newValue = value;
+    let newValue;
 
-    if (name === "finCode") {
+    if (type === "checkbox") {
+      newValue = checked; // Checkbox üçün 'checked' dəyərini (boolean) birbaşa istifadə et
+    } else if (name === "finCode") {
       newValue = value.toUpperCase().replace(/[^A-Z0-9]/g, "");
     } else if (["phone", "workPhone", "homePhone", "whatsapp"].includes(name)) {
       newValue = formatPhoneNumber(value);
+    } else {
+      newValue = value; // Digər inputlar üçün adi dəyər
     }
 
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : newValue,
+      [name]: newValue,
     }));
   };
 
@@ -93,10 +97,9 @@ const PatientAdd = () => {
     if (!formData.name) newErrors.name = "Ad tələb olunur";
     if (!formData.surname) newErrors.surname = "Soyad tələb olunur";
     if (!formData.patronymic) newErrors.patronymic = "Ata adı tələb olunur";
-    if (!formData.genderStatus)
-      newErrors.genderStatus = "Cinsiyyət tələb olunur";
+    if (!formData.genderStatus) newErrors.genderStatus = "Cinsiyyət tələb olunur";
     if (!formData.priceCategoryStatus)
-      newErrors.priceCategoryStatus = "Qiymət kateqoriyası tələb olunur";
+      newErrors.priceCategoryStatus = "Qiymət kateqoriyası tələb olunur"; // Buradakı validation saxlanılır
     if (!formData.doctorId) newErrors.doctorId = "Həkimi seçin";
 
     const phoneRegex = /^\(\d{3}\)-\d{3}-\d{4}$/;
@@ -125,35 +128,54 @@ const PatientAdd = () => {
 
   const formatPhoneNumber = (phone) => {
     const cleaned = phone.replace(/\D/g, "");
-    if (cleaned.length !== 10) return null;
-    return `(${cleaned.slice(0, 3)})-${cleaned.slice(3, 6)}-${cleaned.slice(
-      6
-    )}`;
+    if (cleaned.length !== 10) return ""; // Düzgün formatda deyilsə boş sətir qaytar
+    return `(${cleaned.slice(0, 3)})-${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!validateForm()) {
+      toast.error("Zəhmət olmasa, tələb olunan sahələri doldurun və formatları düzəldin.");
+      return;
+    }
+
     const dataToSend = {
       ...formData,
-      phone: formatPhoneNumber(formData.phone),
-      homePhone: formatPhoneNumber(formData.homePhone),
-      workPhone: formatPhoneNumber(formData.workPhone),
-      doctor_id: formData.doctorId,
+      // Telefon nömrələrini formatla və boşdursa null et
+      phone: formData.phone ? formatPhoneNumber(formData.phone) : null,
+      homePhone: formData.homePhone ? formatPhoneNumber(formData.homePhone) : null,
+      workPhone: formData.workPhone ? formatPhoneNumber(formData.workPhone) : null,
+      whatsapp: formData.whatsapp ? formatPhoneNumber(formData.whatsapp) : null,
+      
+      // doctor_id-ni formData.doctorId-dən al
+      doctor_id: formData.doctorId, 
+      
+      // priceCategoryStatus-u düzgün idarə et
+      // Əgər formData.priceCategoryStatus boş string deyilsə, onu rəqəmə çevir (10-luq sistemdə), əks halda null et.
+      priceCategoryStatus: formData.priceCategoryStatus ? parseInt(formData.priceCategoryStatus, 10) : null, 
+      
+      // Blacklist kateqoriyasını da rəqəmə çevir, əks halda null et
+      blacklistCategory: formData.isBlacklisted && formData.blacklistCategory ? parseInt(formData.blacklistCategory, 10) : null, 
     };
 
-    // Validation
-    if (!dataToSend.phone || !dataToSend.homePhone || !dataToSend.workPhone) {
-      toast.error(
-        "Zəhmət olmasa telefon nömrələrini düzgün formatda daxil edin."
-      );
-      return;
-    }
-    if (!dataToSend.doctorId) {
-      toast.error("Zəhmət olmasa həkimi seçin.");
-      return;
-    }
+    // Opsiyonel string sahələri üçün boş stringləri null-a çevir
+    // Backend boş string əvəzinə null gözləyə bilər
+    if (dataToSend.dateOfBirth === "") dataToSend.dateOfBirth = null;
+    if (dataToSend.email === "") dataToSend.email = null;
+    if (dataToSend.homeAddress === "") dataToSend.homeAddress = null;
+    if (dataToSend.homeAddress === "") dataToSend.homeAddress = null;
+    if (dataToSend.workAddress === "") dataToSend.workAddress = null;
+    if (dataToSend.recommender === "") dataToSend.recommender = null;
+    if (dataToSend.specializationStatus === "") dataToSend.specializationStatus = null;
 
+
+    // --- Debugging üçün Konsol Loqları (Çox Vacibdir!) ---
+    console.log("Göndərilən data (dataToSend):", dataToSend);
+    console.log("Göndərilən priceCategoryStatus:", dataToSend.priceCategoryStatus); // Bu dəyəri yoxlayın!
+    console.log("Göndərilən doctorId:", dataToSend.doctor_id); // doctorId dəyərini də yoxlamaq lazımdır
+
+    setLoading(true);
     try {
       const token = localStorage.getItem("token");
 
@@ -168,11 +190,24 @@ const PatientAdd = () => {
         }
       );
 
-      console.log("Əlavə olundu:", response.data);
+      console.log("Pasiyent uğurla əlavə olundu:", response.data);
       toast.success("Pasiyent uğurla əlavə olundu!");
+      // Formu sıfırla
+      setFormData({
+        name: "", surname: "", patronymic: "", finCode: "", genderStatus: "", dateOfBirth: "",
+        priceCategoryStatus: "", specializationStatus: "", doctorId: null, isVip: false,
+        isBlacklisted: false, blacklistCategory: "", phone: "", whatsapp: "", workPhone: "",
+        homePhone: "", email: "", homeAddress: "", workAddress: "", recommender: "",
+      });
+      setErrors({});
     } catch (err) {
       console.error("Xəta baş verdi:", err.response?.data || err.message);
       toast.error("Xəta baş verdi. Məlumatları yoxlayın.");
+      if (err.response && err.response.data && err.response.data.message) {
+        toast.error(`Server xətası: ${err.response.data.message}`);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -180,7 +215,7 @@ const PatientAdd = () => {
     <div className="patientsGroupWrapper">
       <form onSubmit={handleSubmit} className="patientsGroupContainer">
         <div className="patientsGroupLeft">
-          {/* Name Field */}
+          {/* Adı Field */}
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">
               Adı <span className="patientsGroupRequired">*</span>
@@ -197,7 +232,7 @@ const PatientAdd = () => {
             )}
           </div>
 
-          {/* Surname Field */}
+          {/* Soyadı Field */}
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">
               Soyadı <span className="patientsGroupRequired">*</span>
@@ -214,7 +249,7 @@ const PatientAdd = () => {
             )}
           </div>
 
-          {/* Patronymic Field */}
+          {/* Ata adı Field */}
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">
               Ata adı <span className="patientsGroupRequired">*</span>
@@ -231,7 +266,7 @@ const PatientAdd = () => {
             )}
           </div>
 
-          {/* Fin Code Field */}
+          {/* Fin Kodu Field */}
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">
               Fin kodu <span className="patientsGroupRequired">*</span>
@@ -249,7 +284,7 @@ const PatientAdd = () => {
             )}
           </div>
 
-          {/* Gender Field */}
+          {/* Cinsiyyət Field */}
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">
               Cinsiyyət <span className="patientsGroupRequired">*</span>
@@ -283,7 +318,7 @@ const PatientAdd = () => {
             )}
           </div>
 
-          {/* Date of Birth Field */}
+          {/* Doğum tarixi Field */}
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">Doğum tarixi</label>
             <input
@@ -295,7 +330,7 @@ const PatientAdd = () => {
             />
           </div>
 
-          {/* Price Category Field */}
+          {/* Qiymət Kateqoriyası Field */}
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">
               Qiymət kateqoriyası{" "}
@@ -303,13 +338,13 @@ const PatientAdd = () => {
             </label>
             <select
               name="priceCategoryStatus"
-              value={formData.priceCategoryStatus}
+              value={formData.priceCategoryStatus} // Seçili dəyəri burdan alır
               onChange={handleChange}
               className="patientsGroupSelect"
             >
-              <option value="">seçin</option>
+              <option value="">seçin</option> {/* Default boş dəyər */}
               {priceCategories.map((category) => (
-                <option key={category.id} value={category.id}>
+                <option key={category.id} value={category.id}> {/* category.id-ni dəyər olaraq təyin edirik */}
                   {category.name}
                 </option>
               ))}
@@ -321,7 +356,7 @@ const PatientAdd = () => {
             )}
           </div>
 
-          {/* Specialization Field */}
+          {/* İxtisası Field */}
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">İxtisası</label>
             <input
@@ -333,7 +368,7 @@ const PatientAdd = () => {
             />
           </div>
 
-          {/* Doctor Field */}
+          {/* Həkim Field */}
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">
               Həkim <span className="patientsGroupRequired">*</span>
@@ -356,7 +391,7 @@ const PatientAdd = () => {
             )}
           </div>
 
-          {/* VIP Field */}
+          {/* VIP Field (ayrı bir checkbox kimi saxlanılır) */}
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">VIP</label>
             <input
@@ -368,7 +403,7 @@ const PatientAdd = () => {
             />
           </div>
 
-          {/* Blacklist Field */}
+          {/* Qara siyahı Field */}
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">Qara siyahı</label>
             <div className="patientsGroupBlacklist">
@@ -402,7 +437,7 @@ const PatientAdd = () => {
         </div>
 
         <div className="patientsGroupRight">
-          {/* Phone Field */}
+          {/* Mobil nömrə 1 Field */}
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">
               Mobil nömrə 1 <span className="patientsGroupRequired">*</span>
@@ -420,7 +455,7 @@ const PatientAdd = () => {
             )}
           </div>
 
-          {/* WhatsApp Field */}
+          {/* Whatsapp Field */}
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">Whatsapp</label>
             <input
@@ -436,7 +471,7 @@ const PatientAdd = () => {
             )}
           </div>
 
-          {/* Work Phone Field */}
+          {/* İş nömrəsi Field */}
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">İş nömrəsi</label>
             <input
@@ -452,7 +487,7 @@ const PatientAdd = () => {
             )}
           </div>
 
-          {/* Home Phone Field */}
+          {/* Ev nömrəsi Field */}
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">Ev nömrəsi</label>
             <input
@@ -468,7 +503,7 @@ const PatientAdd = () => {
             )}
           </div>
 
-          {/* Email Field */}
+          {/* E-poçt Field */}
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">E-poçt</label>
             <input
@@ -480,7 +515,7 @@ const PatientAdd = () => {
             />
           </div>
 
-          {/* Home Address Field */}
+          {/* Ev ünvanı Field */}
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">Ev ünvanı</label>
             <input
@@ -492,7 +527,7 @@ const PatientAdd = () => {
             />
           </div>
 
-          {/* Work Address Field */}
+          {/* İş ünvanı Field */}
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">İş ünvanı</label>
             <input
@@ -504,7 +539,7 @@ const PatientAdd = () => {
             />
           </div>
 
-          {/* Recommender Field */}
+          {/* Tövsiyə edən şəxs Field */}
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">Tövsiyə edən şəxs</label>
             <input
@@ -518,33 +553,18 @@ const PatientAdd = () => {
         </div>
       </form>
 
+      {/* Təqdim və İmtina Düymələri */}
       <div className="submitAddPatientForm">
         <button
           type="button"
           className="addPatientCancelButton"
           onClick={() => {
-            // Reset form on cancel
+            // Formu sıfırla
             setFormData({
-              name: "",
-              surname: "",
-              patronymic: "",
-              finCode: "",
-              genderStatus: "",
-              dateOfBirth: "",
-              priceCategoryStatus: "",
-              specializationStatus: "",
-              doctorId: null,
-              isVip: false,
-              isBlacklisted: false,
-              blacklistCategory: "",
-              phone: "",
-              whatsapp: "",
-              workPhone: "",
-              homePhone: "",
-              email: "",
-              homeAddress: "",
-              workAddress: "",
-              recommender: "",
+              name: "", surname: "", patronymic: "", finCode: "", genderStatus: "", dateOfBirth: "",
+              priceCategoryStatus: "", specializationStatus: "", doctorId: null, isVip: false,
+              isBlacklisted: false, blacklistCategory: "", phone: "", whatsapp: "", workPhone: "",
+              homePhone: "", email: "", homeAddress: "", workAddress: "", recommender: "",
             });
             setErrors({});
           }}

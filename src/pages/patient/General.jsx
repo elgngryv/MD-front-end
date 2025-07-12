@@ -9,7 +9,7 @@ import {
   useDeletePatient,
 } from "../../hooks/usePatients";
 import { useParams, useNavigate } from "react-router-dom";
-import DeleteIcon from "../../assets/icons/delete";
+import DeleteIcon from "../../assets/icons/Delete";
 import InfoIcon from "../../assets/icons/Info";
 import BlurLoader from "../../components/layout/BlurLoader";
 import { toast } from "react-toastify";
@@ -206,7 +206,7 @@ const General = () => {
 
           <div className="right">
             {[
-              { label: "Qiymət kateqoriyası", name: "priceCategoryStatus" },
+              { label: "Qiymət kateqoriyası", name: "priceCategory" },
               { label: "Qara siyahı", name: "isBlocked" },
               { label: "İş telefonu", name: "workPhone", type: "tel" },
               { label: "Ev telefonu", name: "homePhone", type: "tel" },
