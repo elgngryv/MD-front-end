@@ -23,3 +23,8 @@ h1, h2, h3, h4, h5, h6, p, span, div, input, textarea, select, button {
 input[type="time"]::-webkit-calendar-picker-indicator {
   font-size: 20px;
 }
+
+
+#root{
+  height: 100%;
+}

@@ -11,9 +11,6 @@
   overflow-y: auto;
 }
 
-
-
-
 .addNewAppointment {
   padding: 10px 15px;
   border: 1px solid #155eef;
@@ -25,18 +22,18 @@
   justify-content: center;
   gap: 10px;
   transition: 0.4s ease;
-  &:hover {
-    cursor: pointer;
-    background-color: #155eef;
-    color: #fff;
-    > .addNewAppointmentIcon {
-      color: #fff;
-    }
-  }
-  > .addNewAppointmentIcon {
-    color: #155eef;
-    transition: 0.4s ease;
-  }
+}
+.addNewAppointment:hover {
+  cursor: pointer;
+  background-color: #155eef;
+  color: #fff;
+}
+.addNewAppointment:hover > .addNewAppointmentIcon {
+  color: #fff;
+}
+.addNewAppointment > .addNewAppointmentIcon {
+  color: #155eef;
+  transition: 0.4s ease;
 }
 
 .right-side {
@@ -121,6 +118,7 @@
 .simple-calendar {
   width: 300px;
   padding: 16px;
+  
   background: white;
   border-radius: 8px;
 }
@@ -140,6 +138,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  height: 100vh;
 }
 
 .simple-calendar .calendar-weekdays {
@@ -212,6 +211,7 @@
 }
 
 .time-cell {
+  /* Changed from 40px to 60px to match JS calculation (60px per 30 minutes) */
   height: 60px;
   display: flex;
   align-items: center;
@@ -222,7 +222,7 @@
 }
 
 .day-cell {
-  height: 60px;
+  height: 60px; /* This can remain 60px */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -259,14 +259,21 @@
   height: 100%;
 }
 
-.schedule-cell {
+.schedule-cell-empty {
+  /* Changed from 40px to 60px to match JS calculation (60px per 30 minutes) */
   height: 60px;
   border-bottom: 1px solid #e0e0e0;
   background-color: #fff;
   cursor: pointer;
 }
-.schedule-cell:hover {
+.schedule-cell-empty:hover {
   background-color: #f0f0f0;
+}
+
+/* Randevu bloklarının özləri */
+.appointment-event-block {
+  position: absolute;
+  z-index: 10;
 }
 
 .schedule-cell.doctor-working {

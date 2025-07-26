@@ -6,6 +6,9 @@ import {
   addWeeks,
   startOfWeek,
   isSameDay,
+  parse,
+  addMinutes,
+  differenceInMinutes,
 } from "date-fns";
 import { az } from "date-fns/locale";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
@@ -18,10 +21,11 @@ import "../assets/style/appointments.css";
 import "../assets/style/appointment-left-side.css";
 
 const WEEKDAYS_SHORT = ["B.e", "Ç.a", "Ç", "C.a", "C", "Ş", "B"];
-const startTime = "00:00";
-const endTime = "23:30";
-const intervalMinutes = 30;
+const startTime = "00:00"; // Cədvəlin başlanğıc vaxtı
+const endTime = "23:30";   // Cədvəlin son vaxtı
+const intervalMinutes = 30; // Hər grid xanasının müddəti
 
+// İş saatları listini yaratma (HH:MM formatında)
 const WORK_HOURS = [];
 const [startHour, startMinute] = startTime.split(":").map(Number);
 const [endHour, endMinute] = endTime.split(":").map(Number);
@@ -36,6 +40,14 @@ while (currentMinutes <= endTotalMinutes) {
   currentMinutes += intervalMinutes;
 }
 
+// Randevu blokları üçün təsadüfi rəng yaratmaq
+const generateRandomColor = () => {
+  const r = Math.floor(Math.random() * 150) + 50;
+  const g = Math.floor(Math.random() * 150) + 50;
+  const b = Math.floor(Math.random() * 150) + 50;
+  return `rgb(${r}, ${g}, ${b}, 0.7)`;
+};
+
 const Appointments = () => {
   const navigate = useNavigate();
   const calendarRef = useRef(null);
@@ -48,6 +60,7 @@ const Appointments = () => {
     startOfWeek(new Date(), { weekStartsOn: 1 })
   );
   const [showCalendar, setShowCalendar] = useState(false);
+  const [appointmentColors, setAppointmentColors] = useState({});
 
   const {
     doctors,
@@ -60,13 +73,11 @@ const Appointments = () => {
     fetchRoomPatients,
   } = useGeneralCalendarStore();
 
-  // 1. Fetch doctors & rooms on mount
   useEffect(() => {
     fetchDoctors();
     fetchRooms();
   }, [fetchDoctors, fetchRooms]);
 
-  // 2. Set default doctor and fetch appointments
   useEffect(() => {
     if (doctors.length > 0 && selectedDoctorId === null) {
       const defaultDoctor = doctors[0];
@@ -75,19 +86,28 @@ const Appointments = () => {
     }
   }, [doctors, selectedDoctorId, fetchDoctorPatients]);
 
-  // 3. Fetch appointments when doctor changes
   useEffect(() => {
     if (selectedDoctorId) {
       fetchDoctorPatients(selectedDoctorId);
     }
   }, [selectedDoctorId, fetchDoctorPatients]);
 
-  // 4. Fetch appointments when room changes
   useEffect(() => {
     if (selectedRoom) {
       fetchRoomPatients(selectedRoom.value);
     }
   }, [selectedRoom, fetchRoomPatients]);
+
+  useEffect(() => {
+    const newAppointmentColors = {};
+    appointments.forEach((appointment) => {
+      const uniqueKey = `${appointment.patientName}-${appointment.date}-${appointment.time}`;
+      if (!appointmentColors[uniqueKey]) {
+        newAppointmentColors[uniqueKey] = generateRandomColor();
+      }
+    });
+    setAppointmentColors((prevColors) => ({ ...prevColors, ...newAppointmentColors }));
+  }, [appointments]);
 
   const handleRoomChange = (option) => {
     setSelectedRoom(option);
@@ -115,6 +135,53 @@ const Appointments = () => {
   const selectDate = (date) => {
     setSelectedWeekStart(startOfWeek(date, { weekStartsOn: 1 }));
     setShowCalendar(false);
+  };
+
+  // Randevunun cədvəldəki mövqeyini və hündürlüyünü hesablamaq
+  const getAppointmentStyle = (appointment) => {
+    // Randevunun başlama vaxtını Date obyektinə çevir
+    const appointmentStartTime = parse(appointment.time, "HH:mm:ss", new Date());
+
+    // Periodu dəqiqə olaraq çıxar (HH:mm:ss formatından)
+    const [periodHours, periodMinutes, periodSeconds] = appointment.period.split(":").map(Number);
+    const periodInMinutes = periodHours * 60 + periodMinutes + Math.round(periodSeconds / 60);
+
+    // Randevunun bitmə vaxtını hesabla
+    const appointmentEndTime = addMinutes(appointmentStartTime, periodInMinutes);
+
+    // Cədvəlin başlanğıc vaxtını Date obyektinə çevir (bu, 00:00 olacaq)
+    const scheduleStartTimeAsDate = parse(startTime, "HH:mm", new Date());
+
+    // Randevunun başlanğıc vaxtı ilə cədvəlin başlanğıc vaxtı arasındakı dəqiqə fərqi (top üçün offset)
+    const offsetMinutes = differenceInMinutes(appointmentStartTime, scheduleStartTimeAsDate);
+
+    // Randevunun ümumi müddəti (dəqiqə ilə)
+    const totalDurationMinutes = differenceInMinutes(appointmentEndTime, appointmentStartTime);
+
+    // Hər 30 dəqiqəlik xananın hündürlüyü (CSS-də təyin olunmuş dəyərə uyğun)
+    const cellHeightPx = 60; // <<<--- Düzəliş burada edildi!
+    const pixelsPerMinute = cellHeightPx / intervalMinutes; // Hər dəqiqəyə düşən piksel
+
+    const top = offsetMinutes * pixelsPerMinute;
+    const height = totalDurationMinutes * pixelsPerMinute;
+
+    const uniqueKey = `${appointment.patientName}-${appointment.date}-${appointment.time}`;
+    const backgroundColor = appointmentColors[uniqueKey] || generateRandomColor();
+
+    return {
+      top: `${top}px`,
+      height: `${height}px`,
+      backgroundColor: backgroundColor,
+      borderRadius: "4px",
+      padding: "5px",
+      overflow: "hidden",
+      fontSize: "0.85em",
+      color: "white",
+      fontWeight: "bold",
+      boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+      left: "1px",
+      width: "calc(100% - 2px)",
+    };
   };
 
   return (
@@ -192,7 +259,7 @@ const Appointments = () => {
               </button>
               <button
                 className="addNewAppointment"
-                onClick={() => navigate("./add")}>
+                onClick={() => navigate("/add-new-appointment")}>
                 <TbCalendarPlus className="addNewAppointmentIcon" />
                 Yeni randevu əlavə et
               </button>
@@ -207,10 +274,12 @@ const Appointments = () => {
 
         <div className="schedule-content">
           <div className="schedule-grid">
+            {/* Boş başlanğıc xana */}
             <div className="time-column time-header">
               <div className="time-cell"></div>
             </div>
 
+            {/* Günlər başlıqları */}
             {weekDates.map((date, i) => (
               <div key={i} className="day-column day-header">
                 <div className="day-cell">
@@ -225,6 +294,7 @@ const Appointments = () => {
               </div>
             ))}
 
+            {/* Saat sütunu */}
             <div className="time-column">
               {WORK_HOURS.map((time, i) => (
                 <div key={i} className="time-cell">
@@ -233,43 +303,57 @@ const Appointments = () => {
               ))}
             </div>
 
+            {/* Randevu blokları */}
             {weekDates.map((date, dayIndex) => (
               <div key={dayIndex} className="day-column">
                 <div className="time-blocks-container">
-                  {WORK_HOURS.map((time, timeIndex) => {
-                    const appointmentsInSlot = appointments.filter(
-                      (appointment) => {
-                        const appointmentDate = new Date(appointment.date);
-                        const appointmentTime = appointment.time?.slice(0, 5); // HH:mm
-                        return (
-                          isSameDay(appointmentDate, date) &&
-                          appointmentTime === time
-                        );
-                      }
-                    );
-
-                    return (
-                      <div
-                        key={timeIndex}
-                        className="schedule-cell"
-                        onClick={() =>
-                          navigate("/add-new-appointment", {
-                            state: {
-                              selectedDateTime: {
-                                date: format(date, "yyyy-MM-dd"),
-                                time,
-                              },
+                  {/* Hər saat intervalı üçün boş div-lər - bu divlər sadəcə grid strukturunu saxlayır */}
+                  {WORK_HOURS.map((time, timeIndex) => (
+                    <div
+                      key={timeIndex}
+                      className="schedule-cell-empty"
+                      onClick={() =>
+                        navigate("/add-new-appointment", {
+                          state: {
+                            selectedDateTime: {
+                              date: format(date, "yyyy-MM-dd"),
+                              time,
                             },
-                          })
-                        }>
-                        {appointmentsInSlot.map((appointment, i) => (
-                          <div key={i} className="appointment-event">
-                            {appointment.patientName}
-                          </div>
-                        ))}
+                          },
+                        })
+                      }
+                    ></div>
+                  ))}
+
+                  {/* Hər gün üçün randevuları yerləşdir */}
+                  {appointments
+                    .filter((appointment) =>
+                      isSameDay(new Date(appointment.date), date)
+                    )
+                    .map((appointment, apIndex) => (
+                      <div
+                        key={`${appointment.patientName}-${appointment.date}-${appointment.time}-${apIndex}`}
+                        className="appointment-event-block"
+                        style={getAppointmentStyle(appointment)}
+                      >
+                        <div className="appointment-event-content">
+                          {appointment.patientName} <br />
+                          <small>
+                            {appointment.time?.slice(0, 5)} -{" "}
+                            {format(
+                              addMinutes(
+                                parse(appointment.time, "HH:mm:ss", new Date()),
+                                // Yenidən periodu dəqiqəyə çevirmə:
+                                parse(appointment.period, "HH:mm:ss", new Date()).getHours() * 60 +
+                                parse(appointment.period, "HH:mm:ss", new Date()).getMinutes() +
+                                Math.round(parse(appointment.period, "HH:mm:ss", new Date()).getSeconds() / 60)
+                              ),
+                              "HH:mm"
+                            )}
+                          </small>
+                        </div>
                       </div>
-                    );
-                  })}
+                    ))}
                 </div>
               </div>
             ))}

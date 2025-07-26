@@ -10,13 +10,13 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import ListWithSubtotal from "../components/list/ListwithSubtotal";
 import EditIcon from "../assets/icons/Edit";
-import DeleteIcon from "../assets/icons/delete";
+import DeleteIcon from "../assets/icons/Delete";
 import { useNavigate, useParams } from "react-router-dom";
 import MultiFileForm from "./MultiFileForm";
 import axios from "axios";
 import useOrdersFromWarehouseStore from "../../stores/orderFromWarehouseStore";
 
-const API_BASE_URL = "http://195.7.6.10:5555/api/v1/";
+const API_BASE_URL = "http://localhost:5555/api/v1/";
 
 // Authenticated axios instance yaradın
 const apiClient = axios.create({
@@ -605,249 +605,256 @@ const StockOrderForm = ({
     );
   }
 
-  return (
-    <form
-      onSubmit={handleSubmit(handleFormSubmit)}
-      className="flex flex-col gap-2">
-      {mode === "view" && (
-        <div className="flex self-end gap-2">
-          <button
-            type="button"
-            onClick={() => navigate("edit")}
-            className="p-2 hover:bg-gray-100 rounded">
-            <EditIcon />
-          </button>
-          <button
-            type="button"
-            onClick={handleDelete}
-            className="p-2 hover:bg-gray-100 rounded">
-            <DeleteIcon />
-          </button>
-        </div>
-      )}
-
-      <div className="flex justify-between items-center gap-2">
-        <label htmlFor="orderDate">
-          Sifariş tarixi <span className="text-red-500">*</span>
-        </label>
-        <div className="w-[950px]">
-          <input
-            id="orderDate"
-            type="date"
-            {...register("orderDate", { required: true })}
-            readOnly={mode === "view"}
-            className={`w-[950px] h-10 border border-[#D4DCE8] rounded-lg px-4 py-2 ${
-              mode === "view" ? "bg-gray-200" : ""
-            }`}
-            disabled={isLoading}
-          />
-        </div>
+return (
+  <form
+    onSubmit={handleSubmit(handleFormSubmit)}
+    className="flex flex-col gap-2 min-h-screen" // `h-screen` yerinə `min-h-screen` əlavə edildi
+  >
+    {/* Qalan kodunuz eyni qalır */}
+    {mode === "view" && (
+      <div className="flex self-end gap-2">
+        <button
+          type="button"
+          onClick={() => navigate("edit")}
+          className="p-2 hover:bg-gray-100 rounded"
+        >
+          <EditIcon />
+        </button>
+        <button
+          type="button"
+          onClick={handleDelete}
+          className="p-2 hover:bg-gray-100 rounded"
+        >
+          <DeleteIcon />
+        </button>
       </div>
+    )}
 
-      <div className="flex justify-between items-center gap-2">
-        <label htmlFor="orderTime">
-          Saat <span className="text-red-500">*</span>
-        </label>
-        <div className="w-[950px]">
-          <input
-            id="orderTime"
-            type="time"
-            {...register("orderTime", { required: true })}
-            readOnly={mode === "view"}
-            className={`w-[950px] h-10 border border-[#D4DCE8] rounded-lg px-4 py-2 ${
-              mode === "view" ? "bg-gray-200" : ""
-            }`}
-            disabled={isLoading}
-          />
-        </div>
+    <div className="flex justify-between items-center gap-2">
+      <label htmlFor="orderDate">
+        Sifariş tarixi <span className="text-red-500">*</span>
+      </label>
+      <div className="w-[950px]">
+        <input
+          id="orderDate"
+          type="date"
+          {...register("orderDate", { required: true })}
+          readOnly={mode === "view"}
+          className={`w-[950px] h-10 border border-[#D4DCE8] rounded-lg px-4 py-2 ${
+            mode === "view" ? "bg-gray-200" : ""
+          }`}
+          disabled={isLoading}
+        />
       </div>
+    </div>
 
-      <div className="flex justify-between items-center gap-2">
-        <label htmlFor="room">
-          Otaq <span className="text-red-500">*</span>
-        </label>
-        <div className="w-[950px]">
-          <input
-            id="room"
-            type="text"
-            {...register("room", { required: true })}
-            readOnly={mode === "view"}
-            className={`w-[950px] h-10 border border-[#D4DCE8] rounded-lg px-4 py-2 ${
-              mode === "view" ? "bg-gray-200" : ""
-            }`}
-            disabled={isLoading}
-          />
-        </div>
+    <div className="flex justify-between items-center gap-2">
+      <label htmlFor="orderTime">
+        Saat <span className="text-red-500">*</span>
+      </label>
+      <div className="w-[950px]">
+        <input
+          id="orderTime"
+          type="time"
+          {...register("orderTime", { required: true })}
+          readOnly={mode === "view"}
+          className={`w-[950px] h-10 border border-[#D4DCE8] rounded-lg px-4 py-2 ${
+            mode === "view" ? "bg-gray-200" : ""
+          }`}
+          disabled={isLoading}
+        />
       </div>
+    </div>
 
-      <div className="flex justify-between items-center gap-2">
-        <label htmlFor="note">
-          Qeyd <span className="text-red-500">*</span>
-        </label>
-        <div className="w-[950px]">
-          <textarea
-            id="note"
-            {...register("note", { required: true })}
-            readOnly={mode === "view"}
-            className={`w-[950px] h-25 border border-[#D4DCE8] rounded-lg px-4 py-2 ${
-              mode === "view" ? "bg-gray-200" : ""
-            }`}
-            disabled={isLoading}
-          />
-        </div>
+    <div className="flex justify-between items-center gap-2">
+      <label htmlFor="room">
+        Otaq <span className="text-red-500">*</span>
+      </label>
+      <div className="w-[950px]">
+        <input
+          id="room"
+          type="text"
+          {...register("room", { required: true })}
+          readOnly={mode === "view"}
+          className={`w-[950px] h-10 border border-[#D4DCE8] rounded-lg px-4 py-2 ${
+            mode === "view" ? "bg-gray-200" : ""
+          }`}
+          disabled={isLoading}
+        />
       </div>
+    </div>
 
-      <div className="flex flex-col gap-2">
-        {mode !== "view" && (
-          <div className="flex justify-between items-center gap-2">
-            <label htmlFor="products">Məhsullar</label>
-            <div className="flex items-center gap-2 flex-wrap">
+    <div className="flex justify-between items-center gap-2">
+      <label htmlFor="note">
+        Qeyd <span className="text-red-500">*</span>
+      </label>
+      <div className="w-[950px]">
+        <textarea
+          id="note"
+          {...register("note", { required: true })}
+          readOnly={mode === "view"}
+          className={`w-[950px] h-25 border border-[#D4DCE8] rounded-lg px-4 py-2 ${
+            mode === "view" ? "bg-gray-200" : ""
+          }`}
+          disabled={isLoading}
+        />
+      </div>
+    </div>
+
+    <div className="flex flex-col gap-2">
+      {mode !== "view" && (
+        <div className="flex justify-between items-center gap-2">
+          <label htmlFor="products">Məhsullar</label>
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex flex-col gap-2">
+              <label htmlFor="warehouseEntry">
+                Anbar girişi <span className="text-red-500">*</span>
+              </label>
+              <CustomDropdown
+                value={warehouseEntries.find(
+                  (entry) => entry.value === currentProduct.warehouseEntryId
+                )}
+                onChange={handleWarehouseEntryChange}
+                options={warehouseEntries}
+                placeholder="Anbar girişi seçin"
+                isDisabled={isLoading}
+              />
+            </div>
+
+            {isLoadingEntryProducts ? (
               <div className="flex flex-col gap-2">
-                <label htmlFor="warehouseEntry">
-                  Anbar girişi <span className="text-red-500">*</span>
+                <label>Anbar məhsulu</label>
+                <div className="h-10 flex items-center justify-center">
+                  <FontAwesomeIcon
+                    icon={faSpinner}
+                    spin
+                    className="text-blue-500"
+                  />
+                  <span className="ml-2">Yüklənir...</span>
+                </div>
+              </div>
+            ) : warehouseEntryProducts.length > 0 ? (
+              <div className="flex flex-col gap-2">
+                <label htmlFor="warehouseEntryProduct">
+                  Anbar məhsulu <span className="text-red-500">*</span>
                 </label>
                 <CustomDropdown
-                  value={warehouseEntries.find(
-                    (entry) => entry.value === currentProduct.warehouseEntryId
+                  value={warehouseEntryProducts.find(
+                    (product) =>
+                      product.value === currentProduct.warehouseEntryProductId
                   )}
-                  onChange={handleWarehouseEntryChange}
-                  options={warehouseEntries}
-                  placeholder="Anbar girişi seçin"
+                  onChange={handleWarehouseEntryProductChange}
+                  options={warehouseEntryProducts}
+                  placeholder="Anbar məhsulu seçin"
                   isDisabled={isLoading}
                 />
               </div>
-
-              {isLoadingEntryProducts ? (
-                <div className="flex flex-col gap-2">
-                  <label>Anbar məhsulu</label>
-                  <div className="h-10 flex items-center justify-center">
-                    <FontAwesomeIcon
-                      icon={faSpinner}
-                      spin
-                      className="text-blue-500"
-                    />
-                    <span className="ml-2">Yüklənir...</span>
-                  </div>
-                </div>
-              ) : warehouseEntryProducts.length > 0 ? (
-                <div className="flex flex-col gap-2">
-                  <label htmlFor="warehouseEntryProduct">
-                    Anbar məhsulu <span className="text-red-500">*</span>
-                  </label>
-                  <CustomDropdown
-                    value={warehouseEntryProducts.find(
-                      (product) =>
-                        product.value === currentProduct.warehouseEntryProductId
-                    )}
-                    onChange={handleWarehouseEntryProductChange}
-                    options={warehouseEntryProducts}
-                    placeholder="Anbar məhsulu seçin"
-                    isDisabled={isLoading}
-                  />
-                </div>
-              ) : currentProduct.warehouseEntryId ? (
-                <div className="flex flex-col gap-2">
-                  <label>Anbar məhsulu</label>
-                  <div className="h-10 flex items-center justify-center text-red-500">
-                    Bu anbar girişi üçün məhsul tapılmadı!
-                  </div>
-                </div>
-              ) : null}
-
+            ) : currentProduct.warehouseEntryId ? (
               <div className="flex flex-col gap-2">
-                <label htmlFor="quantity">
-                  Miqdar <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="number"
-                  className="h-10 border border-[#D4DCE8] rounded-lg px-4 py-2"
-                  value={currentProduct.quantity}
-                  onChange={(e) =>
-                    handleProductChange("quantity", e.target.value)
-                  }
-                  min="1"
-                  disabled={isLoading}
-                />
+                <label>Anbar məhsulu</label>
+                <div className="h-10 flex items-center justify-center text-red-500">
+                  Bu anbar girişi üçün məhsul tapılmadı!
+                </div>
               </div>
+            ) : null}
 
-              <div className="flex flex-col gap-2">
-                <br />
-                <button
-                  type="button"
-                  onClick={handleAddProduct}
-                  disabled={
-                    isLoading ||
-                    !currentProduct.warehouseEntryId ||
-                    !currentProduct.warehouseEntryProductId ||
-                    !currentProduct.quantity
-                  }
-                  className="flex items-center justify-center px-4 py-2 border text-[#155EEF] bg-[#155EEF] text-white rounded-lg hover:bg-[#1046b8] disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed w-[184px] h-[44px] gap-2">
-                  <FontAwesomeIcon icon={faPlus} />
-                  Məhsul əlavə et
-                </button>
-              </div>
+            <div className="flex flex-col gap-2">
+              <label htmlFor="quantity">
+                Miqdar <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                className="h-10 border border-[#D4DCE8] rounded-lg px-4 py-2"
+                value={currentProduct.quantity}
+                onChange={(e) =>
+                  handleProductChange("quantity", e.target.value)
+                }
+                min="1"
+                disabled={isLoading}
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <br />
+              <button
+                type="button"
+                onClick={handleAddProduct}
+                disabled={
+                  isLoading ||
+                  !currentProduct.warehouseEntryId ||
+                  !currentProduct.warehouseEntryProductId ||
+                  !currentProduct.quantity
+                }
+                className="flex items-center justify-center px-4 py-2 border text-[#155EEF] bg-[#155EEF] text-white rounded-lg hover:bg-[#1046b8] disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed w-[184px] h-[44px] gap-2"
+              >
+                <FontAwesomeIcon icon={faPlus} />
+                Məhsul əlavə et
+              </button>
             </div>
           </div>
-        )}
-
-        <div className="flex justify-end items-center gap-2">
-          <div className="w-[950px]">
-            <ListWithSubtotal
-              columns={columns}
-              data={products}
-              subtotalColumns={["price"]}
-              enableEdit={mode !== "view"}
-              enableDelete={mode !== "view"}
-              handleEdit={handleEditProduct}
-              handleDelete={handleDeleteProduct}
-            />
-
-            {products.length === 0 && (
-              <div className="text-center py-4 text-gray-500">
-                Hələ heç bir məhsul əlavə edilməyib
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="flex justify-between items-center gap-2">
-        <label htmlFor="documents">Sənədlər</label>
-        <div className="w-[950px]">
-          <MultiFileForm mode={mode} />
-        </div>
-      </div>
-
-      {mode !== "view" && (
-        <div className="self-end flex gap-4 m-4">
-          <button
-            type="button"
-            onClick={onCancel || (() => navigate(-1))}
-            disabled={isLoading}
-            className="flex items-center justify-center px-4 py-2 border text-[#155EEF] border-[#155EEF] rounded-lg hover:bg-gray-100 w-[184px] h-[44px] gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-            <FontAwesomeIcon icon={faXmark} />
-            Ləğv et
-          </button>
-          <button
-            type="submit"
-            disabled={isSubmitting || products.length === 0 || isLoading}
-            className="flex items-center justify-center px-4 py-2 bg-[#155EEF] text-white rounded-lg hover:bg-[#1046b8] disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed w-[184px] h-[44px] gap-2">
-            {isSubmitting ? (
-              <>
-                <FontAwesomeIcon icon={faSpinner} spin />
-                Göndərilir...
-              </>
-            ) : (
-              <>
-                <FontAwesomeIcon icon={faCheck} />
-                Yadda saxla
-              </>
-            )}
-          </button>
         </div>
       )}
-    </form>
-  );
+
+      <div className="flex justify-end items-center gap-2">
+        <div className="w-[950px]">
+          <ListWithSubtotal
+            columns={columns}
+            data={products}
+            subtotalColumns={["price"]}
+            enableEdit={mode !== "view"}
+            enableDelete={mode !== "view"}
+            handleEdit={handleEditProduct}
+            handleDelete={handleDeleteProduct}
+          />
+
+          {products.length === 0 && (
+            <div className="text-center py-4 text-gray-500">
+              Hələ heç bir məhsul əlavə edilməyib
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+
+    <div className="flex justify-between items-center gap-2">
+      <label htmlFor="documents">Sənədlər</label>
+      <div className="w-[950px]">
+        <MultiFileForm mode={mode} />
+      </div>
+    </div>
+
+    {mode !== "view" && (
+      <div className="self-end flex gap-4 m-4">
+        <button
+          type="button"
+          onClick={onCancel || (() => navigate(-1))}
+          disabled={isLoading}
+          className="flex items-center justify-center px-4 py-2 border text-[#155EEF] border-[#155EEF] rounded-lg hover:bg-gray-100 w-[184px] h-[44px] gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <FontAwesomeIcon icon={faXmark} />
+          Ləğv et
+        </button>
+        <button
+          type="submit"
+          disabled={isSubmitting || products.length === 0 || isLoading}
+          className="flex items-center justify-center px-4 py-2 bg-[#155EEF] text-white rounded-lg hover:bg-[#1046b8] disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed w-[184px] h-[44px] gap-2"
+        >
+          {isSubmitting ? (
+            <>
+              <FontAwesomeIcon icon={faSpinner} spin />
+              Göndərilir...
+            </>
+          ) : (
+            <>
+              <FontAwesomeIcon icon={faCheck} />
+              Yadda saxla
+            </>
+          )}
+        </button>
+      </div>
+    )}
+  </form>
+);
 };
 
 export default StockOrderForm;

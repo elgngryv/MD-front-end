@@ -13,7 +13,7 @@ import useWarehouseEntryStore from "../../stores/warehouseEntryStore";
 import axios from "axios";
 
 const apiClient = axios.create({
-  baseURL: "http://195.7.6.10:5555/api/v1/",
+  baseURL: "http://localhost:5555/api/v1/",
 });
 
 apiClient.interceptors.request.use(
