@@ -5,7 +5,6 @@ import axiosInstance from "./temp-axios-auth";
 
 // API_BASE_URL dəyişəninə və 'instance' obyektinin yaradılmasına artıq ehtiyac yoxdur,
 // çünki axiosInstance artıq bütün lazımi konfiqurasiyaları (baseURL, headers, token və s.) özündə saxlayır.
-// const API_BASE_URL = 'http://localhost:5555/api/v1'; // Bu sətri silin və ya kommentə alın!
 // const instance = axios.create({ ... }); // Bu bloku silin və ya kommentə alın!
 
 /**

@@ -8,6 +8,7 @@ export default defineConfig({
     react(),
     tailwindcss()
   ],
+  base: '/', // Əgər app serverdə root-da (/) açılırsa, dəyişmə
   server: {
     proxy: {
       '/api': {

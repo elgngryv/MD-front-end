@@ -24,9 +24,8 @@ const AddXRay = () => {
     const [loading, setLoading] = useState(false); // Yüklənmə vəziyyəti üçün state
     const [error, setError] = useState(null); // Səhvlər üçün state
 
-    // API-nizin əsas URL-i (localhost, server ünvanı və s.)
     // Bunu öz API-nizin ünvanına uyğun dəyişdirin!
-    const API_BASE_URL = "http://localhost:8080"; // Məsələn
+    const API_BASE_URL = "http://161.97.179.107:8080"; // Məsələn
 
     const handleChange = (e) => {
         const { name, value } = e.target;

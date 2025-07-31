@@ -16,7 +16,7 @@ import MultiFileForm from "./MultiFileForm";
 import axios from "axios";
 import useOrdersFromWarehouseStore from "../../stores/orderFromWarehouseStore";
 
-const API_BASE_URL = "http://localhost:5555/api/v1/";
+const API_BASE_URL = "http://161.97.179.107:5555/api/v1/";
 
 // Authenticated axios instance yaradın
 const apiClient = axios.create({

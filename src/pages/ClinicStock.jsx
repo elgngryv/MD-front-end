@@ -24,19 +24,19 @@ const ClinicStock = () => {
 
   const columns = [
     {
-      key: "category",
+      key: "categoryName",
       label: "Kategoriyası",
     },
     {
-      key: "name",
+      key: "productName",
       label: "Məhsulun adı",
     },
     {
-      key: "code",
+      key: "productNo",
       label: "Məhsulun kodu",
     },
     {
-      key: "quantity",
+      key: "sumQuantity",
       label: "Məhsulun Sayı",
     },
   ];
