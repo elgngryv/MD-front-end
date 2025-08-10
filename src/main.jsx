@@ -545,25 +545,13 @@ const AnimatedRoutes = () => {
             <Route path="/stock/entry" element={<StockEntryList />} />
             <Route path="/stock/entry/:id" element={<StockEntryDetail />} />
 
-            {/* Stock Export Routes */}
+              {/* Stock Export Routes */}
             <Route path="/stock/export" element={<StockExportList />} />
-            <Route path="/stock/export/:date" element={<StockExports />} />
-            <Route
-              path="/stock/export/:date/add"
-              element={<AddExportStock />}
-            />
-            <Route
-              path="/stock/export/:date/detail"
-              element={<InfoExportStock />}
-            />
-            <Route
-              path="/stock/export/:date/detail/edit"
-              element={<EditExportStock />}
-            />
-            <Route
-              path="/stock/export/:date/edit"
-              element={<EditExportStock />}
-            />
+            <Route path="/stock/export/:id/add" element={<AddExportStock />} />
+            <Route path="/stock/export/:id/detail/edit" element={<EditExportStock />} />
+            <Route path="/stock/export/:id/detail" element={<InfoExportStock />} />
+            <Route path="/stock/export/:id/edit" element={<EditExportStock />} />
+            <Route path="/stock/export/:id" element={<StockExports />} />
 
             {/* Product Usage Routes */}
             <Route path="/stock/usage" element={<ProductUsageList />} />

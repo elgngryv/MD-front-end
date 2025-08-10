@@ -3,7 +3,7 @@ import axiosInstance from './temp-axios-auth'; // Düzgün yolu import edin
 
 // API_BASE_URL artıq temp-axios-auth.js-də təyin olunur və axiosInstance-a verilir.
 // Buna görə bu sətir burada olmasa da işləyər, amma saxlamağınız problem yaratmaz.
-const API_BASE_URL = import.meta.env.VITE_BASE_URL || 'http://localhost:8080'; 
+const API_BASE_URL = import.meta.env.VITE_BASE_URL || 'http://161.97.179.107:8080'; 
 
 /**
  * Yeni laboratoriya ödənişi yaradır.
