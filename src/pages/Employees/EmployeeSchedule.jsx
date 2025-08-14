@@ -140,7 +140,7 @@ const EmployeeSchedule = () => {
 
         // İşçiləri yüklə
         const employeesResponse = await fetch(
-          "http://195.7.6.10:5555/api/v1/add-worker/read",
+          "http://161.97.179.107:5555/api/v1/add-worker/read",
           {
             headers,
           }
@@ -157,7 +157,7 @@ const EmployeeSchedule = () => {
 
         // Qrafikləri yüklə
         const schedulesResponse = await fetch(
-          "http://195.7.6.10:5555/api/v1/workers-work-schedule/read",
+          "http://161.97.179.107:5555/api/v1/workers-work-schedule/read",
           {
             headers,
           }

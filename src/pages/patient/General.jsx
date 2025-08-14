@@ -35,7 +35,7 @@ const General = () => {
         const token = localStorage.getItem("token"); // Token adını səndə necədirsə onu yaz
 
         const res = await axios.get(
-          "http://195.7.6.10:5555/api/v1/general-calendar/read-doctors",
+          "http://161.97.179.107:5555/api/v1/general-calendar/read-doctors",
           {
             headers: {
               Authorization: `Bearer ${token}`,

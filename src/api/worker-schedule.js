@@ -10,7 +10,6 @@ export const createWorkerSchedule = async (data) => {
   );
   return response.data;
 };
-
 // 🟡 Mövcud iş qrafikini yeniləmək
 export const updateWorkerSchedule = async (data) => {
   const response = await axiosInstance.put(

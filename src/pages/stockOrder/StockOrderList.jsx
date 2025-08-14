@@ -6,15 +6,18 @@ import DownloadIcon from "../../assets/icons/Download";
 import { useNavigate } from "react-router-dom";
 import useOrderFromWarehouseStore from "../../../stores/orderFromWarehouseStore";
 import useWorkerStore from "../../../stores/workerStore";
+import useCabinetStore from "../../../stores/cabinetStore"; // ✅ kabinet store
 
 const StockOrder = () => {
   const navigate = useNavigate();
   const { orders, error, fetchOrders } = useOrderFromWarehouseStore();
   const { workers, fetchWorkers } = useWorkerStore();
+  const { cabinets, fetchCabinets } = useCabinetStore(); // ✅ zustand-dən kabinetləri götür
 
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const [searchTerm, setSearchTerm] = useState(""); // Added missing state
-  const [filteredOrders, setFilteredOrders] = useState([]); // Added missing state
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredOrders, setFilteredOrders] = useState([]);
+  const [selectedCabinet, setSelectedCabinet] = useState(null); // ✅ kabinet filter
 
   const categories = [
     { value: "all", label: "Bütün kateqoriyalar" },
@@ -26,7 +29,7 @@ const StockOrder = () => {
   const columns = [
     { key: "date", label: "Tarix" },
     { key: "time", label: "Saat" },
-    { key: "room", label: "Otaq" },
+    { key: "cabinetName", label: "Kabinet" }, // ✅ room → cabinetName
     { key: "quantity", label: "Məhsul sayı" },
     { key: "personWhoPlacedOrder", label: "Sifariş verən" },
   ];
@@ -34,6 +37,7 @@ const StockOrder = () => {
   useEffect(() => {
     fetchOrders();
     fetchWorkers();
+    fetchCabinets(); // ✅ kabinetləri gətir
   }, []);
 
   useEffect(() => {
@@ -57,7 +61,7 @@ const StockOrder = () => {
     if (searchTerm) {
       filtered = filtered.filter(
         (order) =>
-          order.room?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          order.cabinetName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           order.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           order.number?.toString().includes(searchTerm)
       );
@@ -69,15 +73,18 @@ const StockOrder = () => {
       );
     }
 
+    if (selectedCabinet) {
+      filtered = filtered.filter(
+        (order) => order.cabinetName === selectedCabinet.value
+      );
+    }
+
     setFilteredOrders(filtered);
-  }, [orders, searchTerm, selectedCategory]);
+  }, [orders, searchTerm, selectedCategory, selectedCabinet]);
 
   const getWorkerNameById = (id) => {
     const worker = workers.find((w) => w.id === id);
-    if (!worker) {
-      console.warn(`Worker not found for id: ${id}`);
-      return "Anonim";
-    }
+    if (!worker) return "Anonim";
     return `${worker.name} ${worker.surname}`;
   };
 
@@ -100,11 +107,16 @@ const StockOrder = () => {
             minute: "2-digit",
           })
         : "-",
-      room: order.room || "-",
+      cabinetName: order.cabinetName || "-",
       quantity: totalQuantity,
       personWhoPlacedOrder: getWorkerNameById(order.personWhoPlacedOrder),
     };
   });
+
+  const cabinetOptions = cabinets.map((c) => ({
+    value: c.name || c.cabinetName || c.value,
+    label: c.name || c.cabinetName || c.value,
+  }));
 
   return (
     <div className="flex flex-col border border-gray-200 rounded-lg bg-white p-1">
@@ -115,6 +127,12 @@ const StockOrder = () => {
             value={selectedCategory || categories[0]}
             onChange={setSelectedCategory}
             placeholder="Kateqoriya seçin"
+          />
+          <CustomDropdown
+            options={cabinetOptions}
+            value={selectedCabinet || null}
+            onChange={setSelectedCabinet}
+            placeholder="Kabinet seçin"
           />
           <input
             type="text"

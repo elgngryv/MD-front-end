@@ -21,7 +21,7 @@ import axios from "axios";
 import useOrdersFromWarehouseStore from "../../../stores/orderFromWarehouseStore";
 import "../../assets/style/StockOrder/stockorderdetail.css";
 
-const API_BASE_URL = "http://195.7.6.10:5555/api/v1";
+const API_BASE_URL = "http://161.97.179.107:5555/api/v1";
 
 const StockOrderDetail = () => {
   const navigate = useNavigate();

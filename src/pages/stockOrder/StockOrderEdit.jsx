@@ -19,7 +19,7 @@ import axios from "axios";
 import useOrdersFromWarehouseStore from "../../../stores/orderFromWarehouseStore";
 import "../../assets/style/StockOrder/stockorderedit.css";
 
-const API_BASE_URL = "http://195.7.6.10:5555/api/v1";
+const API_BASE_URL = "http://161.97.179.107:5555/api/v1";
 
 const StockOrderEdit = () => {
   const navigate = useNavigate();
@@ -95,10 +95,12 @@ const StockOrderEdit = () => {
             },
           }
         );
-        const fetchedWarehouseEntries = warehouseEntriesResponse.data.map((entry) => ({
-          value: entry.id,
-          label: `Anbar girişi #${entry.id} - ${entry.date || "Tarixsiz"}`,
-        }));
+        const fetchedWarehouseEntries = warehouseEntriesResponse.data.map(
+          (entry) => ({
+            value: entry.id,
+            label: `Anbar girişi #${entry.id} - ${entry.date || "Tarixsiz"}`,
+          })
+        );
         setWarehouseEntries(fetchedWarehouseEntries);
 
         // If in edit mode, fetch the order data
@@ -121,13 +123,16 @@ const StockOrderEdit = () => {
           if (orderData.time) {
             // Assuming orderData.time is an object like { hour: 10, minute: 30 }
             // or a string like "10:30:00"
-            if (typeof orderData.time === 'object' && orderData.time !== null) {
-              const hour = String(orderData.time.hour).padStart(2, '0');
-              const minute = String(orderData.time.minute).padStart(2, '0');
+            if (typeof orderData.time === "object" && orderData.time !== null) {
+              const hour = String(orderData.time.hour).padStart(2, "0");
+              const minute = String(orderData.time.minute).padStart(2, "0");
               formattedTime = `${hour}:${minute}`;
-            } else if (typeof orderData.time === 'string' && orderData.time.length >= 5) {
-                // If it's a string like "HH:mm:ss" or "HH:mm"
-                formattedTime = orderData.time.substring(0, 5); // Take only HH:mm
+            } else if (
+              typeof orderData.time === "string" &&
+              orderData.time.length >= 5
+            ) {
+              // If it's a string like "HH:mm:ss" or "HH:mm"
+              formattedTime = orderData.time.substring(0, 5); // Take only HH:mm
             }
           }
           setValue("orderTime", formattedTime);
@@ -142,7 +147,9 @@ const StockOrderEdit = () => {
               orderData.orderFromWarehouseProductResponses.map(async (item) => {
                 // Try to find matching product and category
                 const foundProduct = fetchedProducts.find(
-                  (p) => p.label === item.productName || p.label === item.productTitle
+                  (p) =>
+                    p.label === item.productName ||
+                    p.label === item.productTitle
                 );
                 const foundCategory = fetchedCategories.find(
                   (c) => c.label === item.categoryName
@@ -156,13 +163,18 @@ const StockOrderEdit = () => {
                       `${API_BASE_URL}/warehouse-entry-product/info/${item.warehouseEntryProductId}`,
                       {
                         headers: {
-                          Authorization: `Bearer ${localStorage.getItem("token")}`,
+                          Authorization: `Bearer ${localStorage.getItem(
+                            "token"
+                          )}`,
                         },
                       }
                     );
                     warehouseEntryProduct = productResponse.data;
                   } catch (error) {
-                    console.error("Error fetching warehouse entry product:", error);
+                    console.error(
+                      "Error fetching warehouse entry product:",
+                      error
+                    );
                   }
                 }
 
@@ -171,12 +183,16 @@ const StockOrderEdit = () => {
                   category: foundCategory?.value || "",
                   name: foundProduct?.value || "",
                   quantity: item.quantity,
-                  price: foundProduct?.price || warehouseEntryProduct?.price || 0,
+                  price:
+                    foundProduct?.price || warehouseEntryProduct?.price || 0,
                   warehouseEntryId: item.warehouseEntryId,
                   warehouseEntryProductId: item.warehouseEntryProductId,
                   categoryName: item.categoryName,
                   productName: item.productName || item.productTitle,
-                  warehouseEntryProductName: warehouseEntryProduct?.productName || item.productName || item.productTitle,
+                  warehouseEntryProductName:
+                    warehouseEntryProduct?.productName ||
+                    item.productName ||
+                    item.productTitle,
                 };
               })
             );
@@ -202,11 +218,13 @@ const StockOrderEdit = () => {
       ...prev,
       [field]: value,
       ...(field === "category" ? { name: "" } : {}),
-      ...(field === "warehouseEntryId" ? {
-        warehouseEntryProductId: "",
-        category: "",
-        name: ""
-      } : {}),
+      ...(field === "warehouseEntryId"
+        ? {
+            warehouseEntryProductId: "",
+            category: "",
+            name: "",
+          }
+        : {}),
     }));
   };
 
@@ -290,13 +308,13 @@ const StockOrderEdit = () => {
       (p) => p.value === option.value
     );
     if (entryProduct) {
-      setCurrentProduct(prev => ({
+      setCurrentProduct((prev) => ({
         ...prev,
         warehouseEntryProductId: option.value,
         category: entryProduct.categoryId || prev.category,
         name: entryProduct.productId || prev.name,
         price: entryProduct.price || prev.price,
-        quantity: entryProduct.quantity || prev.quantity
+        quantity: entryProduct.quantity || prev.quantity,
       }));
     }
   };
@@ -320,7 +338,9 @@ const StockOrderEdit = () => {
       const productId = selectedWarehouseEntryProduct.productId;
 
       const selectedCategory = categories.find((c) => c.value === categoryId);
-      const selectedProduct = productsByCategory.find((p) => p.value === productId);
+      const selectedProduct = productsByCategory.find(
+        (p) => p.value === productId
+      );
 
       const newProduct = {
         id: Date.now(),
@@ -332,7 +352,8 @@ const StockOrderEdit = () => {
         productName: selectedProduct?.label || "Unknown Product",
         warehouseEntryId: currentProduct.warehouseEntryId,
         warehouseEntryProductId: currentProduct.warehouseEntryProductId,
-        warehouseEntryProductName: selectedWarehouseEntryProduct?.label ||
+        warehouseEntryProductName:
+          selectedWarehouseEntryProduct?.label ||
           `Anbar məhsulu (ID: ${currentProduct.warehouseEntryProductId})`,
       };
 
@@ -479,7 +500,11 @@ const StockOrderEdit = () => {
   if (isLoading) {
     return (
       <div className="stockOrderFormWrapper__loading">
-        <FontAwesomeIcon icon={faSpinner} spin className="stockOrderFormWrapper__spinner" />
+        <FontAwesomeIcon
+          icon={faSpinner}
+          spin
+          className="stockOrderFormWrapper__spinner"
+        />
         <span className="stockOrderFormWrapper__loadingText">Yüklənir...</span>
       </div>
     );
@@ -487,10 +512,13 @@ const StockOrderEdit = () => {
 
   return (
     <div className="stockOrderFormWrapper">
-      <form onSubmit={handleSubmit(handleFormSubmit)} className="stockOrderFormWrapper__form">
+      <form
+        onSubmit={handleSubmit(handleFormSubmit)}
+        className="stockOrderFormWrapper__form">
         <div className="stockOrderFormWrapper__row">
           <label htmlFor="orderDate" className="stockOrderFormWrapper__label">
-            Sifariş tarixi <span className="stockOrderFormWrapper__required">*</span>
+            Sifariş tarixi{" "}
+            <span className="stockOrderFormWrapper__required">*</span>
           </label>
           <div className="stockOrderFormWrapper__inputContainer">
             <input
@@ -551,9 +579,12 @@ const StockOrderEdit = () => {
           <div className="stockOrderFormWrapper__row">
             <label className="stockOrderFormWrapper__label">Məhsullar</label>
             <div className="stockOrderFormWrapper__productsControls">
-              <div className="stockOrderFormWrapper__fieldGroup" style={{ minWidth: "200px" }}>
+              <div
+                className="stockOrderFormWrapper__fieldGroup"
+                style={{ minWidth: "200px" }}>
                 <label className="stockOrderFormWrapper__labelSmall">
-                  Anbar girişi <span className="stockOrderFormWrapper__required">*</span>
+                  Anbar girişi{" "}
+                  <span className="stockOrderFormWrapper__required">*</span>
                 </label>
                 <CustomDropdown
                   value={warehouseEntries.find(
@@ -568,20 +599,30 @@ const StockOrderEdit = () => {
 
               {isLoadingEntryProducts ? (
                 <div className="stockOrderFormWrapper__fieldGroup">
-                  <label className="stockOrderFormWrapper__labelSmall">Anbar məhsulu</label>
+                  <label className="stockOrderFormWrapper__labelSmall">
+                    Anbar məhsulu
+                  </label>
                   <div className="stockOrderFormWrapper__loadingSmall">
-                    <FontAwesomeIcon icon={faSpinner} spin className="stockOrderFormWrapper__spinnerSmall" />
-                    <span className="stockOrderFormWrapper__loadingTextSmall">Yüklənir...</span>
+                    <FontAwesomeIcon
+                      icon={faSpinner}
+                      spin
+                      className="stockOrderFormWrapper__spinnerSmall"
+                    />
+                    <span className="stockOrderFormWrapper__loadingTextSmall">
+                      Yüklənir...
+                    </span>
                   </div>
                 </div>
               ) : warehouseEntryProducts.length > 0 ? (
                 <div className="stockOrderFormWrapper__fieldGroup">
                   <label className="stockOrderFormWrapper__labelSmall">
-                    Anbar məhsulu <span className="stockOrderFormWrapper__required">*</span>
+                    Anbar məhsulu{" "}
+                    <span className="stockOrderFormWrapper__required">*</span>
                   </label>
                   <CustomDropdown
                     value={warehouseEntryProducts.find(
-                      (product) => product.value === currentProduct.warehouseEntryProductId
+                      (product) =>
+                        product.value === currentProduct.warehouseEntryProductId
                     )}
                     onChange={handleWarehouseEntryProductChange}
                     options={warehouseEntryProducts}
@@ -591,7 +632,9 @@ const StockOrderEdit = () => {
                 </div>
               ) : currentProduct.warehouseEntryId ? (
                 <div className="stockOrderFormWrapper__fieldGroup">
-                  <label className="stockOrderFormWrapper__labelSmall">Anbar məhsulu</label>
+                  <label className="stockOrderFormWrapper__labelSmall">
+                    Anbar məhsulu
+                  </label>
                   <div className="stockOrderFormWrapper__noProducts">
                     Bu anbar girişi üçün məhsul tapılmadı!
                   </div>
@@ -600,19 +643,24 @@ const StockOrderEdit = () => {
 
               <div className="stockOrderFormWrapper__fieldGroup">
                 <label className="stockOrderFormWrapper__labelSmall">
-                  Miqdar <span className="stockOrderFormWrapper__required">*</span>
+                  Miqdar{" "}
+                  <span className="stockOrderFormWrapper__required">*</span>
                 </label>
                 <input
                   type="number"
                   min="1"
-                  value={currentProduct.quantity || ''}
-                  onChange={(e) => handleProductChange("quantity", e.target.value)}
+                  value={currentProduct.quantity || ""}
+                  onChange={(e) =>
+                    handleProductChange("quantity", e.target.value)
+                  }
                   className="stockOrderFormWrapper__inputSmall"
                 />
               </div>
 
               <div className="stockOrderFormWrapper__fieldGroup">
-                <label className="stockOrderFormWrapper__labelSmall">&nbsp;</label>
+                <label className="stockOrderFormWrapper__labelSmall">
+                  &nbsp;
+                </label>
                 <button
                   type="button"
                   onClick={handleAddProduct}
@@ -621,8 +669,7 @@ const StockOrderEdit = () => {
                     !currentProduct.warehouseEntryProductId ||
                     !currentProduct.quantity
                   }
-                  className="stockOrderFormWrapper__buttonAdd"
-                >
+                  className="stockOrderFormWrapper__buttonAdd">
                   <FontAwesomeIcon icon={faPlus} />
                   Məhsul əlavə et
                 </button>
@@ -668,24 +715,21 @@ const StockOrderEdit = () => {
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="stockOrderFormWrapper__buttonCancel"
-          >
+            className="stockOrderFormWrapper__buttonCancel">
             <FontAwesomeIcon icon={faXmark} />
             Ləğv et
           </button>
           <button
             type="button"
             onClick={handleDelete}
-            className="stockOrderFormWrapper__buttonDelete"
-          >
+            className="stockOrderFormWrapper__buttonDelete">
             <FontAwesomeIcon icon={faXmark} />
             Sil
           </button>
           <button
             type="submit"
             disabled={isSubmitting || products.length === 0}
-            className="stockOrderFormWrapper__buttonSave"
-          >
+            className="stockOrderFormWrapper__buttonSave">
             {isSubmitting ? (
               <>
                 <FontAwesomeIcon icon={faSpinner} spin />

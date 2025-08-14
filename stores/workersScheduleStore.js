@@ -30,7 +30,7 @@ const useWorkersScheduleStore = create((set, get) => ({
     }
   },
 
-  // ➕ Yeni qrafik yarat
+ // ➕ Yeni qrafik yarat
   addSchedule: async (scheduleData) => {
     set({ loading: true, error: null });
     try {
@@ -38,11 +38,11 @@ const useWorkersScheduleStore = create((set, get) => ({
       await get().fetchSchedules();
     } catch (error) {
       set({ error });
+      throw error;
     } finally {
       set({ loading: false });
     }
   },
-
   // 📝 Qrafiki yenilə
   updateSchedule: async (scheduleData) => {
     set({ loading: true, error: null });

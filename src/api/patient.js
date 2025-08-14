@@ -6,7 +6,7 @@ export const createPatient = async (patientData) => {
   try {
     console.log("Sending data to server:", patientData);
     const response = await axios.post(
-      "http://195.7.6.10:5555/api/v1/patient/create",
+      "http://161.97.179.107:5555/api/v1/patient/create",
       patientData
     );
     return response.data;

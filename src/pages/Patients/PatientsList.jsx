@@ -31,7 +31,7 @@ function PatientsList() {
   useEffect(() => {
     const token = localStorage.getItem("token"); // Token-u localStorage-dan al
     axios
-      .get("http://195.7.6.10:5555/api/v1/patient/read", {
+      .get("http://161.97.179.107:5555/api/v1/patient/read", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -48,7 +48,7 @@ function PatientsList() {
   const removePatient = async (id) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://195.7.6.10:5555/api/v1/patient/delete/${id}`, {
+      await axios.delete(`http://161.97.179.107:5555/api/v1/patient/delete/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
