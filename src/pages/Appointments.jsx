@@ -259,7 +259,7 @@ const Appointments = () => {
               </button>
               <button
                 className="addNewAppointment"
-                onClick={() => navigate("/add-new-appointment")}>
+                onClick={() => navigate("add")}>
                 <TbCalendarPlus className="addNewAppointmentIcon" />
                 Yeni randevu əlavə et
               </button>

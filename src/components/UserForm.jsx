@@ -13,6 +13,8 @@ import Modal from "./Modal";
 import CustomDropdown from "./CustomDropdown";
 import useWorkerStore from "../../stores/workerStore";
 import usePermissionStore from "../../stores/permissionStore";
+// Import eye icons
+import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 
 function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
   const { addWorker } = useWorkerStore();
@@ -23,6 +25,8 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
   } = usePermissionStore();
   const [mode, setMode] = useState(initialMode);
   const [showColorPicker, setShowColorPicker] = useState(false);
+  // Add state for password visibility
+  const [showPassword, setShowPassword] = useState(false);
   const colorPickerRef = useRef(null);
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
@@ -205,6 +209,11 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
     mode === "edit" ? setMode("view") : navigate(-1);
   const handleColorChange = (color) => setValue("colorCode", color.hex);
 
+  // Toggle password visibility
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
   const formatPhoneNumber = (value) => {
     if (!value) return value;
     const phoneNumber = value.replace(/[^\d]/g, "");
@@ -329,19 +338,23 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
             </div>
 
             {mode === "create" && (
-              <div className="main-form-group">
+              <div className="main-form-group password-field-group">
                 <label htmlFor="password">
                   Şifrə <span className="text-red-500">*</span>
                 </label>
-                <input
-                  id="password"
-                  type="password"
-                  {...register("password")}
-                  readOnly={mode === "view"}
-                  className={`${mode === "view" ? "readonly" : ""} ${
-                    errors.password ? "error" : ""
-                  }`}
-                />
+                <div className="password-input-wrapper">
+                  <input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    {...register("password")}
+                    className={errors.password ? "error" : ""}
+                  />
+                  <span
+                    className="password-toggle-icon"
+                    onClick={togglePasswordVisibility}>
+                    {showPassword ? <FaRegEyeSlash /> : <FaRegEye />}
+                  </span>
+                </div>
                 {errors.password && (
                   <p className="error-message">{errors.password.message}</p>
                 )}

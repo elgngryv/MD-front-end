@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 // Icons
@@ -13,42 +13,66 @@ import "../../assets/style/Specialities/specialities.css";
 
 // Libraries
 import { Link } from 'react-router-dom';
+import useSpecializationStore from "../../../stores/useSpecializationStore";
 
 function Specialities() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
 
-  const tableData = [
-    { id: 1, name: "Deputat", status: "Aktiv" },
-    { id: 2, name: "Fəhlə", status: "Passiv" },
-    { id: 3, name: "Mühəndis", status: "Aktiv" },
-    { id: 4, name: "Texnik", status: "Passiv" },
-    { id: 5, name: "Operator", status: "Aktiv" },
-    { id: 6, name: "Menecer", status: "Aktiv" },
-    { id: 7, name: "Marketoloq", status: "Passiv" },
-    { id: 8, name: "Sürücü", status: "Aktiv" },
-  ];
+  // Zustand store'dan məlumatları və funksiyaları götürürük
+  const { 
+    specializations, 
+    loading, 
+    error, 
+    fetchSpecializations, 
+    removeSpecialization 
+  } = useSpecializationStore();
 
-  const filteredData = tableData.filter((row) =>
-    row.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Komponent yüklənəndə ixtisasları API-dan gətiririk
+  useEffect(() => {
+    fetchSpecializations();
+  }, [fetchSpecializations]);
+
+  // Axtarış və status filterləmə əməliyyatı
+  const filteredData = specializations.filter((specialization) => {
+    const nameMatch = specialization.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const statusMatch = filterStatus === "" || specialization.status.toLowerCase() === filterStatus.toLowerCase();
+    return nameMatch && statusMatch;
+  });
 
   const handleEdit = (row) => {
     navigate(`/edit-speciality/${row.id}`);
   };
 
-  const handleDelete = (row) => {
-    alert(`Silindi: ${row.name}`);
+  const handleDelete = async (id, name) => {
+    if (window.confirm(`Siz "${name}" ixtisasını silməyə əminsiniz?`)) {
+      try {
+        await removeSpecialization(id);
+        alert(`"${name}" ixtisası uğurla silindi.`);
+      } catch (err) {
+        alert(`"${name}" ixtisası silinərkən xəta baş verdi.`);
+        console.error("Silinmə xətası:", err);
+      }
+    }
   };
+
+  if (loading) {
+    return <div>Yüklənir...</div>;
+  }
+
+  if (error) {
+    return <div>Xəta: {error}</div>;
+  }
 
   return (
     <div className="specialitiesContainer">
       <div className="specialitiesContainerTopPart">
         <div className="leftPart">
-          <select>
+          <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
             <option value="">Status</option>
-            <option value="Aktiv">Aktiv</option>
-            <option value="Passiv">Passiv</option>
+            <option value="ACTIVE">Aktiv</option>
+            <option value="PASSIVE">Passiv</option>
           </select>
           <div className="specialitiesQuickSearch">
             <input
@@ -61,7 +85,7 @@ function Specialities() {
           </div>
         </div>
         <div className="rightPart">
-          <Link className="addSpeciality" to={'/add-speciality'}>
+          <Link className="addSpeciality" to={'add'}>
             <IoMdAdd className="addSpecialityIcon" /> Yenisini əlavə et
           </Link>
           <Link className="exportSpecialities">
@@ -94,14 +118,14 @@ function Specialities() {
                 <td>{index + 1}</td>
                 <td className='specialityName'>{row.name}</td>
                 <td>
-                  <span className={`statusBadge ${row.status === "Aktiv" ? "active" : "passive"}`}>
-                    {row.status}
+                  <span className={`statusBadge ${row.status.toLowerCase() === "active" ? "active" : "passive"}`}>
+                    {row.status === "ACTIVE" ? "Aktiv" : "Passiv"}
                   </span>
                 </td>
                 <td>
                   <div className="actionIcons">
                     <FiEdit3 className="editBtn" onClick={() => handleEdit(row)} />
-                    <GoTrash className="deleteBtn" onClick={() => handleDelete(row)} />
+                    <GoTrash className="deleteBtn" onClick={() => handleDelete(row.id, row.name)} />
                   </div>
                 </td>
               </tr>

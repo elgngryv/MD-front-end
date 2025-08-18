@@ -1,14 +1,13 @@
 import { create } from "zustand";
-import axios from "axios";
 import {
   createPatient,
-  editPatient, // Make sure this is correct and matches the export
+  editPatient,
   readPatients,
   readPatientById,
   deletePatient,
   searchPatients,
   exportPatientsToExcel,
-} from "../src/api/patient"; // Ensure the path is correct
+} from "../src/api/patient";
 
 const usePatientStore = create((set) => ({
   patients: [],
@@ -44,25 +43,16 @@ const usePatientStore = create((set) => ({
       await usePatientStore.getState().fetchPatients();
     } catch (err) {
       set({ error: err.message });
+      throw err;
     }
   },
 
   // Update patient
-  // In your store file
   editPatient: async (patientData) => {
     try {
-      const response = await axios.put(
-        `${import.meta.env.VITE_BASE_URL}/patient/update`,
-        patientData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
+      const response = await editPatient(patientData);
       await usePatientStore.getState().fetchPatients();
-      return response.data;
+      return response;
     } catch (err) {
       set({ error: err.message });
       throw err;

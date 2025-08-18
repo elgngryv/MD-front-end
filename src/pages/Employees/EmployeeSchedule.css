@@ -1,6 +1,17 @@
 /* Employee Schedule Styles */
+
+.employeeScheduleContainer{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  width: 100%;
+  min-height: 100vh;
+}
+
 .schedule-out {
   padding: 20px;
+  width: 100% !important;
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -8,6 +19,7 @@
 
 .dateContainerTH{
   width: 120px;
+  
   >.day-name{
     width: 100% !important;
     text-align: center !important;
@@ -284,6 +296,3 @@
     font-size: 11px;
   }
 }
-
-
-

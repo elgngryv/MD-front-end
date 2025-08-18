@@ -604,7 +604,7 @@ const AnimatedRoutes = () => {
 
             <Route path="/specialities" element={<Specialities />} />
             <Route path="/edit-speciality/:id" element={<EditSpeciality />} />
-            <Route path="/add-speciality" element={<AddSpeciality />} />
+            <Route path="/specialities/add" element={<AddSpeciality />} />
 
             <Route path="/academic-degrees" element={<AcademicDegrees />} />
             <Route path="/edit-degree/:id" element={<EditAcademicDegrees />} />

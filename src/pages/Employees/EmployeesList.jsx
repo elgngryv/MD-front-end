@@ -57,7 +57,6 @@ const EmployeesList = () => {
 
   const getStatus = (emp) => (emp.enabled ? "Aktiv" : "Passiv");
 
-  // Permission dropdown dəyişəndə işçiləri rol üzrə axtarır
   const handlePermissionChange = async (e) => {
     const perm = e.target.value;
     setSelectedPermission(perm);
@@ -70,61 +69,52 @@ const EmployeesList = () => {
     }
   };
 
-  // Digər input dəyişiklikləri və axtarış funksiyaları (handleInputChange, handleSearch) sənin verdiyin kimi qalır.
-
-  // Burada qısa olaraq input dəyişmə funksiyası (full versiyanı yuxarıdakı kodundan istifadə et)
-  const handleInputChange = async (e) => {
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
     setSearchParams((prev) => ({
       ...prev,
       [name]: value,
     }));
-
-    const newSearchParams = { ...searchParams, [name]: value };
-
-    if (
-      Object.values(newSearchParams).every(
-        (val) => val === "" || val === undefined
-      )
-    ) {
-      await fetchWorkers();
-      const updatedWorkers = useEmployeeStore.getState().workers;
-      setSearchResult(updatedWorkers);
-      setCurrentPage(1);
-    } else {
-      setTimeout(() => {
-        handleSearch();
-      }, 300);
+  
+    // Reset other search parameters if a specific one is being typed
+    // This is optional but can improve UX
+    if (name !== 'enabled' && selectedPermission) {
+      setSelectedPermission("");
     }
+    
+    // Use a timeout to debounce the search, preventing API calls on every keystroke
+    setTimeout(() => {
+      handleSearch({ ...searchParams, [name]: value });
+    }, 300);
   };
-
-  const handleSearch = async () => {
+  
+  const handleSearch = async (currentParams) => {
     try {
-      const allSearchParamsEmpty = Object.values(searchParams).every(
+      const allSearchParamsEmpty = Object.values(currentParams).every(
         (val) => val === "" || val === undefined
       );
 
-      if (allSearchParamsEmpty) {
+      if (allSearchParamsEmpty && !selectedPermission) {
         await fetchWorkers();
         const updatedWorkers = useEmployeeStore.getState().workers;
         setSearchResult(updatedWorkers);
         setCurrentPage(1);
         return;
       }
-
+      
       const enabledBoolean =
-        searchParams.enabled === "true"
+        currentParams.enabled === "true"
           ? true
-          : searchParams.enabled === "false"
+          : currentParams.enabled === "false"
           ? false
           : undefined;
 
       await searchWorkers({
-        username: searchParams.username || undefined,
-        name: searchParams.name || undefined,
-        surname: searchParams.surname || undefined,
-        patronymic: searchParams.patronymic || undefined,
-        phone: searchParams.phone || undefined,
+        username: currentParams.username || undefined,
+        name: currentParams.name || undefined,
+        surname: currentParams.surname || undefined,
+        patronymic: currentParams.patronymic || undefined,
+        phone: currentParams.phone || undefined,
         enabled: enabledBoolean,
       });
 
@@ -134,8 +124,7 @@ const EmployeesList = () => {
       alert("Axtarış zamanı xəta baş verdi");
     }
   };
-
-
+  
 
   const icons = [
     {
@@ -168,7 +157,7 @@ const EmployeesList = () => {
               const updatedWorkers = useEmployeeStore.getState().workers;
               setSearchResult(updatedWorkers);
             } else {
-              handleSearch();
+              handleSearch(searchParams);
             }
           } catch (err) {
             alert("Silinmə zamanı xəta baş verdi.");
@@ -203,43 +192,42 @@ const EmployeesList = () => {
             placeholder="İstifadəçi adı"
             value={searchParams.username}
             onChange={handleInputChange}
-            onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+            onKeyPress={(e) => e.key === "Enter" && handleSearch(searchParams)}
           />
           <input
             name="name"
             placeholder="Ad"
             value={searchParams.name}
             onChange={handleInputChange}
-            onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+            onKeyPress={(e) => e.key === "Enter" && handleSearch(searchParams)}
           />
           <input
             name="surname"
             placeholder="Soyad"
             value={searchParams.surname}
             onChange={handleInputChange}
-            onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+            onKeyPress={(e) => e.key === "Enter" && handleSearch(searchParams)}
           />
           <input
             name="patronymic"
             placeholder="Ata adı"
             value={searchParams.patronymic}
             onChange={handleInputChange}
-            onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+            onKeyPress={(e) => e.key === "Enter" && handleSearch(searchParams)}
           />
           <input
             name="phone"
             placeholder="Telefon"
             value={searchParams.phone}
             onChange={handleInputChange}
-            onKeyPress={(e) => e.key === "Enter" && handleSearch()}
+            onKeyPress={(e) => e.key === "Enter" && handleSearch(searchParams)}
           />
-          <button className="cursor-pointer" onClick={handleSearch}>
+          <button className="cursor-pointer" onClick={() => handleSearch(searchParams)}>
             <CiSearch className="searchBTN" />
           </button>
         </div>
 
         <div className="rightPart">
-          {/* Dropdown ilə seçilən permission */}
           <select value={selectedPermission} onChange={handlePermissionChange}>
             <option value="">Hamısı</option>
             {permissions.map((perm) => (
@@ -249,7 +237,6 @@ const EmployeesList = () => {
             ))}
           </select>
 
-          {/* Status seçimi */}
           <select
             className="workersStatusChecker"
             name="enabled"
@@ -277,8 +264,7 @@ const EmployeesList = () => {
                   <th>
                     <div className="th-content">
                       <span>
-                        <HiArrowsUpDown className="tableArrowIcon" /> İstifadəçi
-                        adı
+                        <HiArrowsUpDown className="tableArrowIcon" /> İstifadəçi adı
                       </span>
                     </div>
                   </th>

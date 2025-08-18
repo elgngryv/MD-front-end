@@ -112,14 +112,16 @@ function EmployeeWorkScheduleList() {
                 <td colSpan="6">Heç bir qrafik tapılmadı.</td>
               </tr>
             ) : (
-              filteredSchedules.map((row, index) => (
+              filteredSchedules.map((row, index) =>
+                
+                (
                 <tr key={row.id}>
-                  <td>{index + 1}</td>
-                  <td>{weekDays.find((d) => d.key === row.weekDay)?.label || row.weekDay}</td>
-                  <td>{row.room}</td>
-                  <td>{formatTime(row.startTime)}</td>
-                  <td>{formatTime(row.finishTime)}</td>
-                  <td>
+                  <td className="testTD" style={{ textAlign: 'center' }}>{index + 1}</td>
+                  <td style={{ textAlign: 'left' }}>{weekDays.find((d) => d.key === row.weekDay)?.label || row.weekDay}</td>
+                  <td style={{ textAlign: 'left' }}>{row.cabinetName}</td>
+                  <td style={{ textAlign: 'left' }}>{formatTime(row.startTime)}</td>
+                  <td style={{ textAlign: 'left' }}>{formatTime(row.finishTime)}</td>
+                  <td style={{ textAlign: 'left' }}>
                     <div className="anamnesisList-action-icons">
                       <FiEdit3
                         className="anamnesisList-edit-button"

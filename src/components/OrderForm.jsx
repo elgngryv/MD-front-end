@@ -230,7 +230,7 @@ const OrderForm = ({ initialData, mode="create", onSubmit, onCancel }) => {
                 </button>
               </div>
             <div>
-              <ToothSelector showImage={false} selectedTeeth={selectedTeeth} onSelect={handleToothSelect} isChild={isChild}/>
+              <ToothSelector showImage={true} selectedTeeth={selectedTeeth} onSelect={handleToothSelect} isChild={isChild}/>
             </div>
             </div>
 

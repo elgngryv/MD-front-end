@@ -4,7 +4,7 @@ import axios from "axios";
 
 // Icons
 import { CiSearch, CiCircleInfo } from "react-icons/ci";
-import { GoTrash } from "react-icons/go";
+import { GoTrash, GoChevronLeft, GoChevronRight } from "react-icons/go";
 import { FiEdit3 } from "react-icons/fi";
 
 // Style
@@ -25,11 +25,12 @@ const initialSearch = {
 function PatientsList() {
   const [data, setData] = useState([]);
   const [search, setSearch] = useState(initialSearch);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   const navigate = useNavigate();
 
-  // Fetching data from the API with Authorization header
   useEffect(() => {
-    const token = localStorage.getItem("token"); // Token-u localStorage-dan al
+    const token = localStorage.getItem("token");
     axios
       .get("http://161.97.179.107:5555/api/v1/patient/read", {
         headers: {
@@ -44,7 +45,6 @@ function PatientsList() {
       });
   }, []);
 
-  // Deleting a patient with Authorization header
   const removePatient = async (id) => {
     try {
       const token = localStorage.getItem("token");
@@ -59,16 +59,29 @@ function PatientsList() {
     }
   };
 
-  // Filtering data based on search criteria
-  const filteredData = data.filter(
-    (item) =>
-      item.name.toLowerCase().includes(search.name.toLowerCase()) &&
-      item.surname.toLowerCase().includes(search.surname.toLowerCase()) &&
-      item.finCode.toLowerCase().includes(search.fin.toLowerCase()) &&
-      item.phone.toLowerCase().includes(search.phone.toLowerCase()) &&
-      (search.gender ? item.genderStatus === search.gender : true) &&
-      (search.status ? item.priceCategoryStatus === search.status : true)
-  );
+  const filteredData = [...data]
+    .reverse()
+    .filter(
+      (item) =>
+        item.name.toLowerCase().includes(search.name.toLowerCase()) &&
+        item.surname.toLowerCase().includes(search.surname.toLowerCase()) &&
+        item.finCode.toLowerCase().includes(search.fin.toLowerCase()) &&
+        item.phone.toLowerCase().includes(search.phone.toLowerCase()) &&
+        (search.gender ? item.genderStatus === search.gender : true) &&
+        (search.status ? item.priceCategoryName === search.status : true)
+    );
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+
+  const paginate = (pageNumber) => {
+    if (pageNumber >= 1 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+    }
+  };
 
   const icons = [
     {
@@ -76,11 +89,10 @@ function PatientsList() {
       action: (row) => navigate(`patient/${row.id}/general`),
       className: "info",
     },
-    // Uncomment if you want edit functionality
     // {
-    //   icon: FiEdit3,
-    //   action: (row) => navigate(`patient/${row.id}`),
-    //   className: "edit"
+    //   icon: FiEdit3,
+    //   action: (row) => navigate(`patient/${row.id}`),
+    //   className: "edit"
     // },
     {
       icon: GoTrash,
@@ -139,7 +151,8 @@ function PatientsList() {
               value={search.gender}
               onChange={(e) =>
                 setSearch({ ...search, gender: e.target.value })
-              }>
+              }
+            >
               <option value="">Cinsiyyət</option>
               <option value="MAN">Kişi</option>
               <option value="WOMAN">Qadın</option>
@@ -148,7 +161,8 @@ function PatientsList() {
               value={search.status}
               onChange={(e) =>
                 setSearch({ ...search, status: e.target.value })
-              }>
+              }
+            >
               <option value="">Status</option>
               <option value="Vip">Vip</option>
               <option value="Standard">Standard</option>
@@ -174,23 +188,17 @@ function PatientsList() {
               </tr>
             </thead>
             <tbody>
-              {filteredData.map((item) => (
+              {currentItems.map((item) => (
                 <tr key={item.id}>
                   <td>{item.id}</td>
-                    <td>
-                      {item.name} 
-                    </td>
-                    <td>
-                      {item.surname} 
-                    </td>
-                    <td>
-                      {item.patronymic} 
-                    </td>
+                  <td>{item.name}</td>
+                  <td>{item.surname}</td>
+                  <td>{item.patronymic}</td>
                   <td>{item.finCode}</td>
                   <td>{item.genderStatus === "MAN" ? "Kişi" : "Qadın"}</td>
                   <td>{item.phone}</td>
                   <td>{item.dateOfBirth}</td>
-                  <td>{item.priceCategoryStatus}</td>
+                  <td>{item.priceCategoryName}</td>
                   <td>{item.isBlocked ? "Bəli" : "Xeyr"}</td>
                   <td>
                     <div className="actionsWrapper">
@@ -210,6 +218,30 @@ function PatientsList() {
               ))}
             </tbody>
           </table>
+        </div>
+
+        <div className="pagination">
+          <button
+            onClick={() => paginate(currentPage - 1)}
+            disabled={currentPage === 1}
+          >
+            <GoChevronLeft />
+          </button>
+          {[...Array(totalPages).keys()].map((number) => (
+            <button
+              key={number + 1}
+              onClick={() => paginate(number + 1)}
+              className={currentPage === number + 1 ? "active" : ""}
+            >
+              {number + 1}
+            </button>
+          ))}
+          <button
+            onClick={() => paginate(currentPage + 1)}
+            disabled={currentPage === totalPages}
+          >
+            <GoChevronRight />
+          </button>
         </div>
       </div>
     </>

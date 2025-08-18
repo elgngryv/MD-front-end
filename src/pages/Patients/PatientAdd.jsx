@@ -1,20 +1,22 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import "../../assets/style/PatientsPage/addpatient.css";
 import cancelButton from "../../assets/images/EmployeesPage/cancelProcess.png";
 import verifyButton from "../../assets/images/EmployeesPage/verifyProcess.png";
 import usePatientStore from "../../../stores/patiendStore";
 import useBlackListResultStore from "../../../stores/blacklistReasonStore";
 import usePriceCategoryStore from "../../../stores/priceCategoryStore";
-import { toast } from "react-toastify";
+import useSpecializationStore from "../../../stores/useSpecializationStore";
+import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const PatientAdd = () => {
+  const navigate = useNavigate();
   const { addPatient } = usePatientStore();
-  const { results: blacklistOptions, fetchResults: fetchBlacklistOptions } =
-    useBlackListResultStore();
-  const { categories: priceCategories, fetchCategories: fetchPriceCategories } =
-    usePriceCategoryStore();
+  const { results: blacklistOptions, fetchResults: fetchBlacklistOptions } = useBlackListResultStore();
+  const { categories: priceCategories, fetchCategories: fetchPriceCategories } = usePriceCategoryStore();
+  const { specializations, fetchSpecializations } = useSpecializationStore();
 
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -27,10 +29,10 @@ const PatientAdd = () => {
     finCode: "",
     genderStatus: "",
     dateOfBirth: "",
-    priceCategoryStatus: "", // Qiymət kateqoriyası ID-si string olaraq gələcək, sonra parseInt ediləcək
-    specializationStatus: "",
+    priceCategoryName: "",
+    specializationName: "", // Dəyişdirildi
     doctorId: null,
-    isVip: false, // Bu sahənin "priceCategoryStatus" ilə əlaqəsi yoxdur, ayrı idarə olunur
+    isVip: false,
     isBlacklisted: false,
     blacklistCategory: "",
     phone: "",
@@ -44,12 +46,11 @@ const PatientAdd = () => {
   });
 
   useEffect(() => {
-    // Doktorları yüklə
-    const fetchDoctors = async () => {
+    const fetchAllData = async () => {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(
-          "http://161.97.179.107:5555/api/v1/general-calendar/read-doctors",
+          `${import.meta.env.VITE_BASE_URL}/general-calendar/read-doctors`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -62,29 +63,39 @@ const PatientAdd = () => {
         toast.error("Doktor məlumatları yüklənərkən xəta baş verdi.");
       }
     };
-    fetchDoctors();
-
-    // Qara siyahı seçimlərini yüklə
+    fetchAllData();
     fetchBlacklistOptions();
-
-    // Qiymət kateqoriyalarını yüklə
     fetchPriceCategories();
-  }, [fetchBlacklistOptions, fetchPriceCategories]);
+    fetchSpecializations();
+  }, [fetchBlacklistOptions, fetchPriceCategories, fetchSpecializations]);
+
+  const formatPhoneNumber = (value) => {
+    const cleaned = ('' + value).replace(/\D/g, '');
+    let formattedNumber = '';
+    if (cleaned.length > 0) {
+      formattedNumber += `(${cleaned.substring(0, 3)}`;
+    }
+    if (cleaned.length >= 4) {
+      formattedNumber += `)-${cleaned.substring(3, 6)}`;
+    }
+    if (cleaned.length >= 7) {
+      formattedNumber += `-${cleaned.substring(6, 10)}`;
+    }
+    return formattedNumber;
+  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    let newValue;
+    let newValue = value;
 
     if (type === "checkbox") {
-      newValue = checked; // Checkbox üçün 'checked' dəyərini (boolean) birbaşa istifadə et
+      newValue = checked;
     } else if (name === "finCode") {
       newValue = value.toUpperCase().replace(/[^A-Z0-9]/g, "");
-    } else if (["phone", "workPhone", "homePhone", "whatsapp"].includes(name)) {
+    } else if (["phone", "whatsapp", "workPhone", "homePhone"].includes(name)) {
       newValue = formatPhoneNumber(value);
-    } else {
-      newValue = value; // Digər inputlar üçün adi dəyər
     }
-
+    
     setFormData((prev) => ({
       ...prev,
       [name]: newValue,
@@ -98,9 +109,9 @@ const PatientAdd = () => {
     if (!formData.surname) newErrors.surname = "Soyad tələb olunur";
     if (!formData.patronymic) newErrors.patronymic = "Ata adı tələb olunur";
     if (!formData.genderStatus) newErrors.genderStatus = "Cinsiyyət tələb olunur";
-    if (!formData.priceCategoryStatus)
-      newErrors.priceCategoryStatus = "Qiymət kateqoriyası tələb olunur"; // Buradakı validation saxlanılır
+    if (!formData.priceCategoryName) newErrors.priceCategoryName = "Qiymət kateqoriyası tələb olunur";
     if (!formData.doctorId) newErrors.doctorId = "Həkimi seçin";
+    if (!formData.specializationName) newErrors.specializationName = "İxtisası seçin"; // Dəyişdirildi
 
     const phoneRegex = /^\(\d{3}\)-\d{3}-\d{4}$/;
     if (!formData.phone) newErrors.phone = "Mobil nömrə tələb olunur";
@@ -116,8 +127,7 @@ const PatientAdd = () => {
 
     if (!formData.finCode) newErrors.finCode = "Fin kodu tələb olunur";
     else if (!/^[A-Z0-9]{7}$/.test(formData.finCode))
-      newErrors.finCode =
-        "FIN kod yalnız böyük hərflər və rəqəmlərdən ibarət 7 simvol olmalıdır";
+      newErrors.finCode = "FIN kod yalnız böyük hərflər və rəqəmlərdən ibarət 7 simvol olmalıdır";
 
     if (formData.isBlacklisted && !formData.blacklistCategory)
       newErrors.blacklistCategory = "Qara siyahı kateqoriyası seçin";
@@ -126,14 +136,10 @@ const PatientAdd = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const formatPhoneNumber = (phone) => {
-    const cleaned = phone.replace(/\D/g, "");
-    if (cleaned.length !== 10) return ""; // Düzgün formatda deyilsə boş sətir qaytar
-    return `(${cleaned.slice(0, 3)})-${cleaned.slice(3, 6)}-${cleaned.slice(6)}`;
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    console.log("Göndərilən formData:", formData);
 
     if (!validateForm()) {
       toast.error("Zəhmət olmasa, tələb olunan sahələri doldurun və formatları düzəldin.");
@@ -142,70 +148,30 @@ const PatientAdd = () => {
 
     const dataToSend = {
       ...formData,
-      // Telefon nömrələrini formatla və boşdursa null et
-      phone: formData.phone ? formatPhoneNumber(formData.phone) : null,
-      homePhone: formData.homePhone ? formatPhoneNumber(formData.homePhone) : null,
-      workPhone: formData.workPhone ? formatPhoneNumber(formData.workPhone) : null,
-      whatsapp: formData.whatsapp ? formatPhoneNumber(formData.whatsapp) : null,
-      
-      // doctor_id-ni formData.doctorId-dən al
-      doctor_id: formData.doctorId, 
-      
-      // priceCategoryStatus-u düzgün idarə et
-      // Əgər formData.priceCategoryStatus boş string deyilsə, onu rəqəmə çevir (10-luq sistemdə), əks halda null et.
-      priceCategoryStatus: formData.priceCategoryStatus ? parseInt(formData.priceCategoryStatus, 10) : null, 
-      
-      // Blacklist kateqoriyasını da rəqəmə çevir, əks halda null et
-      blacklistCategory: formData.isBlacklisted && formData.blacklistCategory ? parseInt(formData.blacklistCategory, 10) : null, 
+      specializationName: formData.specializationName, // Dəyişdirildi
+      doctorId: formData.doctorId,
+      priceCategoryName: formData.priceCategoryName,
+      blacklistCategory: formData.isBlacklisted && formData.blacklistCategory ? parseInt(formData.blacklistCategory, 10) : null,
     };
 
-    // Opsiyonel string sahələri üçün boş stringləri null-a çevir
-    // Backend boş string əvəzinə null gözləyə bilər
-    if (dataToSend.dateOfBirth === "") dataToSend.dateOfBirth = null;
-    if (dataToSend.email === "") dataToSend.email = null;
-    if (dataToSend.homeAddress === "") dataToSend.homeAddress = null;
-    if (dataToSend.homeAddress === "") dataToSend.homeAddress = null;
-    if (dataToSend.workAddress === "") dataToSend.workAddress = null;
-    if (dataToSend.recommender === "") dataToSend.recommender = null;
-    if (dataToSend.specializationStatus === "") dataToSend.specializationStatus = null;
-
-
-    // --- Debugging üçün Konsol Loqları (Çox Vacibdir!) ---
-    console.log("Göndərilən data (dataToSend):", dataToSend);
-    console.log("Göndərilən priceCategoryStatus:", dataToSend.priceCategoryStatus); // Bu dəyəri yoxlayın!
-    console.log("Göndərilən doctorId:", dataToSend.doctor_id); // doctorId dəyərini də yoxlamaq lazımdır
+    dataToSend.dateOfBirth = formData.dateOfBirth === "" ? null : formData.dateOfBirth;
+    dataToSend.email = formData.email === "" ? null : formData.email;
+    dataToSend.homeAddress = formData.homeAddress === "" ? null : formData.homeAddress;
+    dataToSend.workAddress = formData.workAddress === "" ? null : formData.workAddress;
+    dataToSend.recommender = formData.recommender === "" ? null : formData.recommender;
 
     setLoading(true);
     try {
-      const token = localStorage.getItem("token");
-
-      const response = await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/patient/create`,
-        dataToSend,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      console.log("Pasiyent uğurla əlavə olundu:", response.data);
+      const response = await addPatient(dataToSend);
+      console.log("Pasiyent uğurla əlavə olundu:", response);
       toast.success("Pasiyent uğurla əlavə olundu!");
-      // Formu sıfırla
-      setFormData({
-        name: "", surname: "", patronymic: "", finCode: "", genderStatus: "", dateOfBirth: "",
-        priceCategoryStatus: "", specializationStatus: "", doctorId: null, isVip: false,
-        isBlacklisted: false, blacklistCategory: "", phone: "", whatsapp: "", workPhone: "",
-        homePhone: "", email: "", homeAddress: "", workAddress: "", recommender: "",
-      });
-      setErrors({});
+      setTimeout(() => {
+        navigate("/patients");
+      }, 1500);
     } catch (err) {
       console.error("Xəta baş verdi:", err.response?.data || err.message);
-      toast.error("Xəta baş verdi. Məlumatları yoxlayın.");
-      if (err.response && err.response.data && err.response.data.message) {
-        toast.error(`Server xətası: ${err.response.data.message}`);
-      }
+      const errorMessage = err.response?.data?.message || "Xəta baş verdi. Məlumatları yoxlayın.";
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -213,172 +179,74 @@ const PatientAdd = () => {
 
   return (
     <div className="patientsGroupWrapper">
+      <ToastContainer position="top-right" autoClose={2000} />
       <form onSubmit={handleSubmit} className="patientsGroupContainer">
         <div className="patientsGroupLeft">
-          {/* Adı Field */}
           <div className="patientsGroupField">
-            <label className="patientsGroupLabel">
-              Adı <span className="patientsGroupRequired">*</span>
-            </label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              className="patientsGroupInputText"
-            />
-            {errors.name && (
-              <span className="error-message">{errors.name}</span>
-            )}
+            <label className="patientsGroupLabel">Adı <span className="patientsGroupRequired">*</span></label>
+            <input type="text" name="name" value={formData.name} onChange={handleChange} className="patientsGroupInputText" />
+            {errors.name && <span className="error-message">{errors.name}</span>}
           </div>
-
-          {/* Soyadı Field */}
           <div className="patientsGroupField">
-            <label className="patientsGroupLabel">
-              Soyadı <span className="patientsGroupRequired">*</span>
-            </label>
-            <input
-              type="text"
-              name="surname"
-              value={formData.surname}
-              onChange={handleChange}
-              className="patientsGroupInputText"
-            />
-            {errors.surname && (
-              <span className="error-message">{errors.surname}</span>
-            )}
+            <label className="patientsGroupLabel">Soyadı <span className="patientsGroupRequired">*</span></label>
+            <input type="text" name="surname" value={formData.surname} onChange={handleChange} className="patientsGroupInputText" />
+            {errors.surname && <span className="error-message">{errors.surname}</span>}
           </div>
-
-          {/* Ata adı Field */}
           <div className="patientsGroupField">
-            <label className="patientsGroupLabel">
-              Ata adı <span className="patientsGroupRequired">*</span>
-            </label>
-            <input
-              type="text"
-              name="patronymic"
-              value={formData.patronymic}
-              onChange={handleChange}
-              className="patientsGroupInputText"
-            />
-            {errors.patronymic && (
-              <span className="error-message">{errors.patronymic}</span>
-            )}
+            <label className="patientsGroupLabel">Ata adı <span className="patientsGroupRequired">*</span></label>
+            <input type="text" name="patronymic" value={formData.patronymic} onChange={handleChange} className="patientsGroupInputText" />
+            {errors.patronymic && <span className="error-message">{errors.patronymic}</span>}
           </div>
-
-          {/* Fin Kodu Field */}
           <div className="patientsGroupField">
-            <label className="patientsGroupLabel">
-              Fin kodu <span className="patientsGroupRequired">*</span>
-            </label>
-            <input
-              type="text"
-              name="finCode"
-              value={formData.finCode}
-              onChange={handleChange}
-              maxLength={7}
-              className="patientsGroupInputText"
-            />
-            {errors.finCode && (
-              <span className="error-message">{errors.finCode}</span>
-            )}
+            <label className="patientsGroupLabel">Fin kodu <span className="patientsGroupRequired">*</span></label>
+            <input type="text" name="finCode" value={formData.finCode} onChange={handleChange} maxLength={7} className="patientsGroupInputText" />
+            {errors.finCode && <span className="error-message">{errors.finCode}</span>}
           </div>
-
-          {/* Cinsiyyət Field */}
           <div className="patientsGroupField">
-            <label className="patientsGroupLabel">
-              Cinsiyyət <span className="patientsGroupRequired">*</span>
-            </label>
+            <label className="patientsGroupLabel">Cinsiyyət <span className="patientsGroupRequired">*</span></label>
             <div className="patientsGroupGender">
               <label>
-                <input
-                  type="radio"
-                  name="genderStatus"
-                  value="MAN"
-                  checked={formData.genderStatus === "MAN"}
-                  onChange={handleChange}
-                  className="patientsGroupCheckbox"
-                />{" "}
-                Kişi
+                <input type="radio" name="genderStatus" value="MAN" checked={formData.genderStatus === "MAN"} onChange={handleChange} className="patientsGroupCheckbox" /> Kişi
               </label>
               <label>
-                <input
-                  type="radio"
-                  name="genderStatus"
-                  value="WOMAN"
-                  checked={formData.genderStatus === "WOMAN"}
-                  onChange={handleChange}
-                  className="patientsGroupCheckbox"
-                />{" "}
-                Qadın
+                <input type="radio" name="genderStatus" value="WOMAN" checked={formData.genderStatus === "WOMAN"} onChange={handleChange} className="patientsGroupCheckbox" /> Qadın
               </label>
             </div>
-            {errors.genderStatus && (
-              <span className="error-message">{errors.genderStatus}</span>
-            )}
+            {errors.genderStatus && <span className="error-message">{errors.genderStatus}</span>}
           </div>
-
-          {/* Doğum tarixi Field */}
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">Doğum tarixi</label>
-            <input
-              type="date"
-              name="dateOfBirth"
-              value={formData.dateOfBirth}
-              onChange={handleChange}
-              className="patientsGroupInputDate"
-            />
+            <input type="date" name="dateOfBirth" value={formData.dateOfBirth} onChange={handleChange} className="patientsGroupInputDate" />
           </div>
 
-          {/* Qiymət Kateqoriyası Field */}
           <div className="patientsGroupField">
-            <label className="patientsGroupLabel">
-              Qiymət kateqoriyası{" "}
-              <span className="patientsGroupRequired">*</span>
-            </label>
-            <select
-              name="priceCategoryStatus"
-              value={formData.priceCategoryStatus} // Seçili dəyəri burdan alır
-              onChange={handleChange}
-              className="patientsGroupSelect"
-            >
-              <option value="">seçin</option> {/* Default boş dəyər */}
+            <label className="patientsGroupLabel">Qiymət kateqoriyası <span className="patientsGroupRequired">*</span></label>
+            <select name="priceCategoryName" value={formData.priceCategoryName} onChange={handleChange} className="patientsGroupSelect">
+              <option value="">seçin</option>
               {priceCategories.map((category) => (
-                <option key={category.id} value={category.id}> {/* category.id-ni dəyər olaraq təyin edirik */}
+                <option key={category.id} value={category.name}>
                   {category.name}
                 </option>
               ))}
             </select>
-            {errors.priceCategoryStatus && (
-              <span className="error-message">
-                {errors.priceCategoryStatus}
-              </span>
-            )}
+            {errors.priceCategoryName && <span className="error-message">{errors.priceCategoryName}</span>}
           </div>
 
-          {/* İxtisası Field */}
           <div className="patientsGroupField">
-            <label className="patientsGroupLabel">İxtisası</label>
-            <input
-              type="text"
-              name="specializationStatus"
-              value={formData.specializationStatus}
-              onChange={handleChange}
-              className="patientsGroupInputText"
-            />
+            <label className="patientsGroupLabel">İxtisası <span className="patientsGroupRequired">*</span></label>
+            <select name="specializationName" value={formData.specializationName} onChange={handleChange} className="patientsGroupSelect"> {/* Dəyişdirildi */}
+              <option value="">seçin</option>
+              {specializations.map((spec) => (
+                <option key={spec.id} value={spec.name}>
+                  {spec.name}
+                </option>
+              ))}
+            </select>
+            {errors.specializationName && <span className="error-message">{errors.specializationName}</span>} {/* Dəyişdirildi */}
           </div>
-
-          {/* Həkim Field */}
           <div className="patientsGroupField">
-            <label className="patientsGroupLabel">
-              Həkim <span className="patientsGroupRequired">*</span>
-            </label>
-            <select
-              name="doctorId"
-              value={formData.doctorId || ""}
-              onChange={handleChange}
-              className="patientsGroupSelect"
-            >
+            <label className="patientsGroupLabel">Həkim <span className="patientsGroupRequired">*</span></label>
+            <select name="doctorId" value={formData.doctorId || ""} onChange={handleChange} className="patientsGroupSelect">
               <option value="">Həkim seçin</option>
               {doctors.map((doctor) => (
                 <option key={doctor.doctorId} value={doctor.doctorId}>
@@ -386,41 +254,17 @@ const PatientAdd = () => {
                 </option>
               ))}
             </select>
-            {errors.doctorId && (
-              <span className="error-message">{errors.doctorId}</span>
-            )}
+            {errors.doctorId && <span className="error-message">{errors.doctorId}</span>}
           </div>
-
-          {/* VIP Field (ayrı bir checkbox kimi saxlanılır) */}
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">VIP</label>
-            <input
-              type="checkbox"
-              name="isVip"
-              checked={formData.isVip}
-              onChange={handleChange}
-              className="patientsGroupCheckbox"
-            />
+            <input type="checkbox" name="isVip" checked={formData.isVip} onChange={handleChange} className="patientsGroupCheckbox" />
           </div>
-
-          {/* Qara siyahı Field */}
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">Qara siyahı</label>
             <div className="patientsGroupBlacklist">
-              <input
-                type="checkbox"
-                name="isBlacklisted"
-                checked={formData.isBlacklisted}
-                onChange={handleChange}
-                className="patientsGroupCheckbox"
-              />
-              <select
-                name="blacklistCategory"
-                value={formData.blacklistCategory}
-                onChange={handleChange}
-                className="patientsGroupBlacklistSelect"
-                disabled={!formData.isBlacklisted}
-              >
+              <input type="checkbox" name="isBlacklisted" checked={formData.isBlacklisted} onChange={handleChange} className="patientsGroupCheckbox" />
+              <select name="blacklistCategory" value={formData.blacklistCategory} onChange={handleChange} className="patientsGroupBlacklistSelect" disabled={!formData.isBlacklisted}>
                 <option value="">seçin</option>
                 {blacklistOptions.data &&
                   blacklistOptions.data.map((option) => (
@@ -430,158 +274,65 @@ const PatientAdd = () => {
                   ))}
               </select>
             </div>
-            {errors.blacklistCategory && (
-              <span className="error-message">{errors.blacklistCategory}</span>
-            )}
+            {errors.blacklistCategory && <span className="error-message">{errors.blacklistCategory}</span>}
           </div>
         </div>
 
         <div className="patientsGroupRight">
-          {/* Mobil nömrə 1 Field */}
           <div className="patientsGroupField">
-            <label className="patientsGroupLabel">
-              Mobil nömrə 1 <span className="patientsGroupRequired">*</span>
-            </label>
-            <input
-              type="text"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              className="patientsGroupInputText"
-              placeholder="(XXX)-XXX-XXXX"
-            />
-            {errors.phone && (
-              <span className="error-message">{errors.phone}</span>
-            )}
+            <label className="patientsGroupLabel">Mobil nömrə 1 <span className="patientsGroupRequired">*</span></label>
+            <input type="tel" name="phone" value={formData.phone} onChange={handleChange} className="patientsGroupInputText" placeholder="(XXX)-XXX-XXXX" />
+            {errors.phone && <span className="error-message">{errors.phone}</span>}
           </div>
-
-          {/* Whatsapp Field */}
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">Whatsapp</label>
-            <input
-              type="text"
-              name="whatsapp"
-              value={formData.whatsapp}
-              onChange={handleChange}
-              className="patientsGroupInputText"
-              placeholder="(XXX)-XXX-XXXX"
-            />
-            {errors.whatsapp && (
-              <span className="error-message">{errors.whatsapp}</span>
-            )}
+            <input type="tel" name="whatsapp" value={formData.whatsapp} onChange={handleChange} className="patientsGroupInputText" placeholder="(XXX)-XXX-XXXX" />
+            {errors.whatsapp && <span className="error-message">{errors.whatsapp}</span>}
           </div>
-
-          {/* İş nömrəsi Field */}
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">İş nömrəsi</label>
-            <input
-              type="text"
-              name="workPhone"
-              value={formData.workPhone}
-              onChange={handleChange}
-              className="patientsGroupInputText"
-              placeholder="(XXX)-XXX-XXXX"
-            />
-            {errors.workPhone && (
-              <span className="error-message">{errors.workPhone}</span>
-            )}
+            <input type="tel" name="workPhone" value={formData.workPhone} onChange={handleChange} className="patientsGroupInputText" placeholder="(XXX)-XXX-XXXX" />
+            {errors.workPhone && <span className="error-message">{errors.workPhone}</span>}
           </div>
-
-          {/* Ev nömrəsi Field */}
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">Ev nömrəsi</label>
-            <input
-              type="text"
-              name="homePhone"
-              value={formData.homePhone}
-              onChange={handleChange}
-              className="patientsGroupInputText"
-              placeholder="(XXX)-XXX-XXXX"
-            />
-            {errors.homePhone && (
-              <span className="error-message">{errors.homePhone}</span>
-            )}
+            <input type="tel" name="homePhone" value={formData.homePhone} onChange={handleChange} className="patientsGroupInputText" placeholder="(XXX)-XXX-XXXX" />
+            {errors.homePhone && <span className="error-message">{errors.homePhone}</span>}
           </div>
-
-          {/* E-poçt Field */}
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">E-poçt</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className="patientsGroupInputText"
-            />
+            <input type="email" name="email" value={formData.email} onChange={handleChange} className="patientsGroupInputText" />
           </div>
-
-          {/* Ev ünvanı Field */}
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">Ev ünvanı</label>
-            <input
-              type="text"
-              name="homeAddress"
-              value={formData.homeAddress}
-              onChange={handleChange}
-              className="patientsGroupInputText"
-            />
+            <input type="text" name="homeAddress" value={formData.homeAddress} onChange={handleChange} className="patientsGroupInputText" />
           </div>
-
-          {/* İş ünvanı Field */}
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">İş ünvanı</label>
-            <input
-              type="text"
-              name="workAddress"
-              value={formData.workAddress}
-              onChange={handleChange}
-              className="patientsGroupInputText"
-            />
+            <input type="text" name="workAddress" value={formData.workAddress} onChange={handleChange} className="patientsGroupInputText" />
           </div>
-
-          {/* Tövsiyə edən şəxs Field */}
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">Tövsiyə edən şəxs</label>
-            <input
-              type="text"
-              name="recommender"
-              value={formData.recommender}
-              onChange={handleChange}
-              className="patientsGroupInputText"
-            />
+            <input type="text" name="recommender" value={formData.recommender} onChange={handleChange} className="patientsGroupInputText" />
           </div>
         </div>
       </form>
 
-      {/* Təqdim və İmtina Düymələri */}
       <div className="submitAddPatientForm">
-        <button
-          type="button"
-          className="addPatientCancelButton"
-          onClick={() => {
-            // Formu sıfırla
-            setFormData({
-              name: "", surname: "", patronymic: "", finCode: "", genderStatus: "", dateOfBirth: "",
-              priceCategoryStatus: "", specializationStatus: "", doctorId: null, isVip: false,
-              isBlacklisted: false, blacklistCategory: "", phone: "", whatsapp: "", workPhone: "",
-              homePhone: "", email: "", homeAddress: "", workAddress: "", recommender: "",
-            });
-            setErrors({});
-          }}
-        >
-          <img
-            src={cancelButton}
-            className="addPatientCancelBTN"
-            alt="Cancel"
-          />
+        <button type="button" className="addPatientCancelButton" onClick={() => {
+          setFormData({
+            name: "", surname: "", patronymic: "", finCode: "", genderStatus: "", dateOfBirth: "",
+            priceCategoryName: "", specializationName: "", doctorId: null, isVip: false, // Dəyişdirildi
+            isBlacklisted: false, blacklistCategory: "", phone: "", whatsapp: "", workPhone: "",
+            homePhone: "", email: "", homeAddress: "", workAddress: "", recommender: "",
+          });
+          setErrors({});
+          navigate(-1);
+        }}>
+          <img src={cancelButton} className="addPatientCancelBTN" alt="Cancel" />
           İmtina et
         </button>
-        <button
-          type="submit"
-          onClick={handleSubmit}
-          className="addPatientVerifyButton"
-          disabled={loading}
-        >
+        <button type="submit" onClick={handleSubmit} className="addPatientVerifyButton" disabled={loading}>
           <img src={verifyButton} className="addPatientVerifyBTN" alt="Save" />
           {loading ? (
             <>
