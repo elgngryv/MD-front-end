@@ -1,11 +1,11 @@
-// React
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
-// Style
+// Store
+import useImplantSizeStore from "../../../stores/ImplantSizeStore";
+
+// Style & Images
 import "../../assets/style/Implants/addsizes.css";
-
-// Images
 import acceptButton from "../../assets/images/EmployeesPage/verifyProcess.png";
 import cancelButton from "../../assets/images/EmployeesPage/cancelProcess.png";
 
@@ -17,25 +17,31 @@ function AddSize() {
   const [diameter, setDiameter] = useState("");
   const [length, setLength] = useState("");
   const navigate = useNavigate();
+  const { id } = useParams(); // URL-dən id alırıq
+
+  const { addImplantSize, loading } = useImplantSizeStore();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!diameter.trim() || !length.trim()) return;
+    if (!diameter.trim() || !length.trim()) {
+      toast.error("Bütün sahələri doldurun!");
+      return;
+    }
 
     try {
-      // Static data example
       const newSize = {
-        id: Math.random().toString(36).substr(2, 9),
-        diameter: diameter.trim(),
-        length: length.trim(),
+        implantSizeId: parseInt(id), // URL-dən gələn id
+        diameter: parseFloat(diameter),
+        length: parseFloat(length),
       };
 
-      console.log("New Size:", newSize);
+      await addImplantSize(newSize);
+
       setDiameter("");
       setLength("");
       toast.success("Ölçü uğurla əlavə olundu!");
-      navigate("/sizes");
+      navigate(`/implants/sizes/${id}`);
     } catch (error) {
       console.error("Ölçü əlavə edilərkən xəta:", error);
       toast.error("Ölçü əlavə edilərkən xəta baş verdi!");
@@ -76,19 +82,21 @@ function AddSize() {
             onClick={() => {
               setDiameter("");
               setLength("");
-            }}>
+            }}
+          >
             <img src={cancelButton} alt="cancel" />
             İmtina et
           </button>
 
-          <button type="submit" className="acceptFormCondition">
+          <button type="submit" className="acceptFormCondition" disabled={loading}>
             <img src={acceptButton} alt="accept" />
-            Yadda saxla
+            {loading ? "Yüklənir..." : "Yadda saxla"}
           </button>
         </div>
       </form>
+      <ToastContainer />
     </div>
   );
 }
 
-export default AddSize; 
+export default AddSize;

@@ -734,7 +734,7 @@ const AnimatedRoutes = () => {
             <Route path="/implants" element={<ImplantsList />} />
             <Route path="/implants/edit/:id" element={<EditImplant />} />
             <Route path="/implants/add" element={<AddImplant />} />
-            <Route path="/implants/sizes/:name" element={<SizesList />} />
+            <Route path="/implants/sizes/:id" element={<SizesList />} />
             <Route
               path="/implants/sizes/:name/edit/:id"
               element={<EditSize />}

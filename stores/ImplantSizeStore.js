@@ -1,0 +1,109 @@
+import { create } from "zustand";
+import {
+  createImplantSize,
+  readImplantSizes,
+  updateImplantSize,
+  updateImplantSizeStatus,
+  searchImplantSizes,
+  searchImplantSizesByStatus,
+  deleteImplantSize,
+} from "../src/api/ImplantSize";
+
+const useImplantSizeStore = create((set, get) => ({
+  implantSizes: [],
+  loading: false,
+  error: null,
+
+  fetchImplantSizes: async () => {
+    set({ loading: true, error: null });
+    try {
+      const data = await readImplantSizes();
+      set({ implantSizes: data, loading: false });
+    } catch (err) {
+      set({ error: err.message || "Failed to fetch implant sizes", loading: false });
+    }
+  },
+
+  addImplantSize: async (newData) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await createImplantSize(newData);
+      // Backend cavabında id yoxdur → URL-dən gələn id ilə əlavə edirik
+      set({
+        implantSizes: [
+          ...get().implantSizes,
+          { id: newData.implantSizeId, ...response }, // id əlavə olunur
+        ],
+        loading: false,
+      });
+    } catch (err) {
+      set({ error: err.message || "Failed to create implant size", loading: false });
+    }
+  },
+
+  // Digər CRUD funksiyaları eyni qalır
+  editImplantSize: async (updatedData) => {
+    set({ loading: true, error: null });
+    try {
+      const data = await updateImplantSize(updatedData);
+      set({
+        implantSizes: get().implantSizes.map((item) =>
+          item.id === updatedData.implantSizeId ? { ...item, ...data } : item
+        ),
+        loading: false,
+      });
+    } catch (err) {
+      set({ error: err.message || "Failed to update implant size", loading: false });
+    }
+  },
+
+  removeImplantSize: async (id) => {
+    set({ loading: true, error: null });
+    try {
+      await deleteImplantSize(id);
+      set({
+        implantSizes: get().implantSizes.filter((item) => item.id !== id),
+        loading: false,
+      });
+    } catch (err) {
+      set({ error: err.message || "Failed to delete implant size", loading: false });
+    }
+  },
+
+  updateStatus: async (statusData) => {
+    set({ loading: true, error: null });
+    try {
+      const data = await updateImplantSizeStatus(statusData);
+      set({
+        implantSizes: get().implantSizes.map((item) =>
+          item.id === statusData.implantSizeId ? { ...item, ...data } : item
+        ),
+        loading: false,
+      });
+    } catch (err) {
+      set({ error: err.message || "Failed to update status", loading: false });
+    }
+  },
+
+  searchImplantSizes: async (searchData) => {
+    set({ loading: true, error: null });
+    try {
+      const data = await searchImplantSizes(searchData);
+      set({ implantSizes: data, loading: false });
+    } catch (err) {
+      set({ error: err.message || "Failed to search implant sizes", loading: false });
+    }
+  },
+
+  searchByStatus: async (statusData) => {
+    set({ loading: true, error: null });
+    try {
+      const data = await searchImplantSizesByStatus(statusData);
+      set({ implantSizes: data, loading: false });
+    } catch (err) {
+      set({ error: err.message || "Failed to search by status", loading: false });
+    }
+  },
+}));
+
+export default useImplantSizeStore;

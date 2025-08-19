@@ -48,7 +48,7 @@ export const editPatient = async (patientData) => {
 
 export const readPatients = async () => {
   try {
-    const response = await axios.get(`${BASE_URL}/patient/read-all`, {
+    const response = await axios.get(`${BASE_URL}/patient/read`, {
       headers: {
         Authorization: `Bearer ${TOKEN}`,
       },
@@ -62,7 +62,7 @@ export const readPatients = async () => {
 
 export const readPatientById = async (id) => {
   try {
-    const response = await axios.get(`${BASE_URL}/patient/read/${id}`, {
+    const response = await axios.get(`${BASE_URL}/patient/read-by-id/${id}`, {
       headers: {
         Authorization: `Bearer ${TOKEN}`,
       },
