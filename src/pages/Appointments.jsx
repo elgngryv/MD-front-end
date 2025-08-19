@@ -190,8 +190,8 @@ const Appointments = () => {
         <div className="select-options-container">
           <CustomSelect
             options={rooms.map((room) => ({
-              value: room.room,
-              label: room.room,
+              value: room.cabinetName,
+              label:  room.cabinetName,
             }))}
             onChange={handleRoomChange}
             placeholder="Otaq seç"
@@ -313,7 +313,7 @@ const Appointments = () => {
                       key={timeIndex}
                       className="schedule-cell-empty"
                       onClick={() =>
-                        navigate("/add-new-appointment", {
+                        navigate("add", {
                           state: {
                             selectedDateTime: {
                               date: format(date, "yyyy-MM-dd"),

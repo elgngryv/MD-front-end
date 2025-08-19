@@ -9,7 +9,10 @@ import usePatientStore from "../../../stores/patiendStore";
 import useCalendarStore from "../../../stores/calendarStore";
 import useReservationStore from "../../../stores/reservationStore";
 
+import { useNavigate } from "react-router-dom";
+
 function AddQueue() {
+  const navigator = useNavigate();
   const { patients, fetchPatients } = usePatientStore();
   const { doctors, fetchDoctors } = useCalendarStore();
   const { addReservation } = useReservationStore();
@@ -119,6 +122,7 @@ function AddQueue() {
       endTimeRef.current.value = "";
 
       alert("Rezervasiya uğurla yaradıldı!");
+      navigator("/queue");
     } catch (err) {
       console.error("❌ Xəta:", err.response?.data || err.message);
       setError("Rezervasiya zamanı xəta baş verdi");

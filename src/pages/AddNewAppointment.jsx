@@ -7,12 +7,13 @@ import Modal from "../components/Modal.jsx";
 import SidebarMenu from "../components/SidebarMenu.jsx";
 import CustomDropdown from "../components/CustomDropdown.jsx";
 import DropdownChecklist from "../components/DropdownChecklist.jsx";
-import { usePatients } from "../hooks/usePatients.js";
 import { useDoctors } from "../hooks/useDoctors.js";
 import { useCreateAppointment } from "../hooks/useCalendar.js";
 import BlurLoader from "../components/layout/BlurLoader.jsx";
 import { toast } from "react-toastify";
 import { useRooms } from "../hooks/useRooms.js";
+// Zustand store-u import edirik
+import usePatientStore from "../../stores/patiendStore.js"; 
 
 // Əməliyyatlar siyahısı
 const OPERATIONS = [
@@ -60,19 +61,23 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
   });
   const [showModal, setShowModal] = useState(false);
 
-  const { data: patients, isLoading: patientsLoading } = usePatients(
-    patientSearchQuery ? { fullName: patientSearchQuery } : null
-  );
+  // Zustand hook-unu istifadə edirik
+  const { patients, fetchPatients, searchPatients } = usePatientStore();
   const { data: doctors } = useDoctors();
   const { data: rooms } = useRooms();
   const { mutate: createAppointment, isPending } = useCreateAppointment();
+
+  // Pasiyent məlumatlarını ilkin olaraq çəkmək
+  useEffect(() => {
+    fetchPatients();
+  }, [fetchPatients]);
 
   // Transform room data into select options format
   const roomOptions = useMemo(() => {
     if (!rooms) return [];
     return rooms.map((room) => ({
-      value: room.room,
-      label: room.room,
+      value: room.cabinetName,
+      label: room.cabinetName,
     }));
   }, [rooms]);
 
@@ -112,11 +117,9 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
     }
   }, [location.state]);
 
-  // Otaq seçimi funksiyası - dəyişdirilmiş versiya
+  // Otaq seçimi funksiyası
   const handleRoomChange = (selectedOption) => {
     setSelectedRoom(selectedOption);
-    // setSelectedDoctorId(null);
-    // setSelectedDoctor(null);
     setFormData((prev) => ({
       ...prev,
       room: selectedOption ? selectedOption.label : "",
@@ -127,8 +130,10 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
     setDoctorSearchQuery(e.target.value);
   };
 
+  // Pasiyent axtarışını Zustand store vasitəsilə aparırıq
   const handlePatientSearchChange = (value) => {
     setPatientSearchQuery(value);
+    searchPatients({ fullName: value }); // Zustand store-dakı searchPatients-i çağırır
   };
 
   const handleDoctorCardClick = (doctorId) => {
@@ -166,7 +171,7 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
     }));
   };
 
-  // Pasiyent seçimi funksiyası - dəyişdirilmiş versiya
+  // Pasiyent seçimi funksiyası
   const handlePatientChange = (selectedOption) => {
     setSelectedPatient(selectedOption);
     setFormData((prev) => ({
@@ -190,7 +195,7 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
     }));
   };
 
-  // Status seçimi funksiyası - dəyişdirilmiş versiya
+  // Status seçimi funksiyası
   const handleStatusChange = (selectedOption) => {
     setSelectedStatus(selectedOption);
     setFormData((prev) => ({
@@ -280,13 +285,11 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
     <div className="appointments-container">
       {/* <BlurLoader isLoading={isPending}> */}
 
-      {/* RIGHT SİDE  */}
+      {/* RIGHT SİDE */}
       <div className="right-side">
         <div className="form-container">
           <h2>Yeni Randevu</h2>
           <form onSubmit={handleSubmit}>
-            {/* <CustomDropdown /> */}
-
             {/* Həkim & Pasiyent */}
             <div className="first-row">
               <div className="form-group">
