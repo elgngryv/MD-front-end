@@ -107,7 +107,7 @@ const ImplantsList = () => {
                   <td>{index + 1}</td>
                   <td>{row.implantBrandName}</td>
                   <td>
-                    <Link to={`./sizes/${row.implantBrandName}`}>
+                    <Link to={`./sizes/${row.id}`}>
                       Ölçüləri ({row.implantSizesReads?.length || 0})
                     </Link>
                   </td>

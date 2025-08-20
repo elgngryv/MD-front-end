@@ -17,7 +17,7 @@ function AddSize() {
   const [diameter, setDiameter] = useState("");
   const [length, setLength] = useState("");
   const navigate = useNavigate();
-  const { id } = useParams(); // URL-dən id alırıq
+  const { id } = useParams();
 
   const { addImplantSize, loading } = useImplantSizeStore();
 
@@ -31,10 +31,13 @@ function AddSize() {
 
     try {
       const newSize = {
-        implantSizeId: parseInt(id), // URL-dən gələn id
+        implantSizeId: Number(id),
         diameter: parseFloat(diameter),
         length: parseFloat(length),
       };
+      {
+        console.log(newSize);
+      }
 
       await addImplantSize(newSize);
 
@@ -82,13 +85,15 @@ function AddSize() {
             onClick={() => {
               setDiameter("");
               setLength("");
-            }}
-          >
+            }}>
             <img src={cancelButton} alt="cancel" />
             İmtina et
           </button>
 
-          <button type="submit" className="acceptFormCondition" disabled={loading}>
+          <button
+            type="submit"
+            className="acceptFormCondition"
+            disabled={loading}>
             <img src={acceptButton} alt="accept" />
             {loading ? "Yüklənir..." : "Yadda saxla"}
           </button>
