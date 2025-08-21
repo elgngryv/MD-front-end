@@ -5,7 +5,7 @@ const useWarehouseStockRoomStore = create((set, get) => ({
   cabinetStockData: [],
   loading: false,
   error: null,
-  roomName: 'STOM1', // Changed default value to 'STOM1'
+  roomName: '', 
   categoryName: '',
   productName: '',
   productNo: '',

@@ -7,7 +7,7 @@ import {
   deleteWorkerSchedule,
 } from "../src/api/worker-schedule";
 import axios from "axios";
-const API_BASE_URL = "http://159.89.3.81:5555/api/v1";
+const API_BASE_URL = "http://161.97.179.107:5555/api/v1";
 
 const useWorkersScheduleStore = create((set, get) => ({
   schedules: [], // Initialize as empty array

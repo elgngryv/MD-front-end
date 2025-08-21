@@ -9,7 +9,8 @@ function Modal({
   cancelText = "İmtina", 
   confirmText = "Təsdiq", 
   onConfirm,
-  confirmButtonClass = "confirm-button"
+  confirmButtonClass = "confirm-button",
+  isAlert = false // New prop with a default value of false
 }) {
   if (!isOpen) return null;
 
@@ -38,17 +39,23 @@ function Modal({
           <p className="modal-message">{message}</p>
         </div>
         <div className="modal-actions">
-          <button className="cancel-button" onClick={onClose}>
-            {cancelText}
-          </button>
+          {/* Conditionally render the cancel button */}
+          {!isAlert && (
+            <button className="cancel-button" onClick={onClose}>
+              {cancelText}
+            </button>
+          )}
           <button 
             className={confirmButtonClass} 
             onClick={() => {
-              onConfirm();
+              // Only call onConfirm if it exists and is not an alert modal
+              if (onConfirm && !isAlert) {
+                onConfirm();
+              }
               onClose();
             }}
           >
-            {confirmText}
+            {isAlert ? "Bağla" : confirmText}
           </button>
         </div>
       </div>

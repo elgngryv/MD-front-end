@@ -9,6 +9,15 @@
     border: 1px solid #e2e8f0;
     border-radius: 8px;
   }
+
+  
+
+  .stockOrderTopPartIcons{
+    display: flex;
+    justify-content: flex-end !important;
+  }
+
+  
   .stockOrderFormWrapper__topPartIcons{
     display: flex;
     align-items: center;
@@ -17,6 +26,11 @@
     width: 100%;
   
   }
+
+  .stockOrderFormWrapper__dropdown{
+    width: 86.5% !important;
+  }
+ 
 
   .stockOrderFormWrapper__infoIcon{
     width: 24px;
@@ -54,6 +68,7 @@
     align-items: center;
     gap: 12px;
     margin-top: 20px;
+    width: 100% ;
   }
   
   .stockOrderFormWrapper__label {

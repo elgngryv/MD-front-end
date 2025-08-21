@@ -527,7 +527,7 @@ const AnimatedRoutes = () => {
             <Route path="/stock/order" element={<StockOrderList />} />
             <Route
               path="/stock/order/detail/:id"
-              element={<StockOrderDetail mode="view" />}
+              element={<StockOrderDetail  />}
             />
             <Route path="/stock/order/add" element={<AddStockOrder />} />
             <Route path="/stock/order/edit/:id" element={<StockOrderEdit />} />

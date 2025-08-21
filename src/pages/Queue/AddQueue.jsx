@@ -27,7 +27,6 @@ function AddQueue() {
   const endDateRef = useRef(null);
   const startTimeRef = useRef(null);
   const endTimeRef = useRef(null);
-  // Test
 
   useEffect(() => {
     const loadData = async () => {

@@ -6,18 +6,24 @@ import DownloadIcon from "../../assets/icons/Download";
 import { useNavigate } from "react-router-dom";
 import useOrderFromWarehouseStore from "../../../stores/orderFromWarehouseStore";
 import useWorkerStore from "../../../stores/workerStore";
-import useCabinetStore from "../../../stores/cabinetStore"; // ✅ kabinet store
+import useCabinetStore from "../../../stores/cabinetStore";
+import Modal from "../../components/Modal";
 
 const StockOrder = () => {
   const navigate = useNavigate();
   const { orders, error, fetchOrders } = useOrderFromWarehouseStore();
   const { workers, fetchWorkers } = useWorkerStore();
-  const { cabinets, fetchCabinets } = useCabinetStore(); // ✅ zustand-dən kabinetləri götür
+  const { cabinets, fetchCabinets } = useCabinetStore();
 
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredOrders, setFilteredOrders] = useState([]);
-  const [selectedCabinet, setSelectedCabinet] = useState(null); // ✅ kabinet filter
+  const [selectedCabinet, setSelectedCabinet] = useState(null);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertTitle, setAlertTitle] = useState("");
+  const [orderToDelete, setOrderToDelete] = useState(null);
 
   const categories = [
     { value: "all", label: "Bütün kateqoriyalar" },
@@ -29,30 +35,45 @@ const StockOrder = () => {
   const columns = [
     { key: "date", label: "Tarix" },
     { key: "time", label: "Saat" },
-    { key: "cabinetName", label: "Kabinet" }, // ✅ room → cabinetName
-    { key: "quantity", label: "Məhsul sayı" },
+    { key: "cabinetName", label: "Otaq" },
     { key: "personWhoPlacedOrder", label: "Sifariş verən" },
+    { key: "quantity", label: "Çeşid sayı" },
+    { key: "sumQuantity", label: "Cəmi məbləğ" },
   ];
 
   useEffect(() => {
     fetchOrders();
     fetchWorkers();
-    fetchCabinets(); // ✅ kabinetləri gətir
+    fetchCabinets();
   }, []);
 
   useEffect(() => {
     setFilteredOrders(orders);
   }, [orders]);
 
-  const handleDelete = async (id) => {
-    if (window.confirm("Bu sifarişi silmək istədiyinizə əminsiniz?")) {
-      try {
-        await useOrderFromWarehouseStore.getState().deleteOrder(id);
-        alert("Sifariş uğurla silindi!");
-      } catch (error) {
-        alert("Sifarişi silmək mümkün olmadı: " + (error.message || error));
-      }
+  const handleDeleteClick = (id) => {
+    setOrderToDelete(id);
+    setIsConfirmModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      await useOrderFromWarehouseStore.getState().deleteOrder(orderToDelete);
+      setAlertTitle("Uğur");
+      setAlertMessage("Sifariş uğurla silindi!");
+      setIsAlertModalOpen(true);
+      setOrderToDelete(null);
+    } catch (error) {
+      setAlertTitle("Xəta");
+      setAlertMessage("Sifarişi silmək mümkün olmadı: " + (error.message || error));
+      setIsAlertModalOpen(true);
     }
+  };
+
+  const getWorkerNameById = (id) => {
+    const worker = workers.find((w) => w.id === id);
+    if (!worker) return "Anonim";
+    return `${worker.name} ${worker.surname}`;
   };
 
   useEffect(() => {
@@ -63,7 +84,10 @@ const StockOrder = () => {
         (order) =>
           order.cabinetName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           order.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          order.number?.toString().includes(searchTerm)
+          order.number?.toString().includes(searchTerm) ||
+          getWorkerNameById(order.personWhoPlacedOrder)
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase())
       );
     }
 
@@ -80,13 +104,7 @@ const StockOrder = () => {
     }
 
     setFilteredOrders(filtered);
-  }, [orders, searchTerm, selectedCategory, selectedCabinet]);
-
-  const getWorkerNameById = (id) => {
-    const worker = workers.find((w) => w.id === id);
-    if (!worker) return "Anonim";
-    return `${worker.name} ${worker.surname}`;
-  };
+  }, [orders, searchTerm, selectedCategory, selectedCabinet, workers]);
 
   const formatTime = (timeString) => {
     if (!timeString) return "-";
@@ -95,7 +113,6 @@ const StockOrder = () => {
   };
 
   const formattedOrders = filteredOrders.map((order) => {
-    const totalQuantity = Number(order.sumQuantity || order.quantity || 0);
     return {
       id: order.id || "-",
       date: order.date ? new Date(order.date).toLocaleDateString("az-AZ") : "-",
@@ -108,7 +125,8 @@ const StockOrder = () => {
           })
         : "-",
       cabinetName: order.cabinetName || "-",
-      quantity: totalQuantity,
+      quantity: order.number || 0,
+      sumQuantity: Number(order.sumQuantity || 0),
       personWhoPlacedOrder: getWorkerNameById(order.personWhoPlacedOrder),
     };
   });
@@ -119,25 +137,13 @@ const StockOrder = () => {
   }));
 
   return (
-    <div className="flex flex-col border border-gray-200 rounded-lg bg-white p-1">
+    <div className="flex flex-col border border-gray-200 rounded-lg bg-white p-1 h-screen">
       <div className="flex justify-between items-center gap-2 p-2">
         <div className="flex items-center gap-2 w-full">
-          <CustomDropdown
-            options={categories}
-            value={selectedCategory || categories[0]}
-            onChange={setSelectedCategory}
-            placeholder="Kateqoriya seçin"
-          />
-          <CustomDropdown
-            options={cabinetOptions}
-            value={selectedCabinet || null}
-            onChange={setSelectedCabinet}
-            placeholder="Kabinet seçin"
-          />
           <input
             type="text"
             placeholder="Axtarış..."
-            className="w-full p-2 rounded-lg border border-gray-300"
+            className="w-100 p-2 rounded-lg border border-gray-300"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -169,9 +175,27 @@ const StockOrder = () => {
           enableView={true}
           handleView={(id) => navigate(`/stock/order/detail/${id}`)}
           handleEdit={(id) => navigate(`/stock/order/edit/${id}`)}
-          handleDelete={handleDelete}
+          handleDelete={handleDeleteClick}
         />
       )}
+      
+      {/* Confirmation Modal */}
+      <Modal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        title="Sifarişi silmək"
+        message="Bu sifarişi silmək istədiyinizə əminsiniz?"
+        onConfirm={handleConfirmDelete}
+      />
+      
+      {/* Alert Modal using the new isAlert prop */}
+      <Modal
+        isOpen={isAlertModalOpen}
+        onClose={() => setIsAlertModalOpen(false)}
+        title={alertTitle}
+        message={alertMessage}
+        isAlert={true}
+      />
     </div>
   );
 };
