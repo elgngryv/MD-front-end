@@ -28,27 +28,25 @@ const useImplantSizeStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       const response = await createImplantSize(newData);
-      // Backend cavabında id yoxdur → URL-dən gələn id ilə əlavə edirik
       set({
-        implantSizes: [
-          ...get().implantSizes,
-          { id: newData.implantSizeId, ...response }, // id əlavə olunur
-        ],
+        implantSizes: [...get().implantSizes, response],
         loading: false,
       });
+      return response; // Uğurlu olduqda response qaytarın
     } catch (err) {
       set({ error: err.message || "Failed to create implant size", loading: false });
+      throw err; // Xətanı yenidən throw edin ki, komponentdə tutula bilsin
     }
   },
 
-  // Digər CRUD funksiyaları eyni qalır
+  // ... qalan funksiyalar eyni qalır
   editImplantSize: async (updatedData) => {
     set({ loading: true, error: null });
     try {
       const data = await updateImplantSize(updatedData);
       set({
         implantSizes: get().implantSizes.map((item) =>
-          item.id === updatedData.implantSizeId ? { ...item, ...data } : item
+          item.id === updatedData.id ? { ...item, ...data } : item
         ),
         loading: false,
       });
@@ -76,7 +74,7 @@ const useImplantSizeStore = create((set, get) => ({
       const data = await updateImplantSizeStatus(statusData);
       set({
         implantSizes: get().implantSizes.map((item) =>
-          item.id === statusData.implantSizeId ? { ...item, ...data } : item
+          item.id === statusData.id ? { ...item, ...data } : item
         ),
         loading: false,
       });

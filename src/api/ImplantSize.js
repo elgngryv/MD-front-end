@@ -4,13 +4,23 @@ const API_BASE_URL = import.meta.env.VITE_BASE_URL;
 
 // Create Implant Size
 export const createImplantSize = async (data) => {
-  const response = await axiosInstance.post(
-    `${API_BASE_URL}/implant-size/create`,
-    data
-  );
-  return response.data;
+  try {
+    console.log("Göndərilən data:", data); // Debug üçün
+    const response = await axiosInstance.post(
+      `${API_BASE_URL}/implant-size/create`,
+      data
+    );
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Error creating implant size:",
+      error.response?.data || error
+    );
+    throw error;
+  }
 };
 
+// Qalan funksiyalar eyni qalır
 // Read Implant Sizes
 export const readImplantSizes = async () => {
   const response = await axiosInstance.get(`${API_BASE_URL}/implant-size/read`);

@@ -318,6 +318,9 @@ const WORK_HOURS = [
   "18:00",
 ];
 
+
+
+
 const WEEKDAYS_SHORT = ["B.e", "Ç.a", "Ç", "C.a", "C", "Ş", "B"];
 
 // Create a client
@@ -739,7 +742,7 @@ const AnimatedRoutes = () => {
               path="/implants/sizes/:name/edit/:id"
               element={<EditSize />}
             />
-            <Route path="/implants/sizes/:name/add" element={<AddSize />} />
+            <Route path="/implants/sizes/:id/add" element={<AddSize />} />
 
             {/* Operations Page Routes */}
             <Route path="/operations" element={<OperationCategoryList />} />

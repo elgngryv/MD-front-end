@@ -13,7 +13,7 @@ import BlurLoader from "../components/layout/BlurLoader.jsx";
 import { toast } from "react-toastify";
 import { useRooms } from "../hooks/useRooms.js";
 // Zustand store-u import edirik
-import usePatientStore from "../../stores/patiendStore.js"; 
+import usePatientStore from "../../stores/patiendStore.js";
 
 // Əməliyyatlar siyahısı
 const OPERATIONS = [
