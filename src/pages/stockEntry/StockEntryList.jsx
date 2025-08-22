@@ -1,143 +1,143 @@
-// StockEntryList.jsx
-import React, { useEffect, useState } from "react";
+"use client";
+
+import { useEffect, useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import SimpleListWithStatus from "../../components/list/SimpleListWithStatus";
 import SearchIcon from "../../assets/icons/Search";
 import CustomDropdown from "../../components/CustomDropdown";
 import DownloadIcon from "../../assets/icons/Download";
-import { useNavigate } from "react-router-dom";
-import useWarehouseReceiptsStore from "../../../stores/warehouseReceiptsStore"; // Yolun düzgün olduğuna əmin olun!
+import useOrdersFromWarehouseStore from "../../../stores/orderFromWarehouseStore";
+import useWorkerStore from "../../../stores/workerStore";
+import useWarehouseReceiptsStore from "../../../stores/warehouseReceiptsStore";
 
 const StockEntryList = () => {
   const navigate = useNavigate();
-  const {
-    receipts,
-    loading,
-    error,
-    fetchReceipts,
-    updateReceiptStatus,
-    searchParams,
-    setSearchParams,
-  } = useWarehouseReceiptsStore();
+  const { orders, loading, error, fetchOrders, searchOrders } =
+    useOrdersFromWarehouseStore();
+  const { workers, fetchWorkers } = useWorkerStore();
+  const { receipts, fetchReceipts } = useWarehouseReceiptsStore();
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedStatusFilter, setSelectedStatusFilter] = useState(null); // Dropdown üçün status filteri
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState(null);
 
-  // Status üçün dropdown seçimləri
   const statusOptions = [
     { value: "WAITING", label: "Gözləyir" },
-    { value: "APPROVED", label: "Təsdiqləndi" },
+    { value: "APPROVED", label: "Təsdiqlənib" },
     { value: "REJECTED", label: "Rədd edildi" },
-    // Digər statusları buraya əlavə edin
   ];
 
-  // Komponent yükləndikdə və ya searchParams dəyişdikdə datanı yüklə
-  useEffect(() => {
-    fetchReceipts();
-  }, [searchParams, fetchReceipts]);
+  // İşçilərin UUID → ad map-i (useMemo ilə optimizasiya)
+  const userMap = useMemo(() => {
+    return workers.reduce((acc, w) => {
+      acc[w.id] = w.name;
+      return acc;
+    }, {});
+  }, [workers]);
 
+  useEffect(() => {
+    fetchOrders();
+    fetchWorkers();
+    fetchReceipts();
+  }, [fetchOrders, fetchWorkers, fetchReceipts]);
+
+  // Filtrlər və axtarış
+  const handleStatusFilterChange = (status) => {
+    setSelectedStatusFilter(status);
+    searchOrders({
+      searchTerm,
+      pendingStatus: status?.value || null,
+    });
+  };
+
+  const handleSearch = () => {
+    searchOrders({
+      searchTerm,
+      pendingStatus: selectedStatusFilter?.value || null,
+    });
+  };
+
+  const handleDownload = () => {
+    console.log("Download düyməsi basıldı");
+  };
+
+  // Sütunlar
   const columns = [
-    {
-      key: "date",
-      label: "Tarix",
-      render: (item) => item.date,
-    },
-    {
-      key: "time",
-      label: "Saat",
-      // Back-end-dən gələn HH:mm:ss stringini HH:mm kimi göstərmək üçün
-      render: (item) => item.time ? item.time.substring(0, 5) : '',
-    },
-    {
-      key: "room",
-      label: "Otaq",
-    },
+    { key: "date", label: "↕ Tarix" },
+    { key: "time", label: "↕ Saat" },
+    { key: "room", label: "↕ Otaq" },
     {
       key: "personWhoPlacedOrder",
-      label: "Sifariş edən şəxs",
+      label: "↕ Sifariş verən",
+      render: (item) => userMap[item.personWhoPlacedOrder] || "Admin User",
     },
-    {
-      key: "orderQuantity",
-      label: "Sifariş miqdarı",
-    },
-    {
-      key: "sendQuantity",
-      label: "Göndərilən miqdar",
-    },
+    { key: "orderQuantity", label: "↕ Sifariş miq." },
+    { key: "receivedQuantity", label: "↕ Daxil olan miq." },
     {
       key: "pendingStatus",
-      label: "Status",
+      label: "↕ Status",
       render: (item) => {
-        let statusClass = "";
-        switch (item.pendingStatus) {
-          case "WAITING":
-            statusClass = "text-yellow-600 bg-yellow-100";
-            break;
-          case "APPROVED":
-            statusClass = "text-green-600 bg-green-100";
-            break;
-          case "REJECTED":
-            statusClass = "text-red-600 bg-red-100";
-            break;
-          default:
-            statusClass = "text-gray-600 bg-gray-100";
-        }
+        const statusConfig = {
+          WAITING: {
+            class: "bg-yellow-100 text-yellow-800 border border-yellow-300",
+            text: "Gözləyir",
+          },
+          APPROVED: {
+            class: "bg-green-100 text-green-800 border border-green-300",
+            text: "Təsdiqlənib",
+          },
+          REJECTED: {
+            class: "bg-red-100 text-red-800 border border-red-300",
+            text: "Rədd edildi",
+          },
+        };
+
+        const { class: statusClass, text: statusText } = statusConfig[
+          item.pendingStatus
+        ] || {
+          class: "bg-gray-100 text-gray-800 border border-gray-300",
+          text: "Bilinmir",
+        };
+
         return (
-          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${statusClass}`}>
-            {item.pendingStatus === "WAITING" && "Gözləyir"}
-            {item.pendingStatus === "APPROVED" && "Təsdiqləndi"}
-            {item.pendingStatus === "REJECTED" && "Rədd Edildi"}
-            {/* Digər statuslar üçün əlavə şərtlər */}
+          <span
+            className={`px-3 py-1 rounded-full text-sm font-medium ${statusClass}`}>
+            {statusText}
           </span>
         );
       },
     },
   ];
 
-  const handleStatusFilterChange = (status) => {
-    setSelectedStatusFilter(status);
-    setSearchParams({ pendingStatus: status?.value || null }); // Zustand store-da axtarış parametrlərini yenilə
-  };
-
-  const handleSearch = () => {
-    // Cari backend /search endpoint-i yalnız pendingStatus, date, time qəbul edir.
-    // Əgər otaq, sifariş edən şəxs və s. üzrə axtarış etmək istəyirsinizsə, backend API-niz genişləndirilməlidir.
-    fetchReceipts(); // Cari axtarış parametrləri ilə yenidən yüklə
-  };
-
-  const handleDownload = () => {
-    console.log("Download düyməsi basıldı");
-    // Databazadan məlumatların exportu üçün ayrı bir API endpoint-ə ehtiyac ola bilər.
-  };
-
-  const handleStatusClick = async (id, currentStatus) => {
-    const newStatus = currentStatus === "WAITING" ? "APPROVED" : "WAITING"; // Nümunə: statusu dəyişdir
-    if (window.confirm(`Əminsiniz ki, qəbz ${id} statusunu "${newStatus}" olaraq dəyişmək istəyirsiniz?`)) {
-      await updateReceiptStatus(id, newStatus);
-    }
-  };
-
-  if (loading) {
-    return <div className="text-center py-4">Məlumatlar yüklənir...</div>;
-  }
-
-  if (error) {
-    return <div className="text-center py-4 text-red-500">Xəta: {error}</div>;
-  }
-
-  // API-dən gələn datanı SimpleListWithStatus komponentinin gözlədiyi formata çeviririk
-  const formattedData = receipts.map(receipt => ({
-    id: receipt.id,
-    date: receipt.date,
-    time: receipt.time, // İndi "HH:mm:ss" kimi bir stringdir
-    room: receipt.room,
-    personWhoPlacedOrder: receipt.personWhoPlacedOrder,
-    orderQuantity: receipt.orderQuantity,
-    sendQuantity: receipt.sendQuantity,
-    pendingStatus: receipt.pendingStatus,
+  // Məlumatların formatlanması - DÜZƏLDİ
+  const formattedData = orders.map((order, receipt, index) => ({
+    id: order.id,
+    rowNumber: index + 1,
+    date: order.date || "-",
+    time: order.time?.slice(0, 5) || "-",
+    room: order.cabinetName || "-",
+    personWhoPlacedOrder: order.personWhoPlacedOrder,
+    orderQuantity: order.orderQuantity ?? 0,
+    receivedQuantity: order.incomingQuantity ?? 0,
+    pendingStatus: receipt.pendingStatus?.toUpperCase() || null,
+    products:
+      order.outOfTheWarehouseDtos?.map((p) => ({
+        productName: p.productName || "-",
+        categoryName: p.categoryName || "-",
+        orderQuantity: p.orderQuantity || 0,
+        sendQuantity: p.sendQuantity || 0,
+        remainingQuantity: p.remainingQuantity || 0,
+        currentAmount: p.currentAmount || 0,
+      })) || [],
   }));
+  // Yüklənmə və xəta halları
+  if (loading)
+    return <div className="text-center py-4">Məlumatlar yüklənir...</div>;
+  if (error)
+    return <div className="text-center py-4 text-red-500">Xəta: {error}</div>;
 
   return (
     <div className="flex flex-col border border-gray-200 rounded-lg bg-white p-1 min-h-screen">
+      {/* Axtarış və filterlər */}
       <div className="flex justify-between items-center gap-2 p-2">
         <div className="flex items-center gap-2">
           <CustomDropdown
@@ -157,6 +157,7 @@ const StockEntryList = () => {
             <SearchIcon />
           </button>
         </div>
+
         <div className="flex items-center gap-8">
           <button className="p-2" onClick={handleDownload}>
             <DownloadIcon />
@@ -164,24 +165,18 @@ const StockEntryList = () => {
         </div>
       </div>
 
+      {/* Siyahı */}
       <SimpleListWithStatus
         columns={columns}
         data={formattedData}
         enableView={true}
-        handleView={(id) => {
-          navigate("/stock/entry/" + id); // Routing yolunu tənzimləyin
-        }}
-        handleEdit={(id) => {
-          navigate("/stock/entry/" + id + "/edit"); // Routing yolunu tənzimləyin
-        }}
-        // item obyektini də keçiririk ki, handleStatusClick içində statusu əldə edə bilək
-        handleStatusClick={(id, item) => handleStatusClick(id, item.pendingStatus)}
+        handleView={(id) => navigate(`/stock/entry/${id}`)}
+        handleEdit={(id) => navigate(`/stock/entry/${id}/edit`)}
       />
 
+      {/* Boş nəticə */}
       {formattedData.length === 0 && !loading && !error && (
-        <div className="text-center py-4 text-gray-500">
-          Məlumat tapılmadı.
-        </div>
+        <div className="text-center py-4 text-gray-500">Məlumat tapılmadı.</div>
       )}
     </div>
   );
