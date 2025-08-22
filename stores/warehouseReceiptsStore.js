@@ -4,7 +4,7 @@ import {
   searchWarehouseReceipts,
   updateWarehouseReceiptPendingStatus,
   getWarehouseReceiptInfo
-} from '../src/api/warehouse-receipts'; // Yolun düzgün olduğundan əmin olun!
+} from '../src/api/warehouse-receipts'; 
 
 const useWarehouseReceiptsStore = create((set, get) => ({
   receipts: [],

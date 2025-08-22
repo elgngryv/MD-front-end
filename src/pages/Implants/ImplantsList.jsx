@@ -120,7 +120,7 @@ const ImplantsList = () => {
                       {row.status === "ACTIVE" ? "Aktiv" : "Passiv"}
                     </span>
                   </td>
-                  <td>
+                  <td className="flex gap-2 mt-2.5">
                     <FiEdit3
                       className="implantsList-edit-button"
                       onClick={() => navigate(`/implants/edit/${row.id}`)}

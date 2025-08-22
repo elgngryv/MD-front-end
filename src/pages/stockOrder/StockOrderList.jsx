@@ -6,7 +6,7 @@ import DownloadIcon from "../../assets/icons/Download";
 import { useNavigate } from "react-router-dom";
 import useOrderFromWarehouseStore from "../../../stores/orderFromWarehouseStore";
 import useWorkerStore from "../../../stores/workerStore";
-import useCabinetStore from "../../../stores/cabinetStore"; // ✅ kabinet store
+import useCabinetStore from "../../../stores/cabinetStore"; 
 
 const StockOrder = () => {
   const navigate = useNavigate();
