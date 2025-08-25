@@ -43,7 +43,7 @@ export const deleteAppointment = async (id) => {
 // 🔽 Otağa görə pasiyentləri gətir
 export const getRoomPatients = async (room) => {
   const response = await axiosInstance.get(
-    `${API_BASE_URL}/selecting-room-viewing-patient/${room}`
+    `${API_BASE_URL}/selecting-room-viewing-patient/${cabinetName}`
   );
   return response.data;
 };

@@ -14,20 +14,7 @@ import { toast } from "react-toastify";
 import { useRooms } from "../hooks/useRooms.js";
 // Zustand store-u import edirik
 import usePatientStore from "../../stores/patiendStore.js";
-
-// Əməliyyatlar siyahısı
-const OPERATIONS = [
-  { value: "1", label: "Dişin çəkilməsi" },
-  { value: "2", label: "İmplant əməliyyatı" },
-  { value: "3", label: "İşlərin təhvili" },
-  { value: "4", label: "Kanal müalicəsi" },
-  { value: "5", label: "Kanal yuma" },
-  { value: "6", label: "Korreksiya" },
-  { value: "7", label: "Körpü primerkası" },
-  { value: "8", label: "Müalicə" },
-  { value: "9", label: "Müayinə" },
-  { value: "10", label: "Müvəqqəti kanal doldurma" },
-];
+import useAppointmentTypeStore from "../../stores/appointment-type-store.js"; // Yeni store import
 
 // Status seçimləri
 const STATUS_OPTIONS = [{ value: "MEETING", label: "MEETING" }];
@@ -44,33 +31,44 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [selectedOperations, setSelectedOperations] = useState([]);
   const [selectedStatus, setSelectedStatus] = useState(null);
-  const [formData, setFormData] = useState({
-    date: "",
-    time: {
-      hour: 0,
-      minute: 0,
-      second: 0,
-      nano: 0,
-    },
-    period: {
-      hour: 0,
-      minute: 0,
-      second: 0,
-      nano: 0,
-    },
-  });
+ const [formData, setFormData] = useState({
+  date: "",
+  time: {
+    hour: 9, // 0 yerinə 9 (səhər 9:00)
+    minute: 0,
+    second: 0,
+    nano: 0,
+  },
+  period: {
+    hour: 1, // 0 yerinə 1 (1 saat)
+    minute: 0,
+    second: 0,
+    nano: 0,
+  },
+});
   const [showModal, setShowModal] = useState(false);
 
   // Zustand hook-unu istifadə edirik
   const { patients, fetchPatients, searchPatients } = usePatientStore();
+  const { appointmentTypes, fetchAppointmentTypes } = useAppointmentTypeStore(); // Yeni store
   const { data: doctors } = useDoctors();
   const { data: rooms } = useRooms();
   const { mutate: createAppointment, isPending } = useCreateAppointment();
 
-  // Pasiyent məlumatlarını ilkin olaraq çəkmək
+  // Pasiyent və randevu tipi məlumatlarını ilkin olaraq çəkmək
   useEffect(() => {
     fetchPatients();
-  }, [fetchPatients]);
+    fetchAppointmentTypes(); // Randevu tiplərini çək
+  }, [fetchPatients, fetchAppointmentTypes]);
+
+  // Transform appointment types into select options format
+  const operationOptions = useMemo(() => {
+    if (!appointmentTypes) return [];
+    return appointmentTypes.map((type) => ({
+      value: type.id.toString(),
+      label: type.name,
+    }));
+  }, [appointmentTypes]);
 
   // Transform room data into select options format
   const roomOptions = useMemo(() => {
@@ -81,13 +79,15 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
     }));
   }, [rooms]);
 
-  // Transform patient data into select options format
+  // Transform patient data into select options format with doctor info
   const patientOptions = useMemo(() => {
     if (!patients) return [];
     return patients.map((patient) => ({
       value: patient.id.toString(),
       label: `${patient.name} ${patient.surname} - ${patient.phone}`,
       debt: 0, // You can add actual debt calculation here if needed
+      doctorId: patient.doctorId, // Həkim ID-sini əlavə et
+      doctorName: patient.doctorName, // Həkim adını əlavə et
     }));
   }, [patients]);
 
@@ -171,9 +171,26 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
     }));
   };
 
-  // Pasiyent seçimi funksiyası
+  // Pasiyent seçimi funksiyası - avtomatik həkim təyini
   const handlePatientChange = (selectedOption) => {
     setSelectedPatient(selectedOption);
+    
+    // Əgər pasientin həkimi varsa, onu avtomatik seç
+    if (selectedOption && selectedOption.doctorId) {
+      const doctor = doctorOptions.find(
+        (doc) => doc.value === selectedOption.doctorId
+      );
+      
+      if (doctor) {
+        setSelectedDoctor(doctor);
+        setSelectedDoctorId(doctor.value);
+        setFormData((prev) => ({
+          ...prev,
+          doctorName: doctor.label,
+        }));
+      }
+    }
+    
     setFormData((prev) => ({
       ...prev,
       patientName: selectedOption ? selectedOption.label : "",
@@ -209,45 +226,48 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
     setShowModal(true);
   };
 
-  const handleConfirmAppointment = () => {
-    // Prepare the appointment data in the required format
-    const newAppointment = {
-      room: selectedRoom?.value || "",
-      patientId: selectedPatient?.value ? parseInt(selectedPatient.value) : 0,
-      appointment: selectedStatus?.value || "MEETING",
-      appointmentTypeRequestIds: selectedOperations.map((op) => ({
-        id: parseInt(op.value),
-      })),
-      date: formData.date,
-      time: `${formData.time.hour
-        .toString()
-        .padStart(2, "0")}:${formData.time.minute
-        .toString()
-        .padStart(2, "0")}:${formData.time.second.toString().padStart(2, "0")}`,
-      period: `${formData.period.hour
-        .toString()
-        .padStart(2, "0")}:${formData.period.minute
-        .toString()
-        .padStart(2, "0")}:${formData.period.second
-        .toString()
-        .padStart(2, "0")}`,
-    };
+const handleConfirmAppointment = () => {
+  // Saat və müddəti string formatına çevir
+  const timeString = `${formData.time.hour
+    .toString()
+    .padStart(2, "0")}:${formData.time.minute
+    .toString()
+    .padStart(2, "0")}:${formData.time.second.toString().padStart(2, "0")}`;
+    
+  const periodString = `${formData.period.hour
+    .toString()
+    .padStart(2, "0")}:${formData.period.minute
+    .toString()
+    .padStart(2, "0")}:${formData.period.second.toString().padStart(2, "0")}`;
 
-    createAppointment(newAppointment, {
-      onSuccess: () => {
-        toast.success("Randevu uğurla yaradıldı");
-        setShowModal(false);
-        navigate("/appointments", {
-          state: { selectedDoctorId },
-          replace: true,
-        });
-      },
-      onError: (error) => {
-        toast.error("Randevu yaradılarkən xəta baş verdi");
-        console.error("Error creating appointment:", error);
-      },
-    });
+  // Prepare the appointment data in the required format
+  const newAppointment = {
+    cabinetName: selectedRoom?.value || "",
+    patientId: selectedPatient?.value ? parseInt(selectedPatient.value) : 0,
+    appointment: selectedStatus?.value || "MEETING",
+    appointmentTypeRequestIds: selectedOperations.map((op) => ({
+      id: parseInt(op.value),
+    })),
+    date: formData.date,
+    time: timeString, // String formatında göndər
+    period: periodString, // String formatında göndər
   };
+
+  createAppointment(newAppointment, {
+    onSuccess: () => {
+      toast.success("Randevu uğurla yaradıldı");
+      setShowModal(false);
+      navigate("/appointments", {
+        state: { selectedDoctorId },
+        replace: true,
+      });
+    },
+    onError: (error) => {
+      toast.error("Randevu yaradılarkən xəta baş verdi");
+      console.error("Error creating appointment:", error);
+    },
+  });
+};
 
   // Update the time input handling
   const handleTimeChange = (e) => {
@@ -292,7 +312,7 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
 
   return (
     <div className="appointments-container">
-      {/* <BlurLoader isLoading={isPending}> */}
+      <BlurLoader isLoading={isPending}>
 
       {/* RIGHT SİDE */}
       <div className="right-side">
@@ -333,7 +353,7 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
               <div className="form-group">
                 <label className="required-label">Randevu Tipi</label>
                 <DropdownChecklist
-                  options={OPERATIONS}
+                  options={operationOptions} // Storedən gələn məlumatlar
                   onChange={handleOperationsChange}
                   placeholder="Əməliyyat seçin"
                   value={selectedOperations}
@@ -412,17 +432,16 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
                 <input
                   type="text"
                   name="patientDebt"
-                  value="NA" //{formData.patientDebt}
-                  // onChange={handleInputChange}
+                  value={selectedPatient?.debt > 0 ? selectedPatient.debt : "Borcu yoxdur"}
                   readOnly
-                  //className={formData.patientDebt === 'Borcu yoxdur' ? 'no-debt' : ''}
+                  className={selectedPatient?.debt > 0 ? '' : 'no-debt'}
                 />
               </div>
             </div>
 
             {/* Buttons */}
             <div className="buttons-container">
-              <button type="button" className="cancel-button">
+              <button type="button" className="cancel-button" onClick={() => navigate(-1)}>
                 İmtina et
               </button>
               <button type="submit" className="confirm-button">
@@ -441,7 +460,7 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
         message="Randevu əlavə ediləcək!"
         onConfirm={handleConfirmAppointment}
       />
-      {/* </BlurLoader> */}
+      </BlurLoader>
     </div>
   );
 };

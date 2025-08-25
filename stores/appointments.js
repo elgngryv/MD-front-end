@@ -55,16 +55,24 @@ const useGeneralCalendarStore = create((set, get) => ({
   },
 
   // 🔽 Həkimə görə pasiyentləri yüklə
-  fetchDoctorPatients: async (doctorId) => {
-    set({ loading: true, error: null });
-    try {
-      const data = await getDoctorPatients(doctorId);
+// 🔽 Həkimə görə pasiyentləri yüklə
+fetchDoctorPatients: async (doctorId) => {
+  set({ loading: true, error: null });
+  try {
+    const data = await getDoctorPatients(doctorId);
+    console.log("Doctor patients data:", data);
+    // API-dən gələn məlumatların formatını yoxlayın
+    if (Array.isArray(data)) {
       set({ appointments: data, loading: false });
-    } catch (error) {
-      console.error(`Failed to fetch patients for doctor ${doctorId}:`, error);
-      set({ error: error.message, loading: false });
+    } else {
+      console.error("API did not return an array:", data);
+      set({ appointments: [], loading: false, error: "Invalid data format" });
     }
-  },
+  } catch (error) {
+    console.error(`Failed to fetch patients for doctor ${doctorId}:`, error);
+    set({ error: error.message, loading: false, appointments: [] });
+  }
+},
 
   // 🔽 Pasiyent detalları
   fetchPatientDetails: async (patientId) => {
