@@ -311,11 +311,11 @@ const handleConfirmAppointment = () => {
   };
 
   return (
-    <div className="appointments-container">
+    <div className="appointments-container" style={{ display: "flex", gap: "20px",width:"1%", margin: "20px auto" }}> 
       <BlurLoader isLoading={isPending}>
 
       {/* RIGHT SİDE */}
-      <div className="right-side">
+      <div className="right-side" style={{ width: '120%' }}>
         <div className="form-container">
           <h2>Yeni Randevu</h2>
           <form onSubmit={handleSubmit}>

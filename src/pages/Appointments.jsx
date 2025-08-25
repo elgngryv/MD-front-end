@@ -17,12 +17,10 @@ import { TbCalendarPlus } from "react-icons/tb";
 import CustomSelect from "../components/CustomSelect.jsx";
 import { useNavigate } from "react-router-dom";
 import useGeneralCalendarStore from "../../stores/appointments";
-import "../assets/style/appointments.css";
-import "../assets/style/appointment-left-side.css";
-import "./appointments.css";
+import "../assets/style/appointments.css"
 
 const WEEKDAYS_SHORT = ["B.e", "Ç.a", "Ç", "C.a", "C", "Ş", "B"];
-const startTime = "07:00";
+const startTime = "06:30";
 const endTime = "23:00";
 const intervalMinutes = 30;
 
@@ -75,6 +73,18 @@ const Appointments = () => {
     fetchRoomPatients,
   } = useGeneralCalendarStore();
 
+  // Örnek datanı sabit olaraq əlavə edirik
+  const sampleData = [
+    {
+      patientName: "Zena Thompson",
+      appointment: "MEETING",
+      date: "2024-09-09",
+      time: "07:00:00",
+      period: "00:30:00",
+      cabinetName: "STOM10",
+    },
+  ];
+
   useEffect(() => {
     fetchDoctors();
     fetchRooms();
@@ -110,8 +120,10 @@ const Appointments = () => {
     console.log("Appointments updated:", appointments);
     setDebugInfo(`${appointments.length} randevu yükləndi`);
 
+    // Sabit datanı appointments ilə birləşdir
+    const allAppointments = [...appointments, ...sampleData];
     const newAppointmentColors = {};
-    appointments.forEach((appointment) => {
+    allAppointments.forEach((appointment) => {
       const uniqueKey = `${appointment.patientName}-${appointment.date}-${appointment.time}`;
       if (!appointmentColors[uniqueKey]) {
         newAppointmentColors[uniqueKey] = generateRandomColor();
@@ -130,7 +142,6 @@ const Appointments = () => {
     if (option) {
       fetchRoomPatients(option.value);
     } else if (doctors.length > 0) {
-      // Əgər otaq seçimi ləğv edilibsə, default həkimi seç
       const defaultDoctor = doctors[0];
       setSelectedDoctorId(defaultDoctor.doctorId);
       fetchDoctorPatients(defaultDoctor.doctorId);
@@ -160,48 +171,38 @@ const Appointments = () => {
     setShowCalendar(false);
   };
 
-  // Randevunun cədvəldəki mövqeyini və hündürlüyünü hesablamaq
   const getAppointmentStyle = (appointment) => {
     try {
-      // Hər 30 dəqiqəlik xananın hündürlüyü (CSS-də təyin olunmuş dəyər)
       const cellHeightPx = 60;
-
-      // Randevunun başlama vaxtını Date obyektinə çevir
       const appointmentStartTime = parse(
         appointment.time,
         "HH:mm:ss",
         new Date()
       );
 
-      // Periodu dəqiqə olaraq çıxar (HH:mm:ss formatından)
       const [periodHours, periodMinutes, periodSeconds] = appointment.period
         .split(":")
         .map(Number);
       const periodInMinutes =
         periodHours * 60 + periodMinutes + Math.round(periodSeconds / 60);
 
-      // Randevunun bitmə vaxtını hesabla
       const appointmentEndTime = addMinutes(
         appointmentStartTime,
         periodInMinutes
       );
 
-      // Cədvəlin başlanğıc vaxtını Date obyektinə çevir (bu, 00:00 olacaq)
       const scheduleStartTimeAsDate = parse(startTime, "HH:mm", new Date());
 
-      // Randevunun başlanğıc vaxtı ilə cədvəlin başlanğıc vaxtı arasındakı dəqiqə fərqi (top üçün offset)
       const offsetMinutes = differenceInMinutes(
         appointmentStartTime,
         scheduleStartTimeAsDate
       );
 
-      // Randevunun ümumi müddəti (dəqiqə ilə)
       const totalDurationMinutes = differenceInMinutes(
         appointmentEndTime,
         appointmentStartTime
       );
 
-      // Hər dəqiqəyə düşən piksel sayını hesabla
       const pixelsPerMinute = cellHeightPx / intervalMinutes;
 
       const top = offsetMinutes * pixelsPerMinute;
@@ -274,7 +275,8 @@ const Appointments = () => {
                   setSelectedDoctorId(doctor.doctorId);
                   setSelectedRoom(null);
                   fetchDoctorPatients(doctor.doctorId);
-                }}>
+                }}
+              >
                 <div className="doctor-image-container">
                   <img
                     src={`https://avatar.iran.liara.run/username?username=${encodeURIComponent(
@@ -314,7 +316,8 @@ const Appointments = () => {
               </button>
               <button
                 className="addNewAppointment"
-                onClick={() => navigate("/appointments/add")}>
+                onClick={() => navigate("/appointments/add")}
+              >
                 <TbCalendarPlus className="addNewAppointmentIcon" />
                 Yeni randevu əlavə et
               </button>
@@ -327,22 +330,19 @@ const Appointments = () => {
           </div>
         </div>
 
-        {/* Debug info */}
         <div className="debug-info">
           {debugInfo}
           {selectedDoctorId && ` | Seçilmiş həkim ID: ${selectedDoctorId}`}
           {selectedRoom && ` | Seçilmiş otaq: ${selectedRoom.value}`}
-          {` | Cəmi randevular: ${appointments.length}`}
+          {` | Cəmi randevular: ${appointments.length + sampleData.length}`}
         </div>
 
         <div className="schedule-content">
           <div className="schedule-grid">
-            {/* Boş başlanğıc xana */}
             <div className="time-column time-header">
               <div className="time-cell"></div>
             </div>
 
-            {/* Günlər başlıqları */}
             {weekDates.map((date, i) => (
               <div key={i} className="day-column day-header">
                 <div className="day-cell">
@@ -350,14 +350,14 @@ const Appointments = () => {
                   <div
                     className={`day-date ${
                       isSameDay(date, new Date()) ? "active" : ""
-                    }`}>
+                    }`}
+                  >
                     {format(date, "d")}
                   </div>
                 </div>
               </div>
             ))}
 
-            {/* Saat sütunu */}
             <div className="time-column">
               {WORK_HOURS.map((time, i) => (
                 <div key={i} className="time-cell">
@@ -366,12 +366,15 @@ const Appointments = () => {
               ))}
             </div>
 
-            {/* Randevu blokları */}
             {weekDates.map((date, dayIndex) => {
-              const dayAppointments = appointments.filter((appointment) => {
+              const allAppointments = [...appointments, ...sampleData];
+              const dayAppointments = allAppointments.filter((appointment) => {
                 try {
-                  // Tarixi düzgün formatda yoxlamaq
-                  const appointmentDate = parse(appointment.date, "yyyy-MM-dd", new Date());
+                  const appointmentDate = parse(
+                    appointment.date,
+                    "yyyy-MM-dd",
+                    new Date()
+                  );
                   return isSameDay(appointmentDate, date);
                 } catch (error) {
                   console.error(
@@ -382,11 +385,10 @@ const Appointments = () => {
                   return false;
                 }
               });
-              
+
               return (
                 <div key={dayIndex} className="day-column">
                   <div className="time-blocks-container">
-                    {/* Hər saat intervalı üçün boş div-lər */}
                     {WORK_HOURS.map((time, timeIndex) => (
                       <div
                         key={timeIndex}
@@ -400,15 +402,16 @@ const Appointments = () => {
                               },
                             },
                           })
-                        }></div>
+                        }
+                      ></div>
                     ))}
 
-                    {/* Hər gün üçün randevuları yerləşdir */}
                     {dayAppointments.map((appointment, apIndex) => (
                       <div
                         key={`${appointment.patientName}-${appointment.date}-${appointment.time}-${apIndex}`}
                         className="appointment-event-block"
-                        style={getAppointmentStyle(appointment)}>
+                        style={getAppointmentStyle(appointment)}
+                      >
                         <div className="appointment-event-content">
                           {appointment.patientName} <br />
                           <small>
@@ -416,13 +419,11 @@ const Appointments = () => {
                             {format(
                               addMinutes(
                                 parse(appointment.time, "HH:mm:ss", new Date()),
-                                // Periodu dəqiqəyə çevirmə:
                                 parse(
                                   appointment.period,
                                   "HH:mm:ss",
                                   new Date()
-                                ).getHours() *
-                                  60 +
+                                ).getHours() * 60 +
                                   parse(
                                     appointment.period,
                                     "HH:mm:ss",
