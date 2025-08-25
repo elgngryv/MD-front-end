@@ -599,22 +599,19 @@ const StockOrderForm = ({
   return (
     <form
       onSubmit={handleSubmit(handleFormSubmit)}
-      className="flex flex-col gap-2 min-h-screen"
-    >
+      className="flex flex-col gap-2 min-h-screen">
       {mode === "view" && (
         <div className="flex self-end gap-2">
           <button
             type="button"
             onClick={() => navigate("edit")}
-            className="p-2 hover:bg-gray-100 rounded"
-          >
+            className="p-2 hover:bg-gray-100 rounded">
             <EditIcon />
           </button>
           <button
             type="button"
             onClick={handleDelete}
-            className="p-2 hover:bg-gray-100 rounded"
-          >
+            className="p-2 hover:bg-gray-100 rounded">
             <DeleteIcon />
           </button>
         </div>
@@ -668,8 +665,7 @@ const StockOrderForm = ({
             className={`w-[950px] h-10 border border-[#D4DCE8] rounded-lg px-4 py-2 ${
               mode === "view" ? "bg-gray-200" : ""
             }`}
-            disabled={isLoading}
-          >
+            disabled={isLoading}>
             <option value="">Kabinet seçin</option>
             {cabinets.map((cabinet) => (
               <option key={cabinet.cabinetName.id} value={cabinet.cabinetName}>
@@ -781,8 +777,7 @@ const StockOrderForm = ({
                     !currentProduct.warehouseEntryProductId ||
                     !currentProduct.quantity
                   }
-                  className="flex items-center justify-center px-4 py-2 border text-[#155EEF] bg-[#155EEF] text-white rounded-lg hover:bg-[#1046b8] disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed w-[184px] h-[44px] gap-2"
-                >
+                  className="flex items-center justify-center px-4 py-2 border text-[#155EEF] bg-[#155EEF] text-white rounded-lg hover:bg-[#1046b8] disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed w-[184px] h-[44px] gap-2">
                   <FontAwesomeIcon icon={faPlus} />
                   Məhsul əlavə et
                 </button>
@@ -825,16 +820,14 @@ const StockOrderForm = ({
             type="button"
             onClick={onCancel || (() => navigate(-1))}
             disabled={isLoading}
-            className="flex items-center justify-center px-4 py-2 border text-[#155EEF] border-[#155EEF] rounded-lg hover:bg-gray-100 w-[184px] h-[44px] gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
+            className="flex items-center justify-center px-4 py-2 border text-[#155EEF] border-[#155EEF] rounded-lg hover:bg-gray-100 w-[184px] h-[44px] gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
             <FontAwesomeIcon icon={faXmark} />
             Ləğv et
           </button>
           <button
             type="submit"
             disabled={isSubmitting || products.length === 0 || isLoading}
-            className="flex items-center justify-center px-4 py-2 bg-[#155EEF] text-white rounded-lg hover:bg-[#1046b8] disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed w-[184px] h-[44px] gap-2"
-          >
+            className="flex items-center justify-center px-4 py-2 bg-[#155EEF] text-white rounded-lg hover:bg-[#1046b8] disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed w-[184px] h-[44px] gap-2">
             {isSubmitting ? (
               <>
                 <FontAwesomeIcon icon={faSpinner} spin />

@@ -66,9 +66,7 @@ const AdminUser = () => {
           </div>
         </div>
         <div className="rightPartOfTop">
-          <Link to={"add"} className="addNewAdminUserNow">
-            <FaPlus /> Yenisini əlavə et
-          </Link>
+        
           <Link className="exportDataOfAdminUsers" title="Export">
             <CiExport size={22} className="exportAdminDataIcon" />
           </Link>

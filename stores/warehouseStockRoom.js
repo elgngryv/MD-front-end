@@ -1,14 +1,14 @@
-import { create } from 'zustand';
-import warehouseStockRoomApiService from '../src/api/warehouse-room';
+import { create } from "zustand";
+import warehouseStockRoomApiService from "../src/api/warehouse-room";
 
 const useWarehouseStockRoomStore = create((set, get) => ({
   cabinetStockData: [],
   loading: false,
   error: null,
-  roomName: '', 
-  categoryName: '',
-  productName: '',
-  productNo: '',
+  roomName: "",
+  categoryName: "",
+  productName: "",
+  productNo: "",
 
   setRoomName: (name) => set({ roomName: name }),
   setCategoryName: (category) => set({ categoryName: category }),
@@ -30,22 +30,26 @@ const useWarehouseStockRoomStore = create((set, get) => ({
         productNo: state.productNo ? parseInt(state.productNo, 10) : 0, // Keep 0 for productNo
       };
 
-      const response = await warehouseStockRoomApiService.searchRoomStock(payload);
+      const response = await warehouseStockRoomApiService.searchRoomStock(
+        payload
+      );
       set({ cabinetStockData: response.data || [], loading: false });
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Failed to fetch room stock data';
+      const errorMessage =
+        error.response?.data?.message || "Failed to fetch room stock data";
       set({ error: errorMessage, loading: false });
-      console.error('Room stock search failed:', error);
+      console.error("Room stock search failed:", error);
     }
   },
 
-  resetCabinetStockData: () => set({
-    cabinetStockData: [],
-    roomName: 'STOM1', // Ensure reset also sets it to 'STOM1'
-    categoryName: '',
-    productName: '',
-    productNo: '',
-  }),
+  resetCabinetStockData: () =>
+    set({
+      cabinetStockData: [],
+      roomName: "STOM1", // Ensure reset also sets it to 'STOM1'
+      categoryName: "",
+      productName: "",
+      productNo: "",
+    }),
 }));
 
 export default useWarehouseStockRoomStore;

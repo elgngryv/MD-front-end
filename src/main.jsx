@@ -601,7 +601,6 @@ const AnimatedRoutes = () => {
 
             {/* Other Settings Routes */}
             <Route path="/admin-users" element={<AdminUser />} />
-            <Route path="/admin-users/add" element={<AddAdmin />} />
             <Route path="/admin-users/:id/edit" element={<EditAdmin />} />
             <Route path="/admin-users/:id/info" element={<InfoAdmin />} />
 

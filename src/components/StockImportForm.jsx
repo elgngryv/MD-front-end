@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import CustomDropdown from "./CustomDropdown";
 import { useForm } from "react-hook-form";

@@ -4,7 +4,7 @@ import SearchIcon from "../assets/icons/Search";
 import CustomDropdown from "../components/CustomDropdown";
 import DownloadIcon from "../assets/icons/Download";
 import useWarehouseStockRoomStore from "../../stores/warehouseStockRoom";
-import useCalendarStore from "../../stores/calendarStore"; // general-calendar adını dəyişib CalendarStore qoymaq olar
+import useCalendarStore from "../../stores/calendarStore";
 
 const CabinetStock = () => {
   // Məhsul məlumatları və axtarış state-ləri üçün zustand store
@@ -58,7 +58,6 @@ const CabinetStock = () => {
   // "Bütün Otaqlar" opsiyasını əlavə etmək
   const allRoomsOption = { value: "", label: "Bütün Otaqlar" };
   const allRoomOptions = [allRoomsOption, ...roomOptions];
-
 
   const columns = [
     {
@@ -149,15 +148,13 @@ const CabinetStock = () => {
           />
           <button
             className="p-2 border border-gray-300 rounded-lg"
-            onClick={handleSearch}
-          >
+            onClick={handleSearch}>
             <SearchIcon />
           </button>
         </div>
         <button
           className="p-2 border border-gray-300 rounded-lg"
-          onClick={handleDownload}
-        >
+          onClick={handleDownload}>
           <DownloadIcon />
         </button>
       </div>
