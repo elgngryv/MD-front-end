@@ -112,15 +112,13 @@ const General = () => {
     <BlurLoader isLoading={isLoading || deletingPatient || updatingPatient}>
       <div className="flex flex-col gap-2">
         <div className="flex self-end gap-4">
-          <button onClick={handleEdit}>
+          <button onClick={handleInfo}>
             <FontAwesomeIcon icon={faPen} />
           </button>
           <button onClick={handleDelete}>
             <DeleteIcon />
           </button>
-          <button onClick={handleInfo}>
-            <InfoIcon />
-          </button>
+        
         </div>
 
         <div className="input-container">

@@ -182,7 +182,6 @@ function PatientsList() {
                 <th>Cinsiyyət</th>
                 <th>Mobil nömrə</th>
                 <th>Doğum Tarixi</th>
-                <th>Status</th>
                 <th>Qara siyahı</th>
                 <th>Düzəliş</th>
               </tr>
@@ -198,7 +197,6 @@ function PatientsList() {
                   <td>{item.genderStatus === "MAN" ? "Kişi" : "Qadın"}</td>
                   <td>{item.phone}</td>
                   <td>{item.dateOfBirth}</td>
-                  <td>{item.priceCategoryName}</td>
                   <td>{item.isBlocked ? "Bəli" : "Xeyr"}</td>
                   <td>
                     <div className="actionsWrapper">

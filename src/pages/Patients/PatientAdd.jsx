@@ -256,10 +256,10 @@ const PatientAdd = () => {
             </select>
             {errors.doctorId && <span className="error-message">{errors.doctorId}</span>}
           </div>
-          <div className="patientsGroupField">
+          {/* <div className="patientsGroupField">
             <label className="patientsGroupLabel">VIP</label>
             <input type="checkbox" name="isVip" checked={formData.isVip} onChange={handleChange} className="patientsGroupCheckbox" />
-          </div>
+          </div> */}
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">Qara siyahı</label>
             <div className="patientsGroupBlacklist">
