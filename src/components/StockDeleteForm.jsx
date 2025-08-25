@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+"use client";
+
+import { useState, useEffect } from "react";
 import CustomDropdown from "./CustomDropdown";
 import { useForm } from "react-hook-form";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -229,6 +231,8 @@ const StockDeleteForm = ({
           productId: product.productId,
           categoryId: product.categoryId,
           quantity: product.quantity,
+          productName: product.productName,
+          categoryName: product.categoryName,
         }));
       }
 
@@ -288,11 +292,15 @@ const StockDeleteForm = ({
         return;
       }
 
+      // Məhsul və kateqoriya məlumatlarını əldə et
       const selectedProduct = products.find(
-        (p) => p.id.toString() === currentProduct.productId.toString()
+        (p) =>
+          p.id.toString() === selectedWarehouseEntryProduct.productId.toString()
       );
       const selectedCategory = categories.find(
-        (c) => c.id.toString() === currentProduct.categoryId.toString()
+        (c) =>
+          c.id.toString() ===
+          selectedWarehouseEntryProduct.categoryId.toString()
       );
 
       const newProduct = {
@@ -300,11 +308,18 @@ const StockDeleteForm = ({
         warehouseEntryProductId: parseInt(
           currentProduct.warehouseEntryProductId
         ),
-        productId: parseInt(currentProduct.productId),
-        categoryId: parseInt(currentProduct.categoryId),
+        productId: parseInt(selectedWarehouseEntryProduct.productId),
+        categoryId: parseInt(selectedWarehouseEntryProduct.categoryId),
         quantity: parseInt(currentProduct.quantity),
-        productName: selectedProduct?.name || "Naməlum",
-        categoryName: selectedCategory?.name || "Naməlum",
+        productName:
+          selectedProduct?.name ||
+          selectedWarehouseEntryProduct.productName ||
+          selectedWarehouseEntryProduct.label.split(" (")[0] ||
+          "Naməlum",
+        categoryName:
+          selectedCategory?.name ||
+          selectedWarehouseEntryProduct.categoryName ||
+          "Naməlum",
         availableQuantity: selectedWarehouseEntryProduct.quantity,
       };
 
@@ -316,6 +331,7 @@ const StockDeleteForm = ({
         categoryId: "",
         quantity: "",
       });
+      setWarehouseEntryProducts([]);
     } else {
       alert(
         "Zəhmət olmasa anbar girişini, anbar məhsulunu və miqdarı daxil edin"
@@ -587,22 +603,25 @@ const StockDeleteForm = ({
                 <label htmlFor="warehouseEntry">
                   Anbar Girişi <span className="text-red-500">*</span>
                 </label>
-                <CustomDropdown
-                  value={entries?.find(
-                    (e) =>
-                      e.id.toString() ===
-                      currentProduct.warehouseEntryId.toString()
-                  )}
-                  onChange={handleWarehouseEntryChange}
-                  options={
-                    entries?.map((entry) => ({
-                      value: entry.id.toString(),
-                      label: `Giriş #${entry.id} (${entry.date})`,
-                    })) || []
-                  }
-                  placeholder="Anbar girişi seçin"
-                  isDisabled={isLoading}
-                />
+                <select
+                  value={currentProduct.warehouseEntryId}
+                  onChange={(e) => {
+                    const selectedOption = entries?.find(
+                      (entry) => entry.id.toString() === e.target.value
+                    );
+                    if (selectedOption) {
+                      handleWarehouseEntryChange({ value: e.target.value });
+                    }
+                  }}
+                  disabled={isLoading}
+                  className="h-10 border border-[#D4DCE8] rounded-lg px-4 py-2">
+                  <option value="">Anbar girişi seçin</option>
+                  {entries?.map((entry) => (
+                    <option key={entry.id} value={entry.id.toString()}>
+                      Giriş #{entry.id} ({entry.date})
+                    </option>
+                  ))}
+                </select>
               </div>
 
               {isLoadingEntryProducts ? (
@@ -622,17 +641,27 @@ const StockDeleteForm = ({
                   <label htmlFor="warehouseEntryProduct">
                     Anbar Məhsulu <span className="text-red-500">*</span>
                   </label>
-                  <CustomDropdown
-                    value={warehouseEntryProducts.find(
-                      (p) =>
-                        p.value.toString() ===
-                        currentProduct.warehouseEntryProductId.toString()
-                    )}
-                    onChange={handleWarehouseEntryProductChange}
-                    options={warehouseEntryProducts}
-                    placeholder="Məhsul seçin"
-                    isDisabled={!currentProduct.warehouseEntryId || isLoading}
-                  />
+                  <select
+                    value={currentProduct.warehouseEntryProductId}
+                    onChange={(e) => {
+                      const selectedOption = warehouseEntryProducts.find(
+                        (p) => p.value.toString() === e.target.value
+                      );
+                      if (selectedOption) {
+                        handleWarehouseEntryProductChange({
+                          value: e.target.value,
+                        });
+                      }
+                    }}
+                    disabled={!currentProduct.warehouseEntryId || isLoading}
+                    className="h-10 border border-[#D4DCE8] rounded-lg px-4 py-2">
+                    <option value="">Məhsul seçin</option>
+                    {warehouseEntryProducts.map((product) => (
+                      <option key={product.value} value={product.value}>
+                        {product.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               ) : currentProduct.warehouseEntryId ? (
                 <div className="flex flex-col gap-2">
