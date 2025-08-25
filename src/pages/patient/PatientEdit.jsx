@@ -6,6 +6,8 @@ import CustomDropdown from "../../components/CustomDropdown";
 import "../../assets/style/PatientPage/patientedit.css";
 import axios from "axios";
 import { toast } from "react-toastify";
+import usePriceCategoryStore from "../../../stores/priceCategoryStore";
+import useSpecializationStore from "../../../stores/useSpecializationStore";
 
 const PatientForm = ({
   initialData = {},
@@ -19,13 +21,15 @@ const PatientForm = ({
   const [loading, setLoading] = useState(false);
   const [patientData, setPatientData] = useState(null);
   const colorPickerRef = useRef(null);
+  
+  // Store-lardan məlumatları əldə et
+  const { categories, fetchCategories } = usePriceCategoryStore();
+  const { specializations, fetchSpecializations } = useSpecializationStore();
 
-  const specializationOptions = [
-    { value: "Teacher", label: "Müəllim" },
-    { value: "Deputy", label: "Müavin" },
-    { value: "Worker", label: "İşçi" },
-    { value: "Police", label: "Polis" },
-  ];
+  useEffect(() => {
+    fetchCategories();
+    fetchSpecializations();
+  }, []);
 
   const formRefs = {
     name: useRef(),
@@ -34,8 +38,8 @@ const PatientForm = ({
     finCode: useRef(),
     genderStatus: useRef(),
     dateOfBirth: useRef(),
-    priceCategoryStatus: useRef(),
-    specializationStatus: useRef(),
+    priceCategoryName: useRef(),
+    specializationName: useRef(),
     doctorId: useRef(),
     phone: useRef(),
     workPhone: useRef(),
@@ -56,7 +60,7 @@ const PatientForm = ({
           `${import.meta.env.VITE_BASE_URL}/general-calendar/read-doctors`,
           {
             headers: {
-              Authorization: `Bearer ${token}`, 
+              Authorization: `Bearer ${token}`,
             },
           }
         );
@@ -102,10 +106,11 @@ const PatientForm = ({
   const handleColorChange = (color) => {
     formRefs.colorCode.current.value = color.hex;
   };
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-  
+
     const requestData = {
       patientId: initialData.id,
       name: formRefs.name.current.value,
@@ -114,8 +119,8 @@ const PatientForm = ({
       finCode: formRefs.finCode.current.value,
       genderStatus: formRefs.genderStatus.current.value,
       dateOfBirth: formRefs.dateOfBirth.current.value,
-      priceCategoryStatus: formRefs.priceCategoryStatus.current.value,
-      specializationStatus: formRefs.specializationStatus.current.value || null,
+      priceCategoryName: formRefs.priceCategoryName.current.value || null,
+      specializationName: formRefs.specializationName.current.value || null,
       doctorId: formRefs.doctorId.current.value || null,
       phone: formRefs.phone.current.value,
       workPhone: formRefs.workPhone.current.value || null,
@@ -127,7 +132,7 @@ const PatientForm = ({
       isVip: formRefs.isVip.current.checked,
       isBlacklisted: formRefs.isBlacklisted.current.checked,
     };
-  
+
     try {
       const response = await axios.put(
         `${import.meta.env.VITE_BASE_URL}/patient/update`,
@@ -139,17 +144,17 @@ const PatientForm = ({
           },
         }
       );
-  
+
       // Əgər 200-dürsə:
       if (response.status === 200) {
         setPatientData(response.data);
         toast.success("Pasiyent məlumatları uğurla yeniləndi");
-  
+
         // success-dən sonra yönləndir və ya callback
         if (typeof onSubmit === "function") {
           onSubmit(response.data);
         }
-  
+
         navigate("/patients");
       }
     } catch (error) {
@@ -163,8 +168,6 @@ const PatientForm = ({
       setLoading(false);
     }
   };
-  
-  
 
   const handleCancel = () => {
     if (onCancel) onCancel();
@@ -176,13 +179,13 @@ const PatientForm = ({
       if (formRefs.genderStatus.current) {
         formRefs.genderStatus.current.value = initialData.genderStatus || "";
       }
-      if (formRefs.priceCategoryStatus.current) {
-        formRefs.priceCategoryStatus.current.value =
-          initialData.priceCategoryStatus || "";
+      if (formRefs.priceCategoryName.current) {
+        formRefs.priceCategoryName.current.value =
+          initialData.priceCategoryName || "";
       }
-      if (formRefs.specializationStatus.current) {
-        formRefs.specializationStatus.current.value =
-          initialData.specializationStatus || "";
+      if (formRefs.specializationName.current) {
+        formRefs.specializationName.current.value =
+          initialData.specializationName || "";
       }
       if (formRefs.doctorId.current) {
         formRefs.doctorId.current.value =
@@ -239,30 +242,33 @@ const PatientForm = ({
           <div className="main-form-group">
             <label>Qiymət kateqoriyası</label>
             <CustomDropdown
-              value={initialData.priceCategoryStatus}
+              value={initialData.priceCategoryName}
               onChange={(option) =>
-                (formRefs.priceCategoryStatus.current.value = option.value)
+                (formRefs.priceCategoryName.current.value = option.value)
               }
-              options={[
-                { value: "Standard", label: "Standart" },
-                { value: "Vip", label: "VIP" },
-              ]}
+              options={categories.map(category => ({
+                value: category.name,
+                label: category.name
+              }))}
               placeholder="Seçin"
             />
-            <input type="hidden" ref={formRefs.priceCategoryStatus} />
+            <input type="hidden" ref={formRefs.priceCategoryName} />
           </div>
 
           <div className="main-form-group">
             <label>İxtisas</label>
             <CustomDropdown
-              value={initialData.specializationStatus}
+              value={initialData.specializationName}
               onChange={(option) =>
-                (formRefs.specializationStatus.current.value = option.value)
+                (formRefs.specializationName.current.value = option.value)
               }
-              options={specializationOptions}
+              options={specializations.map(spec => ({
+                value: spec.name,
+                label: spec.name
+              }))}
               placeholder="Seçin"
             />
-            <input type="hidden" ref={formRefs.specializationStatus} />
+            <input type="hidden" ref={formRefs.specializationName} />
           </div>
 
           <div className="main-form-group">

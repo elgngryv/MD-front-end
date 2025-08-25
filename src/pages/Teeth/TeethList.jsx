@@ -108,7 +108,7 @@ const TeethList = () => {
                   </td>
                   <td>
                     <Link to={`${tooth.id}/operation-pictures`} className="teethList-link">
-                      Əməliyyat şəkilləri (0)
+                      Əməliyyat şəkilləri ({tooth.operations?.length || 0})
                     </Link>
                   </td>
                   <td>

@@ -32,8 +32,7 @@ const General = () => {
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
-        const token = localStorage.getItem("token"); // Token adını səndə necədirsə onu yaz
-
+        const token = localStorage.getItem("token");
         const res = await axios.get(
           "http://161.97.179.107:5555/api/v1/general-calendar/read-doctors",
           {
