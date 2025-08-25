@@ -281,6 +281,15 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
     }));
   };
 
+  // Helper function to format time
+  const formatTime = (time) => {
+    if (!time) {
+      return "00:00";
+    }
+    const { hour, minute } = time;
+    return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+  };
+
   return (
     <div className="appointments-container">
       {/* <BlurLoader isLoading={isPending}> */}
@@ -366,11 +375,7 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
                 <input
                   type="time"
                   name="time"
-                  value={`${formData.time.hour
-                    .toString()
-                    .padStart(2, "0")}:${formData.time.minute
-                    .toString()
-                    .padStart(2, "0")}`}
+                  value={formatTime(formData.time)}
                   onChange={handleTimeChange}
                   required
                 />
@@ -381,11 +386,7 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
                 <input
                   type="time"
                   name="period"
-                  value={`${formData.period.hour
-                    .toString()
-                    .padStart(2, "0")}:${formData.period.minute
-                    .toString()
-                    .padStart(2, "0")}`}
+                  value={formatTime(formData.period)}
                   onChange={handlePeriodChange}
                   required
                 />
