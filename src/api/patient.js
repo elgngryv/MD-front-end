@@ -1,10 +1,15 @@
 import axios from "axios";
 
-const TOKEN = localStorage.getItem("token");
 const BASE_URL = import.meta.env.VITE_BASE_URL;
+
+// Bütün funksiyalardan tokeni ayrı-ayrılıqda almaq
+const getToken = () => {
+  return localStorage.getItem("token");
+};
 
 export const createPatient = async (patientData) => {
   try {
+    const token = getToken();
     const dataToSend = {
       ...patientData,
       doctor_id: patientData.doctorId,
@@ -15,7 +20,7 @@ export const createPatient = async (patientData) => {
       dataToSend,
       {
         headers: {
-          Authorization: `Bearer ${TOKEN}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       }
@@ -29,12 +34,13 @@ export const createPatient = async (patientData) => {
 
 export const editPatient = async (patientData) => {
   try {
+    const token = getToken();
     const response = await axios.put(
       `${BASE_URL}/patient/update`,
       patientData,
       {
         headers: {
-          Authorization: `Bearer ${TOKEN}`,
+          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       }
@@ -48,9 +54,10 @@ export const editPatient = async (patientData) => {
 
 export const readPatients = async () => {
   try {
+    const token = getToken();
     const response = await axios.get(`${BASE_URL}/patient/read`, {
       headers: {
-        Authorization: `Bearer ${TOKEN}`,
+        Authorization: `Bearer ${token}`,
       },
     });
     return response.data;
@@ -62,9 +69,10 @@ export const readPatients = async () => {
 
 export const readPatientById = async (id) => {
   try {
+    const token = getToken();
     const response = await axios.get(`${BASE_URL}/patient/read-by-id/${id}`, {
       headers: {
-        Authorization: `Bearer ${TOKEN}`,
+        Authorization: `Bearer ${token}`,
       },
     });
     return response.data;
@@ -76,9 +84,10 @@ export const readPatientById = async (id) => {
 
 export const deletePatient = async (id) => {
   try {
+    const token = getToken();
     await axios.delete(`${BASE_URL}/patient/delete/${id}`, {
       headers: {
-        Authorization: `Bearer ${TOKEN}`,
+        Authorization: `Bearer ${token}`,
       },
     });
     console.log(`ID ${id} olan pasiyent uğurla silindi.`);
@@ -90,16 +99,13 @@ export const deletePatient = async (id) => {
 
 export const searchPatients = async (params) => {
   try {
-    const response = await axios.post(
-      `${BASE_URL}/patient/search`,
-      params,
-      {
-        headers: {
-          Authorization: `Bearer ${TOKEN}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const token = getToken();
+    const response = await axios.post(`${BASE_URL}/patient/search`, params, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
     return response.data;
   } catch (error) {
     console.error("Pasiyent axtarışı zamanı xəta baş verdi:", error);
@@ -109,15 +115,13 @@ export const searchPatients = async (params) => {
 
 export const exportPatientsToExcel = async () => {
   try {
-    const response = await axios.get(
-      `${BASE_URL}/patient/export/excel`,
-      {
-        responseType: "blob",
-        headers: {
-          Authorization: `Bearer ${TOKEN}`,
-        },
-      }
-    );
+    const token = getToken();
+    const response = await axios.get(`${BASE_URL}/patient/export/excel`, {
+      responseType: "blob",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement("a");
     link.href = url;
