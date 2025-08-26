@@ -1,15 +1,9 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-
-// Store
 import useImplantSizeStore from "../../../stores/ImplantSizeStore";
-
-// Style & Images
 import "../../assets/style/Implants/addsizes.css";
 import acceptButton from "../../assets/images/EmployeesPage/verifyProcess.png";
 import cancelButton from "../../assets/images/EmployeesPage/cancelProcess.png";
-
-// Toastify
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -18,7 +12,6 @@ function AddSize() {
   const [length, setLength] = useState("");
   const navigate = useNavigate();
   const { id } = useParams();
-
   const { addImplantSize, loading } = useImplantSizeStore();
 
   const handleSubmit = async (e) => {
@@ -35,9 +28,8 @@ function AddSize() {
         diameter: parseFloat(diameter),
         length: parseFloat(length),
       };
-      {
-        console.log(newSize);
-      }
+
+      console.log("Göndərilən data:", newSize);
 
       await addImplantSize(newSize);
 
@@ -59,7 +51,8 @@ function AddSize() {
             Diametir<span>*</span>
           </p>
           <input
-            type="text"
+            type="number"
+            step="0.1"
             placeholder="Diametir"
             value={diameter}
             onChange={(e) => setDiameter(e.target.value)}
@@ -71,7 +64,8 @@ function AddSize() {
             Uzunluq<span>*</span>
           </p>
           <input
-            type="text"
+            type="number"
+            step="0.1"
             placeholder="Uzunluq"
             value={length}
             onChange={(e) => setLength(e.target.value)}

@@ -8,11 +8,26 @@ import {
   searchImplantSizesByStatus,
   deleteImplantSize,
 } from "../src/api/ImplantSize";
+import axiosInstance from "../src/api/temp-axios-auth";
+
+const API_BASE_URL = import.meta.env.VITE_BASE_URL;
 
 const useImplantSizeStore = create((set, get) => ({
+  implants: [],
   implantSizes: [],
   loading: false,
   error: null,
+
+  fetchImplantsWithSizes: async () => {
+    set({ loading: true, error: null });
+    try {
+      const response = await axiosInstance.get(`${API_BASE_URL}/implant/read`);
+      set({ implants: response.data, loading: false });
+      console.log("Implants from store:", response.data);
+    } catch (err) {
+      set({ error: err.message || "Failed to fetch implants", loading: false });
+    }
+  },
 
   fetchImplantSizes: async () => {
     set({ loading: true, error: null });
@@ -20,7 +35,10 @@ const useImplantSizeStore = create((set, get) => ({
       const data = await readImplantSizes();
       set({ implantSizes: data, loading: false });
     } catch (err) {
-      set({ error: err.message || "Failed to fetch implant sizes", loading: false });
+      set({
+        error: err.message || "Failed to fetch implant sizes",
+        loading: false,
+      });
     }
   },
 
@@ -34,7 +52,10 @@ const useImplantSizeStore = create((set, get) => ({
       });
       return response; // Uğurlu olduqda response qaytarın
     } catch (err) {
-      set({ error: err.message || "Failed to create implant size", loading: false });
+      set({
+        error: err.message || "Failed to create implant size",
+        loading: false,
+      });
       throw err; // Xətanı yenidən throw edin ki, komponentdə tutula bilsin
     }
   },
@@ -51,7 +72,10 @@ const useImplantSizeStore = create((set, get) => ({
         loading: false,
       });
     } catch (err) {
-      set({ error: err.message || "Failed to update implant size", loading: false });
+      set({
+        error: err.message || "Failed to update implant size",
+        loading: false,
+      });
     }
   },
 
@@ -64,7 +88,10 @@ const useImplantSizeStore = create((set, get) => ({
         loading: false,
       });
     } catch (err) {
-      set({ error: err.message || "Failed to delete implant size", loading: false });
+      set({
+        error: err.message || "Failed to delete implant size",
+        loading: false,
+      });
     }
   },
 
@@ -89,7 +116,10 @@ const useImplantSizeStore = create((set, get) => ({
       const data = await searchImplantSizes(searchData);
       set({ implantSizes: data, loading: false });
     } catch (err) {
-      set({ error: err.message || "Failed to search implant sizes", loading: false });
+      set({
+        error: err.message || "Failed to search implant sizes",
+        loading: false,
+      });
     }
   },
 
@@ -99,7 +129,10 @@ const useImplantSizeStore = create((set, get) => ({
       const data = await searchImplantSizesByStatus(statusData);
       set({ implantSizes: data, loading: false });
     } catch (err) {
-      set({ error: err.message || "Failed to search by status", loading: false });
+      set({
+        error: err.message || "Failed to search by status",
+        loading: false,
+      });
     }
   },
 }));
