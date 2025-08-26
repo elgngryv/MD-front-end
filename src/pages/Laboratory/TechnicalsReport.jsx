@@ -246,7 +246,9 @@ function TechnicalsReport() {
                 </p>
               )}
               <div className="modal-actions">
-                <button type="submit" className="submit-btn flex items-center gap-2 border-2 rounded-full bg-blue-500 text-white cursor-pointer  p-2 border-blue-500">
+                <button
+                  type="submit"
+                  className="submit-btn flex items-center gap-2 border-2 rounded-full bg-blue-500 text-white cursor-pointer  p-2 border-blue-500">
                   Əlavə Et
                 </button>
                 <button

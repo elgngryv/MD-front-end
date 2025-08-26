@@ -1,20 +1,20 @@
-import axiosInstance from "./temp-axios-auth"; // Assuming this path is correct
+import axiosInstance from "./temp-axios-auth";
 
 const API_BASE_URL = import.meta.env.VITE_BASE_URL + "/general-calendar";
 
-// 🔽 Bütün həkimləri gətir
+// 🔽 Həkimlər
 export const getDoctors = async () => {
   const response = await axiosInstance.get(`${API_BASE_URL}/read-doctors`);
   return response.data;
 };
 
-// 🔽 Bütün otaqları gətir
+// 🔽 Otaqlar
 export const getRooms = async () => {
   const response = await axiosInstance.get(`${API_BASE_URL}/read-rooms`);
   return response.data;
 };
 
-// 🔽 Yeni təyinat (appointment) yaradılması
+// 🔽 Randevu yarat
 export const createAppointment = async (appointmentData) => {
   const response = await axiosInstance.post(
     `${API_BASE_URL}/new-appointment`,
@@ -23,7 +23,7 @@ export const createAppointment = async (appointmentData) => {
   return response.data;
 };
 
-// 🔽 Təyinatın yenilənməsi
+// 🔽 Randevu yenilə
 export const updateAppointment = async (appointmentData) => {
   const response = await axiosInstance.put(
     `${API_BASE_URL}/update-appointment`,
@@ -32,7 +32,7 @@ export const updateAppointment = async (appointmentData) => {
   return response.data;
 };
 
-// 🔽 Təyinatın silinməsi
+// 🔽 Randevu sil
 export const deleteAppointment = async (id) => {
   const response = await axiosInstance.delete(
     `${API_BASE_URL}/delete-appointment/${id}`
@@ -40,15 +40,15 @@ export const deleteAppointment = async (id) => {
   return response.data;
 };
 
-// 🔽 Otağa görə pasiyentləri gətir
-export const getRoomPatients = async (room) => {
+// 🔽 Otağa görə randevular
+export const getRoomPatients = async (cabinetName) => {
   const response = await axiosInstance.get(
     `${API_BASE_URL}/selecting-room-viewing-patient/${cabinetName}`
   );
   return response.data;
 };
 
-// 🔽 Pasiyent haqqında məlumatları gətir (ID-yə görə)
+// 🔽 Pasiyent detalları
 export const getPatientDetails = async (patientId) => {
   const response = await axiosInstance.get(
     `${API_BASE_URL}/selecting-patient-to-read/${patientId}`
@@ -56,7 +56,7 @@ export const getPatientDetails = async (patientId) => {
   return response.data;
 };
 
-// 🔽 Həkimə görə pasiyentləri gətir
+// 🔽 Həkimə görə randevular
 export const getDoctorPatients = async (doctorId) => {
   const response = await axiosInstance.get(
     `${API_BASE_URL}/selecting-doctor-viewing-patient/${doctorId}`
