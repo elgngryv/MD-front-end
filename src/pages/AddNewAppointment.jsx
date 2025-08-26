@@ -31,21 +31,21 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [selectedOperations, setSelectedOperations] = useState([]);
   const [selectedStatus, setSelectedStatus] = useState(null);
- const [formData, setFormData] = useState({
-  date: "",
-  time: {
-    hour: 9, // 0 yerinə 9 (səhər 9:00)
-    minute: 0,
-    second: 0,
-    nano: 0,
-  },
-  period: {
-    hour: 1, // 0 yerinə 1 (1 saat)
-    minute: 0,
-    second: 0,
-    nano: 0,
-  },
-});
+  const [formData, setFormData] = useState({
+    date: "",
+    time: {
+      hour: 7, // 0 yerinə 9 (səhər 9:00)
+      minute: 0,
+      second: 0,
+      nano: 0,
+    },
+    period: {
+      hour: 1, // 0 yerinə 1 (1 saat)
+      minute: 0,
+      second: 0,
+      nano: 0,
+    },
+  });
   const [showModal, setShowModal] = useState(false);
 
   // Zustand hook-unu istifadə edirik
@@ -66,7 +66,7 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
     if (!appointmentTypes) return [];
     return appointmentTypes.map((type) => ({
       value: type.id.toString(),
-      label: type.name,
+      label: type.appointmentTypeName,
     }));
   }, [appointmentTypes]);
 
@@ -174,13 +174,13 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
   // Pasiyent seçimi funksiyası - avtomatik həkim təyini
   const handlePatientChange = (selectedOption) => {
     setSelectedPatient(selectedOption);
-    
+
     // Əgər pasientin həkimi varsa, onu avtomatik seç
     if (selectedOption && selectedOption.doctorId) {
       const doctor = doctorOptions.find(
         (doc) => doc.value === selectedOption.doctorId
       );
-      
+
       if (doctor) {
         setSelectedDoctor(doctor);
         setSelectedDoctorId(doctor.value);
@@ -190,7 +190,7 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
         }));
       }
     }
-    
+
     setFormData((prev) => ({
       ...prev,
       patientName: selectedOption ? selectedOption.label : "",
@@ -226,48 +226,48 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
     setShowModal(true);
   };
 
-const handleConfirmAppointment = () => {
-  // Saat və müddəti string formatına çevir
-  const timeString = `${formData.time.hour
-    .toString()
-    .padStart(2, "0")}:${formData.time.minute
-    .toString()
-    .padStart(2, "0")}:${formData.time.second.toString().padStart(2, "0")}`;
-    
-  const periodString = `${formData.period.hour
-    .toString()
-    .padStart(2, "0")}:${formData.period.minute
-    .toString()
-    .padStart(2, "0")}:${formData.period.second.toString().padStart(2, "0")}`;
+  const handleConfirmAppointment = () => {
+    // Saat və müddəti string formatına çevir
+    const timeString = `${formData.time.hour
+      .toString()
+      .padStart(2, "0")}:${formData.time.minute
+      .toString()
+      .padStart(2, "0")}:${formData.time.second.toString().padStart(2, "0")}`;
 
-  // Prepare the appointment data in the required format
-  const newAppointment = {
-    cabinetName: selectedRoom?.value || "",
-    patientId: selectedPatient?.value ? parseInt(selectedPatient.value) : 0,
-    appointment: selectedStatus?.value || "MEETING",
-    appointmentTypeRequestIds: selectedOperations.map((op) => ({
-      id: parseInt(op.value),
-    })),
-    date: formData.date,
-    time: timeString, // String formatında göndər
-    period: periodString, // String formatında göndər
+    const periodString = `${formData.period.hour
+      .toString()
+      .padStart(2, "0")}:${formData.period.minute
+      .toString()
+      .padStart(2, "0")}:${formData.period.second.toString().padStart(2, "0")}`;
+
+    // Prepare the appointment data in the required format
+    const newAppointment = {
+      cabinetName: selectedRoom?.value || "",
+      patientId: selectedPatient?.value ? parseInt(selectedPatient.value) : 0,
+      appointment: selectedStatus?.value || "MEETING",
+      appointmentTypeRequestIds: selectedOperations.map((op) => ({
+        id: parseInt(op.value),
+      })),
+      date: formData.date,
+      time: timeString, // String formatında göndər
+      period: periodString, // String formatında göndər
+    };
+
+    createAppointment(newAppointment, {
+      onSuccess: () => {
+        toast.success("Randevu uğurla yaradıldı");
+        setShowModal(false);
+        navigate("/appointments", {
+          state: { selectedDoctorId },
+          replace: true,
+        });
+      },
+      onError: (error) => {
+        toast.error("Randevu yaradılarkən xəta baş verdi");
+        console.error("Error creating appointment:", error);
+      },
+    });
   };
-
-  createAppointment(newAppointment, {
-    onSuccess: () => {
-      toast.success("Randevu uğurla yaradıldı");
-      setShowModal(false);
-      navigate("/appointments", {
-        state: { selectedDoctorId },
-        replace: true,
-      });
-    },
-    onError: (error) => {
-      toast.error("Randevu yaradılarkən xəta baş verdi");
-      console.error("Error creating appointment:", error);
-    },
-  });
-};
 
   // Update the time input handling
   const handleTimeChange = (e) => {
@@ -307,159 +307,175 @@ const handleConfirmAppointment = () => {
       return "00:00";
     }
     const { hour, minute } = time;
-    return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+    return `${String(hour).padStart(2, "0")}:${String(minute).padStart(
+      2,
+      "0"
+    )}`;
   };
 
   return (
-    <div className="appointments-container" style={{ display: "flex", gap: "20px",width:"1%", margin: "20px auto" }}> 
+    <div
+      className="appointments-container"
+      style={{
+        display: "flex",
+        gap: "20px",
+        width: "1%",
+        margin: "20px auto",
+      }}>
       <BlurLoader isLoading={isPending}>
-
-      {/* RIGHT SİDE */}
-      <div className="right-side" style={{ width: '120%' }}>
-        <div className="form-container">
-          <h2>Yeni Randevu</h2>
-          <form onSubmit={handleSubmit}>
-            {/* Həkim & Pasiyent */}
-            <div className="first-row">
-              <div className="form-group">
-                <label className="required-label">Pasiyent</label>
-                <CustomDropdown
-                  options={patientOptions}
-                  onChange={handlePatientChange}
-                  onSearchChange={handlePatientSearchChange}
-                  placeholder="Pasiyent seçin və ya axtarın"
-                  value={selectedPatient}
-                  isClearable={true}
-                  isSearchable={true}
-                  className="patient-select"
-                />
-              </div>
-              <div className="form-group">
-                <label className="required-label">Həkim</label>
-                <CustomDropdown
-                  options={doctorOptions}
-                  onChange={handleDoctorChange}
-                  placeholder="Həkim seçin və ya axtarın"
-                  value={selectedDoctor}
-                  isClearable={true}
-                  isSearchable={true}
-                  className="doctor-select"
-                />
-              </div>
-            </div>
-
-            {/* Əməliyyat & Otaq */}
-            <div className="second-row">
-              <div className="form-group">
-                <label className="required-label">Randevu Tipi</label>
-                <DropdownChecklist
-                  options={operationOptions} // Storedən gələn məlumatlar
-                  onChange={handleOperationsChange}
-                  placeholder="Əməliyyat seçin"
-                  value={selectedOperations}
-                  isMulti={true}
-                  isClearable={true}
-                  isSearchable={true}
-                  className="operation-select"
-                />
-              </div>
-              <div className="form-group">
-                <label className="required-label">Otaq</label>
-                <CustomDropdown
-                  options={roomOptions}
-                  onChange={handleRoomChange}
-                  placeholder="Otaq seçin"
-                  value={selectedRoom}
-                  isClearable={true}
-                  isSearchable={true}
-                  className="room-select"
-                />
-              </div>
-            </div>
-
-            {/* Tarix & Saat & Müddət */}
-            <div className="third-row">
-              <div className="form-group">
-                <label className="required-label">Tarix</label>
-                <input
-                  type="date"
-                  name="date"
-                  value={formData.date}
-                  onChange={handleInputChange}
-                  required
-                />
+        {/* RIGHT SİDE */}
+        <div className="right-side" style={{ width: "120%" }}>
+          <div className="form-container">
+            <h2>Yeni Randevu</h2>
+            <form onSubmit={handleSubmit}>
+              {/* Həkim & Pasiyent */}
+              <div className="first-row">
+                <div className="form-group">
+                  <label className="required-label">Pasiyent</label>
+                  <CustomDropdown
+                    options={patientOptions}
+                    onChange={handlePatientChange}
+                    onSearchChange={handlePatientSearchChange}
+                    placeholder="Pasiyent seçin və ya axtarın"
+                    value={selectedPatient}
+                    isClearable={true}
+                    isSearchable={true}
+                    className="patient-select"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="required-label">Həkim</label>
+                  <CustomDropdown
+                    options={doctorOptions}
+                    onChange={handleDoctorChange}
+                    placeholder="Həkim seçin və ya axtarın"
+                    value={selectedDoctor}
+                    isClearable={true}
+                    isSearchable={true}
+                    className="doctor-select"
+                  />
+                </div>
               </div>
 
-              <div className="form-group">
-                <label>Saat</label>
-                <input
-                  type="time"
-                  name="time"
-                  value={formatTime(formData.time)}
-                  onChange={handleTimeChange}
-                  required
-                />
+              {/* Əməliyyat & Otaq */}
+              <div className="second-row">
+                <div className="form-group">
+                  <label className="required-label">Randevu Tipi</label>
+                  <DropdownChecklist
+                    options={operationOptions}
+                    onChange={handleOperationsChange}
+                    placeholder="Əməliyyat seçin"
+                    value={selectedOperations}
+                    isMulti={true}
+                    isClearable={true}
+                    isSearchable={true}
+                    className="operation-select"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="required-label">Otaq</label>
+                  <CustomDropdown
+                    options={roomOptions}
+                    onChange={handleRoomChange}
+                    placeholder="Otaq seçin"
+                    value={selectedRoom}
+                    isClearable={true}
+                    isSearchable={true}
+                    className="room-select"
+                  />
+                </div>
               </div>
 
-              <div className="form-group">
-                <label>Müddət</label>
-                <input
-                  type="time"
-                  name="period"
-                  value={formatTime(formData.period)}
-                  onChange={handlePeriodChange}
-                  required
-                />
-              </div>
-            </div>
+              {/* Tarix & Saat & Müddət */}
+              <div className="third-row">
+                <div className="form-group">
+                  <label className="required-label">Tarix</label>
+                  <input
+                    type="date"
+                    name="date"
+                    value={formData.date}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
 
-            {/* Status & Pasient borcu */}
-            <div className="fourth-row">
-              <div className="form-group">
-                <label className="required-label">Status</label>
-                <CustomDropdown
-                  options={STATUS_OPTIONS}
-                  onChange={handleStatusChange}
-                  placeholder="Status seçin"
-                  value={selectedStatus}
-                  isClearable={true}
-                  isSearchable={true}
-                  className="status-select"
-                />
-              </div>
-              <div className="form-group">
-                <label>Pasient borcu</label>
-                <input
-                  type="text"
-                  name="patientDebt"
-                  value={selectedPatient?.debt > 0 ? selectedPatient.debt : "Borcu yoxdur"}
-                  readOnly
-                  className={selectedPatient?.debt > 0 ? '' : 'no-debt'}
-                />
-              </div>
-            </div>
+                <div className="form-group">
+                  <label>Saat</label>
+                  <input
+                    type="time"
+                    name="time"
+                    value={formatTime(formData.time)}
+                    onChange={handleTimeChange}
+                    required
+                  />
+                </div>
 
-            {/* Buttons */}
-            <div className="buttons-container">
-              <button type="button" className="cancel-button" onClick={() => navigate(-1)}>
-                İmtina et
-              </button>
-              <button type="submit" className="confirm-button">
-                Randevu əlavə et
-              </button>
-            </div>
-          </form>
+                <div className="form-group">
+                  <label>Müddət</label>
+                  <input
+                    type="time"
+                    name="period"
+                    value={formatTime(formData.period)}
+                    onChange={handlePeriodChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Status & Pasient borcu */}
+              <div className="fourth-row">
+                <div className="form-group">
+                  <label className="required-label">Status</label>
+                  <CustomDropdown
+                    options={STATUS_OPTIONS}
+                    onChange={handleStatusChange}
+                    placeholder="Status seçin"
+                    value={selectedStatus}
+                    isClearable={true}
+                    isSearchable={true}
+                    className="status-select"
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Pasient borcu</label>
+                  <input
+                    type="text"
+                    name="patientDebt"
+                    value={
+                      selectedPatient?.debt > 0
+                        ? selectedPatient.debt
+                        : "Borcu yoxdur"
+                    }
+                    readOnly
+                    className={selectedPatient?.debt > 0 ? "" : "no-debt"}
+                  />
+                </div>
+              </div>
+
+              {/* Buttons */}
+              <div className="buttons-container">
+                <button
+                  type="button"
+                  className="cancel-button"
+                  onClick={() => navigate(-1)}>
+                  İmtina et
+                </button>
+                <button type="submit" className="confirm-button">
+                  Randevu əlavə et
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-      </div>
 
-      {/* Modal */}
-      <Modal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        title="Əminsinizmi?"
-        message="Randevu əlavə ediləcək!"
-        onConfirm={handleConfirmAppointment}
-      />
+        {/* Modal */}
+        <Modal
+          isOpen={showModal}
+          onClose={() => setShowModal(false)}
+          title="Əminsinizmi?"
+          message="Randevu əlavə ediləcək!"
+          onConfirm={handleConfirmAppointment}
+        />
       </BlurLoader>
     </div>
   );
