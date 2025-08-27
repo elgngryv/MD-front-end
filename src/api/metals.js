@@ -5,7 +5,7 @@ const API_BASE_URL = import.meta.env.VITE_BASE_URL;
 // ✔ Create
 export const createMetals = async (data) => {
   const response = await axiosInstance.post(
-    `${API_BASE_URL}/metalss/create`,
+    `${API_BASE_URL}/metal/create`,
     data
   );
   return response.data;
@@ -14,7 +14,7 @@ export const createMetals = async (data) => {
 // ✔ Update
 export const updateMetals = async (id, data) => {
   const response = await axiosInstance.put(
-    `${API_BASE_URL}/metalss/update/${id}`,
+    `${API_BASE_URL}/metal/update/${id}`,
     data
   );
   return response.data;
@@ -23,7 +23,7 @@ export const updateMetals = async (id, data) => {
 // ✔ Update status
 export const updateMetalsStatus = async (id, statusData) => {
   const response = await axiosInstance.patch(
-    `${API_BASE_URL}/metalss/update/status/${id}`,
+    `${API_BASE_URL}/metal/update/status/${id}`,
     statusData
   );
   return response.data;
@@ -31,7 +31,7 @@ export const updateMetalsStatus = async (id, statusData) => {
 
 // ✔ Search
 export const searchMetals = async (params) => {
-  const response = await axiosInstance.get(`${API_BASE_URL}/metalss/search`, {
+  const response = await axiosInstance.get(`${API_BASE_URL}/metal/search`, {
     params,
   });
   return response.data;
@@ -39,20 +39,20 @@ export const searchMetals = async (params) => {
 
 // ✔ Read all
 export const readMetals = async () => {
-  const response = await axiosInstance.get(`${API_BASE_URL}/metalss/read`);
+  const response = await axiosInstance.get(`${API_BASE_URL}/metal/read`);
   return response.data;
 };
 
 // ✔ Read list (for dropdowns, light fetch)
 export const readMetalsList = async () => {
-  const response = await axiosInstance.get(`${API_BASE_URL}/metalss/read-list`);
+  const response = await axiosInstance.get(`${API_BASE_URL}/metal/read-list`);
   return response.data;
 };
 
 // ✔ Read by ID
 export const readMetalsById = async (id) => {
   const response = await axiosInstance.get(
-    `${API_BASE_URL}/metalss/read-by-id/${id}`
+    `${API_BASE_URL}/metal/read-by-id/${id}`
   );
   return response.data;
 };
@@ -60,7 +60,7 @@ export const readMetalsById = async (id) => {
 // ✔ Export to Excel
 export const exportMetalsToExcel = async () => {
   const response = await axiosInstance.get(
-    `${API_BASE_URL}/metalss/export/excel`,
+    `${API_BASE_URL}/metal/export/excel`,
     {
       responseType: "blob",
     }
@@ -71,7 +71,7 @@ export const exportMetalsToExcel = async () => {
 // ✔ Delete
 export const deleteMetals = async (id) => {
   const response = await axiosInstance.delete(
-    `${API_BASE_URL}/metalss/delete/${id}`
+    `${API_BASE_URL}/metal/delete/${id}`
   );
   return response.data;
 };

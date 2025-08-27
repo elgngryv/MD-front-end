@@ -5,7 +5,7 @@ const API_BASE_URL = import.meta.env.VITE_BASE_URL;
 // ✔ Create
 export const createColor = async (data) => {
   const response = await axiosInstance.post(
-    `${API_BASE_URL}/colorss/create`,
+    `${API_BASE_URL}/color/create`,
     data
   );
   return response.data;
@@ -14,7 +14,7 @@ export const createColor = async (data) => {
 // ✔ Update
 export const updateColor = async (id, data) => {
   const response = await axiosInstance.put(
-    `${API_BASE_URL}/colorss/update/${id}`,
+    `${API_BASE_URL}/color/update/${id}`,
     data
   );
   return response.data;
@@ -23,7 +23,7 @@ export const updateColor = async (id, data) => {
 // ✔ Update status
 export const updateColorStatus = async (id, statusData) => {
   const response = await axiosInstance.patch(
-    `${API_BASE_URL}/colorss/update/status/${id}`,
+    `${API_BASE_URL}/color/update/status/${id}`,
     statusData
   );
   return response.data;
@@ -31,7 +31,7 @@ export const updateColorStatus = async (id, statusData) => {
 
 // ✔ Search
 export const searchColor = async (params) => {
-  const response = await axiosInstance.get(`${API_BASE_URL}/colorss/search`, {
+  const response = await axiosInstance.get(`${API_BASE_URL}/color/search`, {
     params,
   });
   return response.data;
@@ -39,20 +39,20 @@ export const searchColor = async (params) => {
 
 // ✔ Read all
 export const readColor = async () => {
-  const response = await axiosInstance.get(`${API_BASE_URL}/colorss/read`);
+  const response = await axiosInstance.get(`${API_BASE_URL}/color/read`);
   return response.data;
 };
 
 // ✔ Read list (for dropdowns, light fetch)
 export const readColorList = async () => {
-  const response = await axiosInstance.get(`${API_BASE_URL}/colorss/read-list`);
+  const response = await axiosInstance.get(`${API_BASE_URL}/color/read-list`);
   return response.data;
 };
 
 // ✔ Read by ID
 export const readColorById = async (id) => {
   const response = await axiosInstance.get(
-    `${API_BASE_URL}/colorss/read-by-id/${id}`
+    `${API_BASE_URL}/color/read-by-id/${id}`
   );
   return response.data;
 };
@@ -60,7 +60,7 @@ export const readColorById = async (id) => {
 // ✔ Export to Excel
 export const exportColorToExcel = async () => {
   const response = await axiosInstance.get(
-    `${API_BASE_URL}/colorss/export/excel`,
+    `${API_BASE_URL}/color/export/excel`,
     {
       responseType: "blob",
     }
@@ -71,7 +71,7 @@ export const exportColorToExcel = async () => {
 // ✔ Delete
 export const deleteColor = async (id) => {
   const response = await axiosInstance.delete(
-    `${API_BASE_URL}/colorss/delete/${id}`
+    `${API_BASE_URL}/color/delete/${id}`
   );
   return response.data;
 };
