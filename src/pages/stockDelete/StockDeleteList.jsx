@@ -111,7 +111,7 @@ const StockDelete = () => {
   }
 
   return (
-    <div className="flex flex-col border border-gray-200 rounded-lg bg-white p-1">
+    <div className="flex flex-col border border-gray-200 rounded-lg bg-white p-1 min-h-screen">
       <div className="flex justify-between items-center gap-2 p-2">
         <div className="flex items-center gap-2">
           {/* CustomDropdown-u olduğu kimi saxlayaq, lakin onun funksionallığını 

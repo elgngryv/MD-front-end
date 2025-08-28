@@ -79,16 +79,18 @@ const StockDeleteDetail = ({ mode }) => {
   }
 
   return (
-    <div className="flex flex-col border border-gray-200 rounded-lg p-4 bg-white">
-      <h1 className="text-2xl font-bold mb-4">
-        {mode === "edit" ? "Məhsul Silinməsinə Düzəliş" : "Məhsul Sil"}
-      </h1>
-      <StockDeleteForm
-        initialData={initialData}
-        mode={mode}
-        onSubmit={handleSubmit}
-        onCancel={handleCancel}
-      />
+    <div className="w-full h-screen flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-4xl min-h-screen border border-gray-200 rounded-lg p-4 bg-white">
+        <h1 className="text-2xl font-bold mb-4">
+          {mode === "edit" ? "Məhsul Silinməsinə Düzəliş" : "Məhsul Sil"}
+        </h1>
+        <StockDeleteForm
+          initialData={initialData}
+          mode={mode}
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+        />
+      </div>
     </div>
   );
 };

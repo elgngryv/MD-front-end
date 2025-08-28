@@ -111,7 +111,7 @@ const PatientAdd = () => {
     if (!formData.genderStatus) newErrors.genderStatus = "Cinsiyyət tələb olunur";
     if (!formData.priceCategoryName) newErrors.priceCategoryName = "Qiymət kateqoriyası tələb olunur";
     if (!formData.doctorId) newErrors.doctorId = "Həkimi seçin";
-    if (!formData.specializationName) newErrors.specializationName = "İxtisası seçin"; // Dəyişdirildi
+    if (!formData.specializationName) newErrors.specializationName = "İxtisası seçin";
 
     const phoneRegex = /^\(\d{3}\)-\d{3}-\d{4}$/;
     if (!formData.phone) newErrors.phone = "Mobil nömrə tələb olunur";
@@ -125,8 +125,9 @@ const PatientAdd = () => {
     if (formData.whatsapp && !phoneRegex.test(formData.whatsapp))
       newErrors.whatsapp = "Nömrə formatı (XXX)-XXX-XXXX şəklində olmalıdır";
 
-    if (!formData.finCode) newErrors.finCode = "Fin kodu tələb olunur";
-    else if (!/^[A-Z0-9]{7}$/.test(formData.finCode))
+    // This is the updated FIN code validation.
+    // It only checks the format if a value is present.
+    if (formData.finCode && !/^[A-Z0-9]{7}$/.test(formData.finCode))
       newErrors.finCode = "FIN kod yalnız böyük hərflər və rəqəmlərdən ibarət 7 simvol olmalıdır";
 
     if (formData.isBlacklisted && !formData.blacklistCategory)
@@ -134,7 +135,7 @@ const PatientAdd = () => {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -197,11 +198,11 @@ const PatientAdd = () => {
             <input type="text" name="patronymic" value={formData.patronymic} onChange={handleChange} className="patientsGroupInputText" />
             {errors.patronymic && <span className="error-message">{errors.patronymic}</span>}
           </div>
-          <div className="patientsGroupField">
-            <label className="patientsGroupLabel">Fin kodu <span className="patientsGroupRequired">*</span></label>
+         <div className="patientsGroupField">
+            <label className="patientsGroupLabel">Fin kodu</label>
             <input type="text" name="finCode" value={formData.finCode} onChange={handleChange} maxLength={7} className="patientsGroupInputText" />
             {errors.finCode && <span className="error-message">{errors.finCode}</span>}
-          </div>
+        </div>
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">Cinsiyyət <span className="patientsGroupRequired">*</span></label>
             <div className="patientsGroupGender">

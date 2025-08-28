@@ -16,6 +16,7 @@ import OrdinaryListHeader from "../../components/OrdinaryList/OrdinaryListHeader
 const initialSearch = {
   name: "",
   surname: "",
+  patronymic: "", // New: Added patronymic to the initial state
   fin: "",
   phone: "",
   gender: "",
@@ -65,6 +66,8 @@ function PatientsList() {
       (item) =>
         item.name.toLowerCase().includes(search.name.toLowerCase()) &&
         item.surname.toLowerCase().includes(search.surname.toLowerCase()) &&
+        // New: Filter by patronymic
+        item.patronymic.toLowerCase().includes(search.patronymic.toLowerCase()) &&
         item.finCode.toLowerCase().includes(search.fin.toLowerCase()) &&
         item.phone.toLowerCase().includes(search.phone.toLowerCase()) &&
         (search.gender ? item.genderStatus === search.gender : true) &&
@@ -132,6 +135,13 @@ function PatientsList() {
               onChange={(e) =>
                 setSearch({ ...search, surname: e.target.value })
               }
+            />
+            {/* New: Added input for patronymic */}
+            <input
+              type="text"
+              placeholder="Ata adı"
+              value={search.patronymic}
+              onChange={(e) => setSearch({ ...search, patronymic: e.target.value })}
             />
             <input
               type="text"
