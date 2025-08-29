@@ -142,6 +142,8 @@ const Breadcrumb = () => {
         return 'Tənzimləmələr';
       case 'laboratory':
         return 'Laboratoriya';
+      case 'lab':
+        return 'Laboratoriya';  
       case 'employees':
         return 'İşçilər';
       case 'reports':

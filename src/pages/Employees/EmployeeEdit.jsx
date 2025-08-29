@@ -16,36 +16,23 @@ function EmployeeEdit() {
     editWorker,
     removeWorker,
     loading,
+    clearSelectedWorker,
   } = useWorkerStore();
 
   const [isProcessing, setIsProcessing] = useState(false);
-  const [localWorker, setLocalWorker] = useState(null);
 
   useEffect(() => {
+    // Clear old data and fetch new data when ID changes
+    clearSelectedWorker();
     fetchWorkerById(id);
-  }, [id, fetchWorkerById]);
-
-  useEffect(() => {
-    if (selectedWorker) {
-      setLocalWorker({
-        ...selectedWorker,
-        name: selectedWorker.name || "",
-        surname: selectedWorker.surname || "",
-        username: selectedWorker.username || "",
-        patronymic: selectedWorker.patronymic || "",
-        phone: selectedWorker.phone || "",
-        enabled: selectedWorker.enabled ?? true,
-        permissions: selectedWorker.permissions || [],
-      });
-    }
-  }, [selectedWorker]);
+  }, [id, fetchWorkerById, clearSelectedWorker]);
 
   const handleUpdate = async (formData) => {
     setIsProcessing(true);
     try {
       await editWorker({ ...formData, id });
       toast.success("İstifadəçi uğurla yeniləndi");
-      navigate(-1); // geri qaytarır
+      navigate(-1);
     } catch (err) {
       toast.error("İstifadəçini yeniləmək alınmadı");
     } finally {
@@ -66,7 +53,7 @@ function EmployeeEdit() {
     }
   };
 
-  if (loading || !localWorker) {
+  if (loading || !selectedWorker) {
     return (
       <div className="flex items-center justify-center h-screen">
         <BeatLoader />
@@ -87,7 +74,7 @@ function EmployeeEdit() {
       <div className={`${isProcessing ? "blur-sm pointer-events-none" : ""}`}>
         <UserForm
           mode="edit"
-          userData={localWorker}
+          userData={selectedWorker}
           onSubmit={handleUpdate}
           onDelete={handleDelete}
         />

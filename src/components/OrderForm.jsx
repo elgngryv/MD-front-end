@@ -56,7 +56,9 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
   const [selectedTeeth, setSelectedTeeth] = useState(
     initialData?.teethList || []
   );
-  const [isChild, setIsChild] = useState(true);
+  const [isChild, setIsChild] = useState(
+    initialData?.isChild !== undefined ? initialData.isChild : true
+  );
   const [toothDetails, setToothDetails] = useState(
     initialData?.toothDetailIds || []
   );
@@ -78,6 +80,7 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
       reset(initialData);
       setSelectedTeeth(initialData.teethList || []);
       setToothDetails(initialData.toothDetailIds || []);
+      setIsChild(initialData.isChild !== undefined ? initialData.isChild : true);
 
       // Set initial values for dropdowns
       if (initialData.doctorId) setValue("doctor", initialData.doctorId);
@@ -86,7 +89,7 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
       if (initialData.patientId) setValue("patient", initialData.patientId);
       if (initialData.dentalWorkType)
         setValue("workType", initialData.dentalWorkType);
-
+      
       // Set denture info if available
       if (initialData.orderDentureInfo) {
         if (initialData.orderDentureInfo.color)
@@ -290,11 +293,16 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
 
   // Get current values from form
   const formValues = watch();
+  const selectedWorkType = formValues.workType;
+
+  const renderDentureFields = selectedWorkType === "PROTEZ";
+  const renderToothFields = selectedWorkType === "KORONKA";
 
   return (
     <form
       onSubmit={handleSubmit(handleFormSubmit)}
-      className="flex flex-col gap-2">
+      className="flex flex-col gap-2"
+    >
       <div className="flex flex-col gap-2 border border-[#E5E7EB] rounded-lg p-6 bg-white">
         {/* Doctor Dropdown */}
         <div className="flex justify-between items-center gap-2">
@@ -410,48 +418,57 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
             <CustomDropdown
               options={workTypes}
               value={formValues.workType}
-              onChange={(value) => setValue("workType", value)}
+              onChange={(value) => {
+                setValue("workType", value);
+                setSelectedTeeth([]); // Clear selected teeth when work type changes
+                setToothDetails([]);
+              }}
               placeholder="İşin növünü seçin"
               name="workType"
               disabled={mode === "view"}
             />
           </div>
         </div>
+        
+        {/* Conditionally render fields based on workType */}
+        {renderDentureFields && (
+          <>
+            {/* Color */}
+            <div className="flex justify-between items-center gap-2">
+              <label>Rəng *</label>
+              <div className="w-[950px]">
+                <CustomDropdown
+                  options={colors}
+                  value={
+                    colors.find(
+                      (c) => c.value === initialData?.orderDentureInfo?.color
+                    ) || null
+                  }
+                  onChange={(val) => setValue("color", val.value)}
+                  placeholder="Rəng seçin"
+                  disabled={mode === "view"}
+                />
+              </div>
+            </div>
 
-        {/* Color */}
-        <div className="flex justify-between items-center gap-2">
-          <label>Rəng *</label>
-          <div className="w-[950px]">
-            <CustomDropdown
-              options={colors}
-              value={
-                colors.find(
-                  (c) => c.value === initialData?.orderDentureInfo?.color
-                ) || null
-              }
-              onChange={(val) => setValue("color", val.value)}
-              placeholder="Rəng seçin"
-              disabled={mode === "view"}
-            />
-          </div>
-        </div>
-
-        {/* Furniture Dropdown */}
-        <div className="flex justify-between items-center gap-2">
-          <label htmlFor="garniture">
-            Qarnitur <span className="text-red-500">*</span>
-          </label>
-          <div className="w-[950px]">
-            <CustomDropdown
-              options={garnitures}
-              value={formValues.garniture}
-              onChange={(value) => setValue("garniture", value)}
-              placeholder="Qarnitur seçin"
-              name="garniture"
-              disabled={mode === "view"}
-            />
-          </div>
-        </div>
+            {/* Furniture Dropdown */}
+            <div className="flex justify-between items-center gap-2">
+              <label htmlFor="garniture">
+                Qarnitur <span className="text-red-500">*</span>
+              </label>
+              <div className="w-[950px]">
+                <CustomDropdown
+                  options={garnitures}
+                  value={formValues.garniture}
+                  onChange={(value) => setValue("garniture", value)}
+                  placeholder="Qarnitur seçin"
+                  name="garniture"
+                  disabled={mode === "view"}
+                />
+              </div>
+            </div>
+          </>
+        )}
 
         {/* Notes - Larger Textbox */}
         <div className="flex justify-between items-center gap-2">
@@ -482,114 +499,119 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
         </div>
       </div>
 
-      {/* Tooth Selection Section */}
-      <div className="flex flex-col border border-[#E5E7EB] bg-white rounded-lg w-full p-4 gap-2">
-        <h1 className="text-lg font-bold">Diş qrafiki</h1>
-        <h2>Təsirə məruz qalan dişlər və müalicə sahələri</h2>
+      {/* Conditional Tooth Selection Section */}
+      {renderToothFields && (
+        <div className="flex flex-col border border-[#E5E7EB] bg-white rounded-lg w-full p-4 gap-2">
+          <h1 className="text-lg font-bold">Diş qrafiki</h1>
+          <h2>Təsirə məruz qalan dişlər və müalicə sahələri</h2>
 
-        <div className="flex items-center justify-around border border-[#E5E7EB] rounded-lg w-[198px] h-[40px]">
-          <button
-            type="button"
-            className={`w-[90px] h-[32px] rounded-lg ${
-              !isChild ? "bg-[#155EEF] text-white" : ""
-            }`}
-            onClick={() => {
-              setIsChild(false);
-              setSelectedTeeth([]);
-              setToothDetails([]);
-            }}>
-            Yetkin
-          </button>
-          <button
-            type="button"
-            className={`w-[90px] h-[32px] rounded-lg ${
-              isChild ? "bg-[#155EEF] text-white" : ""
-            }`}
-            onClick={() => {
-              setIsChild(true);
-              setSelectedTeeth([]);
-              setToothDetails([]);
-            }}>
-            Uşaq
-          </button>
-        </div>
+          <div className="flex items-center justify-around border border-[#E5E7EB] rounded-lg w-[198px] h-[40px]">
+            <button
+              type="button"
+              className={`w-[90px] h-[32px] rounded-lg ${
+                !isChild ? "bg-[#155EEF] text-white" : ""
+              }`}
+              onClick={() => {
+                setIsChild(false);
+                setSelectedTeeth([]);
+                setToothDetails([]);
+              }}
+            >
+              Yetkin
+            </button>
+            <button
+              type="button"
+              className={`w-[90px] h-[32px] rounded-lg ${
+                isChild ? "bg-[#155EEF] text-white" : ""
+              }`}
+              onClick={() => {
+                setIsChild(true);
+                setSelectedTeeth([]);
+                setToothDetails([]);
+              }}
+            >
+              Uşaq
+            </button>
+          </div>
 
-        <div>
-          <ToothSelector
-            showImage={true}
-            selectedTeeth={selectedTeeth}
-            onSelect={handleToothSelect}
-            isChild={isChild}
-            disabled={mode === "view"}
-          />
-        </div>
+          <div>
+            <ToothSelector
+              showImage={true}
+              selectedTeeth={selectedTeeth}
+              onSelect={handleToothSelect}
+              isChild={isChild}
+              disabled={mode === "view"}
+            />
+          </div>
 
-        {/* Tooth Details */}
-        {selectedTeeth.length > 0 && (
-          <div className="mt-4">
-            <h3 className="font-bold mb-2">Diş detalları:</h3>
-            {selectedTeeth.map((toothNumber) => {
-              const toothDetail =
-                toothDetails.find((d) => d.toothNumber === toothNumber) || {};
+          {/* Tooth Details */}
+          {selectedTeeth.length > 0 && (
+            <div className="mt-4">
+              <h3 className="font-bold mb-2">Diş detalları:</h3>
+              {selectedTeeth.map((toothNumber) => {
+                const toothDetail =
+                  toothDetails.find((d) => d.toothNumber === toothNumber) || {};
 
-              return (
-                <div key={toothNumber} className="mb-4 p-2 border rounded">
-                  <h4 className="font-semibold">Diş #{toothNumber}</h4>
-                  <div className="grid grid-cols-3 gap-2 mt-2">
-                    <div>
-                      <label>Rəng:</label>
-                      <CustomDropdown
-                        options={colors}
-                        value={toothDetail.colorId}
-                        onChange={(value) =>
-                          handleToothDetailChange(toothNumber, "colorId", value)
-                        }
-                        placeholder="Rəng seçin"
-                        disabled={mode === "view"}
-                      />
-                    </div>
-                    <div>
-                      <label>Metal:</label>
-                      <CustomDropdown
-                        options={metals}
-                        value={toothDetail.metalId}
-                        onChange={(value) =>
-                          handleToothDetailChange(toothNumber, "metalId", value)
-                        }
-                        placeholder="Metal seçin"
-                        disabled={mode === "view"}
-                      />
-                    </div>
-                    <div>
-                      <label>Keramika:</label>
-                      <CustomDropdown
-                        options={ceramics}
-                        value={toothDetail.ceramicId}
-                        onChange={(value) =>
-                          handleToothDetailChange(
-                            toothNumber,
-                            "ceramicId",
-                            value
-                          )
-                        }
-                        placeholder="Keramika seçin"
-                        disabled={mode === "view"}
-                      />
+                return (
+                  <div key={toothNumber} className="mb-4 p-2 border rounded">
+                    <h4 className="font-semibold">Diş #{toothNumber}</h4>
+                    <div className="grid grid-cols-3 gap-2 mt-2">
+                      <div>
+                        <label>Rəng:</label>
+                        <CustomDropdown
+                          options={colors}
+                          value={toothDetail.colorId}
+                          onChange={(value) =>
+                            handleToothDetailChange(toothNumber, "colorId", value)
+                          }
+                          placeholder="Rəng seçin"
+                          disabled={mode === "view"}
+                        />
+                      </div>
+                      <div>
+                        <label>Keramika:</label>
+                        <CustomDropdown
+                          options={ceramics}
+                          value={toothDetail.ceramicId}
+                          onChange={(value) =>
+                            handleToothDetailChange(
+                              toothNumber,
+                              "ceramicId",
+                              value
+                            )
+                          }
+                          placeholder="Keramika seçin"
+                          disabled={mode === "view"}
+                        />
+                      </div>
+                      <div>
+                        <label>Metal:</label>
+                        <CustomDropdown
+                          options={metals}
+                          value={toothDetail.metalId}
+                          onChange={(value) =>
+                            handleToothDetailChange(toothNumber, "metalId", value)
+                          }
+                          placeholder="Metal seçin"
+                          disabled={mode === "view"}
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Form Actions */}
       <div className="self-end flex gap-4 m-4">
         <button
           type="button"
           className="flex items-center justify-center px-4 py-2 border text-[#155EEF] border-[#155EEF] rounded-lg hover:bg-gray-100 w-[184px] h-[44px] gap-2"
-          onClick={onCancel}>
+          onClick={onCancel}
+        >
           <FontAwesomeIcon icon={faXmark} />
           Ləğv et
         </button>
@@ -597,7 +619,8 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
           <button
             type="submit"
             className="flex items-center justify-center px-4 py-2 bg-[#155EEF] text-white rounded-lg hover:bg-[#155EEF] w-[184px] h-[44px] gap-2"
-            disabled={dentalOrderStore.loading}>
+            disabled={dentalOrderStore.loading}
+          >
             <FontAwesomeIcon icon={faCheck} />
             {dentalOrderStore.loading ? "Yüklənir..." : "Yadda saxla"}
           </button>

@@ -5,27 +5,52 @@ import { AiOutlineUserAdd } from "react-icons/ai";
 import { IoIosArrowBack } from "react-icons/io";
 import { FiLock, FiLogOut } from "react-icons/fi";
 import { Link } from "react-router-dom";
+import axios from "axios";
 
 import useAuthStore from "../../../stores/authStore";
-import useWorkerStore from "../../../stores/workerStore";
 
 import adminUser from "../../assets/images/header-component-images/adminPFP.jpeg";
 import "../../assets/style/header.css";
 
-localStorage.setItem("notification", "true");
-
 function Header() {
   const { user, logout } = useAuthStore();
-  const { selectedWorker, fetchWorkerById } = useWorkerStore();
-
   const [menuOpen, setMenuOpen] = useState(false);
-  const showNotificationDot = localStorage.getItem("notification") !== "false";
+  const [workerInfo, setWorkerInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user?.id) {
-      fetchWorkerById(user.id);
-    }
-  }, [user?.id, fetchWorkerById]);
+    const fetchWorkerInfo = async () => {
+      if (user?.id && !workerInfo) {
+        try {
+          const refreshToken = localStorage.getItem("refreshToken");
+          const response = await axios.get(
+            `http://161.97.179.107:5555/api/v1/add-worker/info/${user.id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${refreshToken}`,
+              },
+            }
+          );
+          setWorkerInfo(response.data);
+        } catch (error) {
+          console.error("Failed to fetch worker data:", error);
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        setLoading(false);
+      }
+    };
+
+    fetchWorkerInfo();
+  }, [user?.id, workerInfo]);
+
+  const handleLogout = () => {
+    logout();
+    window.location.href = "/login";
+  };
+
+  const showNotificationDot = localStorage.getItem("notification") !== "false";
 
   return (
     <header className="headerContainer">
@@ -36,21 +61,26 @@ function Header() {
         <Link to={"/patients/add-patient"}>
           <AiOutlineUserAdd className="headerIcon" />
         </Link>
-
+        {showNotificationDot && <div className="notificationDot"></div>}
         <div
           className="headerUserProfileLink"
-          onClick={() => setMenuOpen((prev) => !prev)}>
+          onClick={() => setMenuOpen((prev) => !prev)}
+        >
           <img src={adminUser} alt="Admin" />
           <div className="headerRightPart">
             <div className="headerTitle">
               <p className="headerNamePart">
-                {selectedWorker
-                  ? `${selectedWorker.name} ${selectedWorker.surname}`
-                  : "Yüklənir..."}
+                {loading
+                  ? "Yüklənir..."
+                  : workerInfo
+                  ? `${workerInfo.name} ${workerInfo.surname}`
+                  : "Məlumat tapılmadı"}
               </p>
               <p className="headerRolePart">
-                {selectedWorker?.permissions?.length > 0
-                  ? selectedWorker.permissions.join(", ")
+                {loading
+                  ? "Vəzifə"
+                  : workerInfo?.permissions?.length > 0
+                  ? workerInfo.permissions.join(", ")
                   : "Vəzifə"}
               </p>
             </div>
@@ -61,15 +91,13 @@ function Header() {
             <div className="headerDropdownMenu">
               <div className="headerDropdownItem">
                 <FiLock className="headerDropdownIcon" />
-                <Link to="/change-password">Şifrəmi dəyiş</Link>
+                <Link to="/change-password">Şifrəni dəyiş</Link>
               </div>
               <div
                 className="headerDropdownItem"
-                onClick={() => {
-                  logout();
-                  window.location.href = "/login";
-                }}
-                style={{ cursor: "pointer" }}>
+                onClick={handleLogout}
+                style={{ cursor: "pointer" }}
+              >
                 <FiLogOut className="headerDropdownIcon" />
                 <span>Çıxış</span>
               </div>

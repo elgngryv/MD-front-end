@@ -9,16 +9,19 @@ import {
   searchWorkers,
   fetchWorkersByPermission,
   apiFetchPermissions,
-} from "../src/api/add-worker"; 
+} from "../src/api/add-worker";
 
 const useWorkerStore = create((set, get) => ({
   workers: [],
   searchResult: [],
   selectedWorker: null,
   statusList: [],
-  permissions: [], 
+  permissions: [],
   loading: false,
   error: null,
+
+  // Yeni funksiya əlavə edildi
+  clearSelectedWorker: () => set({ selectedWorker: null }),
 
   fetchWorkers: async () => {
     set({ loading: true, error: null });
@@ -75,7 +78,17 @@ const useWorkerStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       await deleteWorker(id);
-      await get().fetchWorkers();
+      console.log(`İşçi (ID: ${id}) uğurla silindi.`);
+      const { workers, searchResult } = get();
+      const updatedWorkers = workers.filter((worker) => worker.id !== id);
+      const updatedSearchResult = searchResult.filter(
+        (worker) => worker.id !== id
+      );
+      set({
+        workers: updatedWorkers,
+        searchResult: updatedSearchResult,
+        loading: false,
+      });
     } catch (err) {
       set({ error: err.message, loading: false });
       throw err;
