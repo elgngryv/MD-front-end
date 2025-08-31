@@ -1,6 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-import { SketchPicker } from "react-color";
-import { MdColorLens } from "react-icons/md";
 import { useNavigate, useParams } from "react-router-dom";
 import CustomDropdown from "../../components/CustomDropdown";
 import "../../assets/style/PatientPage/patientedit.css";
@@ -15,14 +13,12 @@ const PatientEdit = () => {
   const { id } = useParams();
   const { fetchPatientById, editPatient, loading, selectedPatient } =
     usePatientStore();
-  const [showColorPicker, setShowColorPicker] = useState(false);
   const [doctors, setDoctors] = useState([]);
   const [formLoading, setFormLoading] = useState(false);
   const [selectedGender, setSelectedGender] = useState(null);
   const [selectedPriceCategory, setSelectedPriceCategory] = useState(null);
   const [selectedSpecialization, setSelectedSpecialization] = useState(null);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
-  const colorPickerRef = useRef(null);
 
   // Store-lardan məlumatları əldə et
   const { categories, fetchCategories } = usePriceCategoryStore();
@@ -35,7 +31,7 @@ const PatientEdit = () => {
     if (id) {
       fetchPatientById(id);
     }
-  }, [id]);
+  }, [id, fetchPatientById, fetchCategories, fetchSpecializations]);
 
   const formRefs = {
     name: useRef(),
@@ -49,9 +45,6 @@ const PatientEdit = () => {
     homeAddress: useRef(),
     workAddress: useRef(),
     email: useRef(),
-    colorCode: useRef(),
-    isVip: useRef(),
-    isBlacklisted: useRef(),
   };
 
   useEffect(() => {
@@ -59,7 +52,7 @@ const PatientEdit = () => {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(
-          `${import.meta.env.VITE_BASE_URL}/general-calendar/read-doctors`,
+          `${import.meta.env.VITE_BASE_URL || "http://161.97.179.107:5555/api/v1"}/general-calendar/read-doctors`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -95,7 +88,7 @@ const PatientEdit = () => {
         setSelectedPriceCategory(
           categoryOption
             ? { value: categoryOption.name, label: categoryOption.name }
-            : null
+            : { value: selectedPatient.priceCategoryName, label: selectedPatient.priceCategoryName }
         );
       }
 
@@ -104,7 +97,9 @@ const PatientEdit = () => {
           (spec) => spec.name === selectedPatient.specializationName
         );
         setSelectedSpecialization(
-          specOption ? { value: specOption.name, label: specOption.name } : null
+          specOption 
+            ? { value: specOption.name, label: specOption.name }
+            : { value: selectedPatient.specializationName, label: selectedPatient.specializationName }
         );
       }
 
@@ -122,36 +117,28 @@ const PatientEdit = () => {
       // Set input values
       Object.entries(formRefs).forEach(([key, ref]) => {
         if (ref.current && selectedPatient[key] !== undefined) {
-          if (key === "isVip" || key === "isBlacklisted") {
-            ref.current.checked = selectedPatient[key] || false;
-          } else {
-            ref.current.value = selectedPatient[key] || "";
-          }
+          ref.current.value = selectedPatient[key] || "";
         }
       });
     }
   }, [selectedPatient, categories, specializations, doctors]);
 
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (
-        colorPickerRef.current &&
-        !colorPickerRef.current.contains(event.target)
-      ) {
-        setShowColorPicker(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const handleColorChange = (color) => {
-    formRefs.colorCode.current.value = color.hex;
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormLoading(true);
+
+    // Use the selected values or fall back to the original patient values
+    const priceCategoryName = selectedPriceCategory 
+      ? selectedPriceCategory.value 
+      : selectedPatient?.priceCategoryName || null;
+    
+    const specializationName = selectedSpecialization 
+      ? selectedSpecialization.value 
+      : selectedPatient?.specializationName || null;
+    
+    const doctor_id = selectedDoctor 
+      ? selectedDoctor.value 
+      : selectedPatient?.doctorId || selectedPatient?.doctor_id || null;
 
     const requestData = {
       patientId: id,
@@ -159,24 +146,17 @@ const PatientEdit = () => {
       surname: formRefs.surname.current.value,
       patronymic: formRefs.patronymic.current.value || null,
       finCode: formRefs.finCode.current.value,
-      genderStatus: selectedGender ? selectedGender.value : null,
+      genderStatus: selectedGender ? selectedGender.value : selectedPatient?.genderStatus || null,
       dateOfBirth: formRefs.dateOfBirth.current.value,
-      priceCategoryName: selectedPriceCategory
-        ? selectedPriceCategory.value
-        : null,
-      specializationName: selectedSpecialization
-        ? selectedSpecialization.value
-        : null,
-      doctor_id: selectedDoctor ? selectedDoctor.value : null,
+      priceCategoryName: priceCategoryName,
+      specializationName: specializationName,
+      doctor_id: doctor_id,
       phone: formRefs.phone.current.value,
       workPhone: formRefs.workPhone.current.value || null,
       homePhone: formRefs.homePhone.current.value || null,
       homeAddress: formRefs.homeAddress.current.value || null,
       workAddress: formRefs.workAddress.current.value || null,
       email: formRefs.email.current.value || null,
-      colorCode: formRefs.colorCode.current.value || null,
-      isVip: formRefs.isVip.current.checked,
-      isBlacklisted: formRefs.isBlacklisted.current.checked,
     };
 
     try {
@@ -209,7 +189,6 @@ const PatientEdit = () => {
 
   return (
     <div className="patient-edit-container">
-      <h2>Pasiyent Məlumatlarını Redaktə Et</h2>
       <form className="main-form" onSubmit={handleSubmit}>
         <div className="input-container">
           <div className="left">
@@ -220,6 +199,7 @@ const PatientEdit = () => {
                 ref={formRefs.name}
                 required
                 disabled={formLoading}
+                defaultValue={selectedPatient?.name || ""}
               />
             </div>
 
@@ -230,6 +210,7 @@ const PatientEdit = () => {
                 ref={formRefs.surname}
                 required
                 disabled={formLoading}
+                defaultValue={selectedPatient?.surname || ""}
               />
             </div>
 
@@ -239,6 +220,7 @@ const PatientEdit = () => {
                 type="text"
                 ref={formRefs.patronymic}
                 disabled={formLoading}
+                defaultValue={selectedPatient?.patronymic || ""}
               />
             </div>
 
@@ -249,6 +231,7 @@ const PatientEdit = () => {
                 ref={formRefs.finCode}
                 required
                 disabled={formLoading}
+                defaultValue={selectedPatient?.finCode || ""}
               />
             </div>
 
@@ -274,9 +257,12 @@ const PatientEdit = () => {
                 ref={formRefs.dateOfBirth}
                 required
                 disabled={formLoading}
+                defaultValue={selectedPatient?.dateOfBirth || ""}
               />
             </div>
+          </div>
 
+          <div className="right">
             <div className="main-form-group">
               <label>Qiymət kateqoriyası</label>
               <CustomDropdown
@@ -286,7 +272,7 @@ const PatientEdit = () => {
                   value: category.name,
                   label: category.name,
                 }))}
-                placeholder="Seçin"
+                placeholder={selectedPatient?.priceCategoryName || "Seçin"}
                 isDisabled={formLoading}
                 isClearable={true}
               />
@@ -301,7 +287,7 @@ const PatientEdit = () => {
                   value: spec.name,
                   label: spec.name,
                 }))}
-                placeholder="Seçin"
+                placeholder={selectedPatient?.specializationName || "Seçin"}
                 isDisabled={formLoading}
                 isClearable={true}
               />
@@ -322,59 +308,6 @@ const PatientEdit = () => {
               />
             </div>
 
-            <div className="main-form-group color-picker-group">
-              <label>Rəng kodu</label>
-              <div className="color-input-container">
-                <input
-                  type="text"
-                  ref={formRefs.colorCode}
-                  readOnly
-                  disabled={formLoading}
-                />
-                <span
-                  className="color-icon"
-                  onClick={() =>
-                    !formLoading && setShowColorPicker(!showColorPicker)
-                  }>
-                  <MdColorLens />
-                </span>
-                {showColorPicker && (
-                  <div className="color-picker-popup" ref={colorPickerRef}>
-                    <SketchPicker
-                      color={formRefs.colorCode.current?.value || "#ffffff"}
-                      onChange={handleColorChange}
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="main-form-group checkbox-group">
-              <label>
-                <input
-                  type="checkbox"
-                  className="patientEditCheckbox"
-                  ref={formRefs.isVip}
-                  disabled={formLoading}
-                />{" "}
-                VIP
-              </label>
-            </div>
-
-            <div className="main-form-group checkbox-group">
-              <label>
-                <input
-                  type="checkbox"
-                  className="patientEditCheckbox"
-                  ref={formRefs.isBlacklisted}
-                  disabled={formLoading}
-                />{" "}
-                Qara siyahı
-              </label>
-            </div>
-          </div>
-
-          <div className="right">
             <div className="main-form-group">
               <label>Mobil nömrə</label>
               <input
@@ -382,6 +315,7 @@ const PatientEdit = () => {
                 ref={formRefs.phone}
                 required
                 disabled={formLoading}
+                defaultValue={selectedPatient?.phone || ""}
               />
             </div>
 
@@ -391,6 +325,7 @@ const PatientEdit = () => {
                 type="tel"
                 ref={formRefs.workPhone}
                 disabled={formLoading}
+                defaultValue={selectedPatient?.workPhone || ""}
               />
             </div>
 
@@ -400,6 +335,7 @@ const PatientEdit = () => {
                 type="tel"
                 ref={formRefs.homePhone}
                 disabled={formLoading}
+                defaultValue={selectedPatient?.homePhone || ""}
               />
             </div>
 
@@ -409,6 +345,7 @@ const PatientEdit = () => {
                 type="text"
                 ref={formRefs.homeAddress}
                 disabled={formLoading}
+                defaultValue={selectedPatient?.homeAddress || ""}
               />
             </div>
 
@@ -418,12 +355,18 @@ const PatientEdit = () => {
                 type="text"
                 ref={formRefs.workAddress}
                 disabled={formLoading}
+                defaultValue={selectedPatient?.workAddress || ""}
               />
             </div>
 
             <div className="main-form-group">
               <label>E-poçt</label>
-              <input type="email" ref={formRefs.email} disabled={formLoading} />
+              <input 
+                type="email" 
+                ref={formRefs.email} 
+                disabled={formLoading}
+                defaultValue={selectedPatient?.email || ""}
+              />
             </div>
           </div>
         </div>
