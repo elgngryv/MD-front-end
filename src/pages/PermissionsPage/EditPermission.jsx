@@ -85,6 +85,13 @@ const permissionsList = [
 
 const actions = ["Oxuma", "Yaratma", "Redaktə", "Silmə", "Status", "Sıralama"];
 
+const capitalizeWords = (str) => {
+  return str.split(' ').map(word => {
+    if (word.length === 0) return '';
+    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+  }).join(' ');
+};
+
 function EditPermission() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -217,6 +224,10 @@ function EditPermission() {
     }));
   };
 
+  const handleNameChange = (e) => {
+    setName(capitalizeWords(e.target.value));
+  };
+
   const handleSave = async () => {
     const permissions = [];
 
@@ -226,7 +237,6 @@ function EditPermission() {
         .map(([action]) => convertFrontendAction(action));
 
       if (selectedActions.length > 0) {
-        // doğru modul icazə ID-ni tap
         const matchedModule = selectedPermission?.modulePermissions?.find(
           (m) => m.moduleUrl === moduleUrl
         );
@@ -266,7 +276,7 @@ function EditPermission() {
               id="name"
               value={name}
               placeholder="İcazənin adı"
-              onChange={(e) => setName(e.target.value)}
+              onChange={handleNameChange}
               required
             />
           </div>

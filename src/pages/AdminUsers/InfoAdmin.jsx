@@ -1,29 +1,82 @@
-import React from "react";
-import "../../assets/style/AdminUsers/infoadmin.css";
+import React, { useState, useEffect } from "react";
 import { FaDownload } from "react-icons/fa";
 import EditIcon from "../../assets/icons/Edit";
 import { Link, useParams } from "react-router-dom";
-
-const infoData = {
-  status: "Aktiv",
-  username: "admin",
-  password: "password123",
-  name: "Admin",
-  surname: "User",
-  permission: "Tam icazə",
-  phone: "(050) xxx xx xx",
-  image:
-    "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=facearea&w=256&h=256",
-};
+import "../../assets/style/AdminUsers/infoadmin.css";
 
 const InfoAdmin = ({ showEdit = true }) => {
   const { id } = useParams();
 
+  const [infoData, setInfoData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!id) {
+      setError("ID dəyəri URL-də tapılmadı.");
+      setLoading(false);
+      return;
+    }
+
+    const fetchWorkerInfo = async () => {
+      setLoading(true);
+      const token = localStorage.getItem("refreshToken");
+      if (!token) {
+        setError("Avtorizasiya tokeni tapılmadı.");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `http://161.97.179.107:5555/api/v1/add-worker/info/${id}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP xətası! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setInfoData(data);
+      } catch (err) {
+        console.error("API Sorğu Xətası:", err);
+        setError(`Xəta baş verdi: ${err.message}`);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWorkerInfo();
+  }, [id]);
+
+  if (loading) {
+    return <div className="loading-state">Yüklənir...</div>;
+  }
+
+  if (error) {
+    return <div className="error-state">Xəta: {error}</div>;
+  }
+
+  if (!infoData) {
+    return <div className="no-data-state">Məlumat tapılmadı.</div>;
+  }
+
+  // Sahələrin adlarını API cavabına uyğunlaşdırın
+  const avatarName = `${infoData.name} ${infoData.surname}`;
+  const avatarUrl = `https://avatar.iran.liara.run/username?username=${encodeURIComponent(avatarName)}`;
+
   return (
-    <div className="infoAdminFormContainer">
+    <div className="infoAdminFormContainer h-screen">
       {showEdit && (
         <div className="infoAdminEditIcon">
-          <Link to={`../admin-users/${id}/edit`} title="Redaktə et">
+          <Link to={`../admin-users/edit/${id}`} title="Redaktə et">
             <EditIcon style={{ cursor: "pointer" }} />
           </Link>
         </div>
@@ -31,20 +84,14 @@ const InfoAdmin = ({ showEdit = true }) => {
       <form className="infoAdminForm">
         <div className="infoAdminFormRow">
           <label className="infoAdminLabel">Status</label>
-          <span
-            className={`infoAdminStatus ${
-              infoData.status === "Aktiv" ? "active" : "passive"
-            }`}
-          >
-            {infoData.status}
-          </span>
+          <span className="infoAdminStatus active">Aktiv</span>
         </div>
         <div className="infoAdminFormRow">
           <label className="infoAdminLabel">İstifadəçi adı</label>
           <input
             type="text"
             className="infoAdminField"
-            value={infoData.username}
+            value={infoData.username || ""}
             readOnly
           />
         </div>
@@ -53,7 +100,7 @@ const InfoAdmin = ({ showEdit = true }) => {
           <input
             type="password"
             className="infoAdminField"
-            value={infoData.password}
+            value=""
             readOnly
           />
         </div>
@@ -62,7 +109,7 @@ const InfoAdmin = ({ showEdit = true }) => {
           <input
             type="text"
             className="infoAdminField"
-            value={infoData.name}
+            value={infoData.name || ""}
             readOnly
           />
         </div>
@@ -71,7 +118,7 @@ const InfoAdmin = ({ showEdit = true }) => {
           <input
             type="text"
             className="infoAdminField"
-            value={infoData.surname}
+            value={infoData.surname || ""}
             readOnly
           />
         </div>
@@ -80,7 +127,7 @@ const InfoAdmin = ({ showEdit = true }) => {
           <input
             type="text"
             className="infoAdminField"
-            value={infoData.permission}
+            value={infoData.permissions ? infoData.permissions.join(", ") : ""}
             readOnly
           />
         </div>
@@ -89,7 +136,7 @@ const InfoAdmin = ({ showEdit = true }) => {
           <input
             type="text"
             className="infoAdminField"
-            value={infoData.phone}
+            value={infoData.phone || ""}
             readOnly
           />
         </div>
@@ -97,9 +144,9 @@ const InfoAdmin = ({ showEdit = true }) => {
           <label className="infoAdminLabel">Şəkil</label>
           <div className="infoAdminPhotoWrapper">
             <div className="infoAdminImagePreview">
-              <img src={infoData.image} alt="admin" />
+              <img src={avatarUrl} alt="admin avatar" />
               <a
-                href={infoData.image}
+                href={avatarUrl}
                 download
                 className="infoAdminDownloadIcon"
                 title="Yüklə"

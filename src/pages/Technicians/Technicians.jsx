@@ -1,67 +1,38 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
-import "../../assets/style/Technicians/technicians.css";
-
+import useTechnicianStore from "../../../stores/technicianStore";
 import { CiSearch, CiExport, CiCircleInfo } from "react-icons/ci";
 import { HiArrowsUpDown } from "react-icons/hi2";
 import { FiEdit3 } from "react-icons/fi";
 import { GoTrash } from "react-icons/go";
+import "../../assets/style/Technicians/technicians.css";
 import "./tech.css";
-
-import useTechnicianStore from "../../../stores/technicianStore";
 
 function Technicians() {
   const {
+    technicians,
     fetchTechnicians,
     removeTechnician,
     exportToExcel,
     searchTechs,
     updateTechStatus,
+    loading,
+    error,
   } = useTechnicianStore();
 
-  const [technicians, setTechnicians] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const navigation = useNavigate();
 
   useEffect(() => {
-    loadTechnicians();
-  }, []);
+    fetchTechnicians();
+  }, [fetchTechnicians]);
 
-  const loadTechnicians = async () => {
-    try {
-      const data = await fetchTechnicians();
-      let list = [];
-
-      if (Array.isArray(data)) {
-        list = data;
-      } else if (Array.isArray(data?.technicians)) {
-        list = data.technicians;
-      }
-
-      // Status sahəsi yalnız ACTIVE olduqda enabled true olsun
-      const mappedList = list.map((tech) => ({
-        ...tech,
-        enabled: tech.status === "ACTIVE",
-      }));
-
-      setTechnicians(mappedList);
-
-      // Debug üçün konsola statusları çap et
-      console.log("Technicians loaded:", mappedList);
-    } catch (err) {
-      console.error("Texnikləri yükləmək mümkün olmadı:", err);
-      setTechnicians([]);
-    }
-  };
-
-  const getStatus = (tech) => (tech.enabled ? "Aktiv" : "Passiv");
+  const getStatus = (tech) => (tech.status === "ACTIVE" ? "Aktiv" : "Passiv");
 
   const toggleStatus = async (tech) => {
-    const newStatus = tech.enabled ? "PASSIVE" : "ACTIVE";
+    const newStatus = tech.status === "ACTIVE" ? "PASSIVE" : "ACTIVE";
     try {
       await updateTechStatus(tech.id, newStatus);
-      await loadTechnicians();
     } catch (error) {
       alert("Status dəyişdirilə bilmədi.");
       console.error(error);
@@ -77,7 +48,6 @@ function Technicians() {
     try {
       await removeTechnician(tech.id);
       alert("İşçi uğurla silindi!");
-      loadTechnicians();
     } catch (err) {
       alert("Silinmə zamanı xəta baş verdi.");
       console.error(err);
@@ -87,26 +57,7 @@ function Technicians() {
   const handleSearch = async (e) => {
     const term = e.target.value;
     setSearchTerm(term);
-    try {
-      const filtered = await searchTechs(term);
-      let filteredList = [];
-
-      if (Array.isArray(filtered)) {
-        filteredList = filtered;
-      } else if (Array.isArray(filtered?.technicians)) {
-        filteredList = filtered.technicians;
-      }
-
-      // Burada da enabled boolean təyin et
-      const mappedFiltered = filteredList.map((tech) => ({
-        ...tech,
-        enabled: tech.status === "ACTIVE",
-      }));
-
-      setTechnicians(mappedFiltered);
-    } catch (err) {
-      console.error("Axtarış zamanı xəta:", err);
-    }
+    await searchTechs({ search: term });
   };
 
   const icons = [
@@ -127,24 +78,34 @@ function Technicians() {
     },
   ];
 
+  if (loading) {
+    return <div>Yüklənir...</div>;
+  }
+
+  if (error) {
+    return <div>Xəta: {error}</div>;
+  }
+  
+  // `technicians` məlumatının Array olub olmadığını yoxlayın
+  const techList = Array.isArray(technicians) ? technicians : [];
+
   return (
     <div className="techniciansPageContainer">
       <div className="techiniciansPageTopPart">
         <div className="leftPartOfTop">
           <select name="" id="">
-            <option value="">Seçim edin</option>
-            <option value="v2">Opt 2</option>
-            <option value="v3">Opt 3</option>
-            <option value="v4">Opt 4</option>
+            <option value="">Status</option>
+            <option value="active">Aktiv</option>
+            <option value="passive">Passiv</option>
           </select>
-          <div className="searchBarContainer">
+          <div className="searchBarContainer relative flex items-center">
             <input
               type="text"
               placeholder="Axtarış"
               value={searchTerm}
               onChange={handleSearch}
+              className="w-full pr-10"
             />
-            <CiSearch className="searchIconBTN" />
           </div>
         </div>
         <div className="rightPartOfTop">
@@ -153,8 +114,9 @@ function Technicians() {
           </Link>
           <button
             className="exportDataOfTechs"
-            onClick={() => exportToExcel(technicians)}
-            title="Export to Excel">
+            onClick={exportToExcel}
+            title="Export to Excel"
+          >
             <CiExport className="exportDataOfTechsIcon" />
           </button>
         </div>
@@ -164,84 +126,99 @@ function Technicians() {
         <table className="techniciansTable">
           <thead>
             <tr>
-              <th>İstifadəçi adı</th>
               <th>
-                <HiArrowsUpDown className="tableArrowIcon" /> Adı
+                <span className="flex items-center gap-1">
+                  <HiArrowsUpDown className="tableArrowIcon" /> İstifadəçi adı
+                </span>
               </th>
               <th>
-                <HiArrowsUpDown className="tableArrowIcon" /> Soyadı
+                <span className="flex items-center gap-1">
+                  <HiArrowsUpDown className="tableArrowIcon" /> Adı
+                </span>
               </th>
               <th>
-                <HiArrowsUpDown className="tableArrowIcon" /> Ata adı
+                <span className="flex items-center gap-1">
+                  <HiArrowsUpDown className="tableArrowIcon" /> Soyadı
+                </span>
               </th>
               <th>
-                <HiArrowsUpDown className="tableArrowIcon" /> İcazələr
+                <span className="flex items-center gap-1">
+                  <HiArrowsUpDown className="tableArrowIcon" /> Ata adı
+                </span>
               </th>
               <th>
-                <HiArrowsUpDown className="tableArrowIcon" /> Mobil nömrə
+                <span className="flex items-center gap-1">
+                  <HiArrowsUpDown className="tableArrowIcon" /> İcazələr
+                </span>
+              </th>
+              <th>
+                <span className="flex items-center gap-1">
+                  <HiArrowsUpDown className="tableArrowIcon" /> Mobil nömrə
+                </span>
               </th>
               <th>Qiymətlər</th>
               <th>
-                <HiArrowsUpDown className="tableArrowIcon" /> Status
+                <span className="flex items-center gap-1">
+                  <HiArrowsUpDown className="tableArrowIcon" /> Status
+                </span>
               </th>
               <th>Düzəliş</th>
             </tr>
           </thead>
           <tbody>
-            {Array.isArray(technicians) && technicians.length > 0 ? (
-              technicians.map((tech) => (
-                <tr key={tech.id}>
-                  <td className="usernameOfTech">
-                    <img
-                      src={
-                        tech.img
-                          ? tech.img
-                          : `https://avatar.iran.liara.run/username?username=${encodeURIComponent(
-                              tech.username
-                            )}`
-                      }
-                      className="imageOfTech"
-                      alt={tech.username}
-                    />
-                    {tech.username}
-                  </td>
-                  <td>{tech.name}</td>
-                  <td>{tech.surname}</td>
-                  <td>{tech.patronymic}</td>
-                  <td>{tech.permissions?.join(", ")}</td>
-                  <td>{tech.phone}</td>
-                  <td>
-                    <Link className="priceListLinkTech" to={`prices/${tech.id}`}>
-                      Qiymətlər
-                    </Link>
-                  </td>
-                  <td>
-                    <span
-                      className={`status ${
-                        tech.enabled ? "active" : "passive"
-                      }`}
-                      onClick={() => toggleStatus(tech)}
-                      style={{ cursor: "pointer" }}
-                      title="Statusu dəyişmək üçün klikləyin"
-                    >
-                      {getStatus(tech)}
-                    </span>
-                  </td>
-                  <td>
-                    <div className="icons flex gap-3 cursor-pointer">
-                      {icons.map(
-                        ({ icon: IconComp, className, action }, idx) => (
-                          <IconComp
-                            key={idx}
-                            className={className}
-                            onClick={() => action(tech)}
-                          />
-                        )
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))
+            {techList.length > 0 ? (
+              techList.map((tech) => 
+                // Hər bir "tech" obyektinin mövcudluğunu yenidən yoxlayın
+                tech && tech.username ? (
+                  <tr key={tech.id}>
+                    <td className="usernameOfTech">
+                      <img
+                        src={`https://avatar.iran.liara.run/username?username=${encodeURIComponent(
+                          tech.username
+                        )}`}
+                        className="imageOfTech"
+                        alt={tech.username}
+                      />
+                      {tech.username}
+                    </td>
+                    <td>{tech.name}</td>
+                    <td>{tech.surname}</td>
+                    <td>{tech.patronymic}</td>
+                    <td>Texnik</td>
+                    <td>{tech.phone}</td>
+                    <td>
+                      <Link className="priceListLinkTech" to={`prices/${tech.id}`}>
+                        Qiymətlər
+                      </Link>
+                    </td>
+                    <td>
+                      <span
+                        className={`status ${
+                          tech.status === "ACTIVE" ? "active" : "passive"
+                        }`}
+                        onClick={() => toggleStatus(tech)}
+                        style={{ cursor: "pointer" }}
+                        title="Statusu dəyişmək üçün klikləyin"
+                      >
+                        {getStatus(tech)}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="icons flex gap-3 cursor-pointer">
+                        {icons.map(
+                          ({ icon: IconComp, className, action }, idx) => (
+                            <IconComp
+                              key={idx}
+                              className={className}
+                              onClick={() => action(tech)}
+                            />
+                          )
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ) : null
+              )
             ) : (
               <tr>
                 <td colSpan={9} style={{ textAlign: "center" }}>

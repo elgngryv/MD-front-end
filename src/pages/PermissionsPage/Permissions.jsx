@@ -61,7 +61,7 @@ function Permissions() {
     }
   };
   const handleEdit = (row) => {
-    navigate(`/edit-permission/${row.id}`);
+    navigate(`edit/${row.id}`);
   };
 
   const handleDelete = async (row) => {
@@ -78,7 +78,7 @@ function Permissions() {
   };
 
   const handleInfo = (row) => {
-    navigate(`/permission-info/${row.id}`);
+    navigate(`info/${row.id}`);
   };
 
   return (
@@ -104,7 +104,7 @@ function Permissions() {
           </div>
         </div>
         <div className="rightPart">
-          <Link className="addPermission" to={"/add-permission"}>
+          <Link className="addPermission" to={"add"}>
             <IoMdAdd className="addPermissionIcon" /> Yenisini əlavə et
           </Link>
           <Link className="exportPermissions">
@@ -113,7 +113,7 @@ function Permissions() {
         </div>
       </div>
 
-      <div className="permissionsTableWrapper">
+      <div className="permissionsTableWrapper h-screen">
         {loading ? (
           <p>Yüklənir...</p>
         ) : error ? (
@@ -123,7 +123,7 @@ function Permissions() {
             <thead>
               <tr>
                 <th>
-                  <span>1-{filteredData.length}</span>
+                  <span>{filteredData.length === 0 ? "0" : `1-${filteredData.length}`}</span>                
                 </th>
                 <th className="permissionName">
                   <span>

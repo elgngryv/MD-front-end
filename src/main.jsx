@@ -256,6 +256,8 @@ import PatientInsuranceBalanceAdd from "./pages/patient/PatientInsuranceBalanceA
 import PatientInsuranceBalanceEdit from "./pages/patient/PatientInsuranceBalanceEdit.jsx";
 import PatientInsuranceBalanceInfo from "./pages/patient/PatientInsuranceBalanceInfo.jsx";
 import EditPrescription from "./pages/patient/EditPrescription.jsx";
+import AddTechReport from "./pages/Laboratory/AddTechReport.jsx";
+import TechReportDetail from "./pages/Laboratory/TechReportDetail.jsx";
 
 const employees = [
   {
@@ -585,6 +587,9 @@ const AnimatedRoutes = () => {
             <Route path="/sent-orders" element={<SentOrders />} />
             <Route path="/received-orders" element={<ReceivedOrders />} />
             <Route path="/technicals-report" element={<TechnicalsReport />} />
+            <Route path="/technicals-report/add" element={<AddTechReport />} />
+            <Route path="/technicals-report/:techReportID" element={<TechReportDetail />} />
+
 
             {/* Settings Routes */}
 
@@ -601,8 +606,8 @@ const AnimatedRoutes = () => {
 
             {/* Other Settings Routes */}
             <Route path="/admin-users" element={<AdminUser />} />
-            <Route path="/admin-users/:id/edit" element={<EditAdmin />} />
-            <Route path="/admin-users/:id/info" element={<InfoAdmin />} />
+            <Route path="/admin-users/edit/:id" element={<EditAdmin />} />
+            <Route path="/admin-users/info/:id" element={<InfoAdmin />} />
 
             <Route path="/specialities" element={<Specialities />} />
             <Route path="/edit-speciality/:id" element={<EditSpeciality />} />
@@ -625,9 +630,9 @@ const AnimatedRoutes = () => {
             <Route path="/edit-order-status" element={<EditOrderStatus />} />
 
             <Route path="/permissions" element={<Permissions />} />
-            <Route path="/add-permission" element={<AddPermission />} />
-            <Route path="/edit-permission/:id" element={<EditPermission />} />
-            <Route path="/permission-info/:id" element={<InfoPermission />} />
+            <Route path="/permissions/add" element={<AddPermission />} />
+            <Route path="/permissions/edit/:id" element={<EditPermission />} />
+            <Route path="/permissions/info/:id" element={<InfoPermission />} />
 
             <Route path="/blacklist" element={<Blacklist />} />
             <Route path="/blacklist-reasons" element={<BlacklistReasons />} />
@@ -635,13 +640,13 @@ const AnimatedRoutes = () => {
             <Route path="/edit-reason/:id" element={<EditReason />} />
 
             <Route path="/technicians" element={<Technicians />} />
+            <Route path="technicians/:id" element={<InfoTechnician />} />
             <Route
               path="/technicians/prices/:id"
               element={<TechniciansPrices />}
             />
             <Route path="/technicians/add" element={<AddTechnician />} />
             <Route path="technicians/edit/:id" element={<EditTechnician />} />
-            <Route path="technicians/:id" element={<InfoTechnician />} />
 
             {/* Queue Management Routes */}
             <Route path="/queue" element={<QueueList />} />

@@ -103,7 +103,7 @@ function InfoPermission() {
     <div className="infoPermissionContainer">
       <div className="infoPermissionWrapper">
         <div className="editIconForInfoPermissionContainer">
-          <FiEdit3 className='editIconForInfoPermission' onClick={() => navigate(`/edit-permission/${id}`)} />
+          <FiEdit3 className='editIconForInfoPermission' onClick={() => navigate(`../permissions/edit/${id}`)} />
         </div>
         <form className="infoPermissionForm" onSubmit={e => e.preventDefault()}>
           <div className="infoTopPartForm">

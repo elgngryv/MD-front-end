@@ -36,7 +36,6 @@ function AddTechnician({ onClose }) {
     authorities: [],
   });
 
-  // Transform permissions to the required format
   const authorityOptions = rawPermissions
     .filter(permission => permission.status === "ACTIVE")
     .map((permission) => ({
@@ -170,10 +169,9 @@ function AddTechnician({ onClose }) {
         pauseOnHover: true,
         draggable: true,
       });
-
-      setTimeout(() => {
-        navigate("/technicians");
-      }, 1000);
+      
+      // setTimeout-u sildik, çünki store yenilənməni özü edir.
+      navigate("/technicians");
 
       if (typeof onClose === "function") {
         onClose();

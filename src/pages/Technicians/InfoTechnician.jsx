@@ -62,12 +62,25 @@ function InfoTechnician() {
   const formatDate = (dateString) => {
     if (!dateString) return "-";
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      // Əgər tarix etibarsızdırsa, "-" qaytar
+      return "-";
+    }
     return date.toLocaleDateString("az-AZ", {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
     });
   };
+
+  const getUsernameForAvatar = () => {
+    if (data.name && data.surname) {
+      return `${data.name} ${data.surname}`;
+    }
+    return data.name || data.surname || "User";
+  };
+
+  console.log("Selected Technician Data:", data);
 
   return (
     <div className="infoTechnicianContainer">
@@ -141,7 +154,7 @@ function InfoTechnician() {
         <div className="infoRight">
           <div className="infoRow">
             <span className="infoLabel">Doğum tarixi</span>
-            <span className="infoValue">{formatDate(data.birthDate)}</span>
+            <span className="infoValue">{data.birthDate}</span>
           </div>
           <div className="infoRow">
             <span className="infoLabel">Mobil nömrə 1</span>
@@ -166,20 +179,31 @@ function InfoTechnician() {
         <span className="infoLabel">Şəkil</span>
         <div className="infoImageContainer">
           <div className="infoImageGrid">
-            {(data.images || []).map((image, index) => (
-              <div key={index} className="infoImage">
+            {data.images && data.images.length > 0 ? (
+              data.images.map((image, index) => (
+                <div key={index} className="infoImage">
+                  <img
+                    src={image}
+                    alt={`image-${index}`}
+                    onClick={() => handleImageClick(image)}
+                  />
+                  <button
+                    className="downloadImageButton"
+                    onClick={() => handleDownload(image)}>
+                    <DownloadIcon />
+                  </button>
+                </div>
+              ))
+            ) : (
+              <div className="infoImage placeholderImage">
                 <img
-                  src={image}
-                  alt={`image-${index}`}
-                  onClick={() => handleImageClick(image)}
+                  src={`https://avatar.iran.liara.run/username?username=${encodeURIComponent(
+                    getUsernameForAvatar()
+                  )}`}
+                  alt="Placeholder Avatar"
                 />
-                <button
-                  className="downloadImageButton"
-                  onClick={() => handleDownload(image)}>
-                  <DownloadIcon />
-                </button>
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>

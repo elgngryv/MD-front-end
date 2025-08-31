@@ -45,6 +45,13 @@ const permissions = [
 
 const actions = ["Oxuma", "Yaratma", "Redaktə", "Silmə", "Status", "Sıralama"];
 
+const capitalizeWords = (str) => {
+  return str.split(' ').map(word => {
+    if (word.length === 0) return '';
+    return word.charAt(0).toUpperCase() + word.slice(1).toUpperCase();
+  }).join(' ');
+};
+
 function AddPermission() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -105,6 +112,10 @@ function AddPermission() {
     }));
   };
 
+  const handleNameChange = (e) => {
+    setName(capitalizeWords(e.target.value));
+  };
+
   const handleSave = async () => {
     const transformedPermissions = Object.keys(checked).reduce((acc, item) => {
       const selectedActions = Object.keys(checked[item]).filter(
@@ -155,7 +166,7 @@ function AddPermission() {
               id="name"
               value={name}
               placeholder="İcazənin adı"
-              onChange={e => setName(e.target.value)}
+              onChange={handleNameChange}
               required
             />
           </div>
