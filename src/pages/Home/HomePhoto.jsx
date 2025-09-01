@@ -18,6 +18,7 @@ function Home() {
           <section className="HeroSection">
             <h1>Stomatoloji Klinik CRM-ə Xoş Gəldiniz</h1>
             <p>İşlərinizi asanlaşdıran modern və rahat platforma.</p>
+            <p>1.1v</p>
             {/* "Sürətli Əməliyyatlar" düyməsinə klikləyəndə sidebar-ı açmaq/bağlamaq üçün */}
             <button
               className="PrimaryButton"
@@ -39,6 +40,7 @@ function Home() {
 
         <footer className="HomePageFooter">
           <p>&copy; 2025 StomatoCRM. Bütün hüquqlar qorunur.</p>
+
         </footer>
       </div>
     </>

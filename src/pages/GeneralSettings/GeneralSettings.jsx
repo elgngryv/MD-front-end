@@ -10,7 +10,7 @@ const GeneralSettings = () => {
     }
   return (
     <div className="generalSettingsWrapper">
-        <div className="general-settings-container">
+        <div className="general-settings-container ">
 
         <FiEdit3 onClick={handleClick} className="editIconForGeneralSettings"/>
         <div className="setting-item">

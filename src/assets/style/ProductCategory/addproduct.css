@@ -20,6 +20,14 @@
                 border-radius: 8px;
                 
             }
+            >select{
+                width: 932px;
+                height: 44px;
+                border: 1px solid #CDD5DF;
+                padding-left: 10px;
+                border-radius: 8px;
+                
+            }
             >p{
                 >span{
                     color: red;

@@ -11,6 +11,7 @@ import "../../assets/style/ProductCategory/productcategory.css";
 function ProductCategory() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
 
   const {
     categories,
@@ -25,9 +26,13 @@ function ProductCategory() {
     fetchCategories();
   }, []);
 
-  const filteredData = categories.filter((row) =>
-    row.categoryName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredData = categories.filter((row) => {
+    const matchesSearch = row.categoryName
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === "" || row.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   const handleEdit = (row) => {
     navigate(`./edit-category/${row.id}`);
@@ -57,7 +62,10 @@ function ProductCategory() {
     <div className="productCategoryContainer">
       <div className="productCategoryQuickSearch">
         <div className="productCategoryLeftPart">
-          <select>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
             <option value="">Status</option>
             <option value="ACTIVE">Aktiv</option>
             <option value="PASSIVE">Passiv</option>
@@ -73,14 +81,12 @@ function ProductCategory() {
           </div>
         </div>
         <div className="productCategoryRightPart">
-          <Link to={"./add-new"}>
+          <Link to={"./add"}>
             <p className="addNewProductCategory">
               <span>+</span>Yenisini əlavə et
             </p>
           </Link>
-          <Link to={"/export"}>
             <FiDownload className="exportProductCategoriesData" />
-          </Link>
         </div>
       </div>
 
@@ -88,11 +94,10 @@ function ProductCategory() {
         <table className="productCategoryTable">
           <thead>
             <tr>
-              <th>#</th>
+              <th>{filteredData.length === 0 ? 0 : `1-${filteredData.length}`}</th>
               <th className="productCategoryName">
                 <span>
-                  <HiOutlineArrowsUpDown className="arrowIconsNow" /> Məhsul
-                  kateqoriyasının adı
+                  <HiOutlineArrowsUpDown className="arrowIconsNow" /> Məhsul kateqoriyasının adı
                 </span>
               </th>
               <th>

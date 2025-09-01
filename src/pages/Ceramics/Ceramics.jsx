@@ -42,7 +42,7 @@ function Ceramics() {
     : [];
 
   const handleEdit = (row) => {
-    navigate(`/edit-ceramic/${row.id}`);
+    navigate(`../ceramics/edit/${row.id}`);
   };
 
   const handleDelete = async (row) => {
@@ -98,7 +98,7 @@ function Ceramics() {
           </div>
         </div>
         <div className="rightPart">
-          <Link className="addceramics" to="/add-ceramic">
+          <Link className="addceramics" to="add">
             <IoMdAdd className="addceramicsIcon" /> Yenisini əlavə et
           </Link>
           <button

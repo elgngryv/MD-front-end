@@ -365,7 +365,7 @@ const AnimatedRoutes = () => {
             <Route path="/patients" element={<PatientsList />} />
             <Route path="/product-categories" element={<ProductCategory />} />
             <Route
-              path="/product-categories/add-new"
+              path="/product-categories/add"
               element={<AddProductCategory />}
             />
             <Route path="/patients" element={<PatientsList />} />
@@ -618,12 +618,12 @@ const AnimatedRoutes = () => {
             <Route path="/add-degree" element={<AddAcademicDegrees />} />
 
             <Route path="/metals" element={<Metals />} />
-            <Route path="/edit-metal/:id" element={<EditMetal />} />
-            <Route path="/add-metal" element={<AddMetal />} />
+            <Route path="/metals/edit/:id" element={<EditMetal />} />
+            <Route path="/metals/add" element={<AddMetal />} />
 
             <Route path="/ceramics" element={<Ceramics />} />
-            <Route path="/edit-ceramic/:id" element={<EditCeramic />} />
-            <Route path="/add-ceramic" element={<AddCeramic />} />
+            <Route path="/ceramics/edit/:id" element={<EditCeramic />} />
+            <Route path="/ceramics/add" element={<AddCeramic />} />
 
             <Route path="/order-status" element={<OrderStatus />} />
             <Route path="/add-order-status" element={<AddOrderStatus />} />

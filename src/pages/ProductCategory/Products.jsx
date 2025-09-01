@@ -12,6 +12,8 @@ function Products() {
   const navigate = useNavigate();
   const { name } = useParams();
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  
   const {
     products,
     fetchProducts,
@@ -33,9 +35,14 @@ function Products() {
       )
     : products;
 
-  const filteredData = filteredByCategory.filter((row) =>
-    row.productName.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredData = filteredByCategory.filter((row) => {
+    const matchesSearchTerm = row.productName
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      statusFilter === "" || row.status?.toLowerCase() === statusFilter.toLowerCase();
+    return matchesSearchTerm && matchesStatus;
+  });
 
   const handleEdit = (row) => {
     navigate(`/product-categories/${name}/edit-product/${row.id}`);
@@ -58,6 +65,7 @@ function Products() {
   const toggleStatus = async (row) => {
     const currentStatus = row.status?.toUpperCase() || "";
     const newStatus = currentStatus === "ACTIVE" ? "PASSIVE" : "ACTIVE";
+    
     console.log("Status update payload:", {
       productId: row.id,
       status: newStatus,
@@ -76,10 +84,13 @@ function Products() {
     <div className="productPageWrapper">
       <div className="productCategoryQuickSearch">
         <div className="productCategoryLeftPart">
-          <select>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
             <option value="">Status</option>
-            <option value="Aktiv">Aktiv</option>
-            <option value="Passiv">Passiv</option>
+            <option value="ACTIVE">Aktiv</option>
+            <option value="PASSIVE">Passiv</option>
           </select>
           <div className="searchForNameProduct">
             <input
@@ -112,7 +123,7 @@ function Products() {
           <table className="productPageTable">
             <thead>
               <tr>
-                <th>#</th>
+                <th>{filteredData.length === 0 ? 0 : `1-${filteredData.length}`}</th>
                 <th className="productNameCol">
                   <span>
                     <HiOutlineArrowsUpDown className="arrowIconsNow" /> Məhsulun
@@ -148,17 +159,11 @@ function Products() {
                   <td>{row.productTitle}</td>
                   <td>
                     <span
-                      className={`statusBadge ${
-                        (row.status?.toUpperCase() || "") === "ACTIVE"
-                          ? "active"
-                          : "passive"
-                      }`}
+                      className={`statusBadge ${row.status?.toLowerCase() === "active" ? "active" : "passive"}`}
                       style={{ cursor: "pointer" }}
                       onClick={() => toggleStatus(row)}
                       title="Statusu dəyişmək üçün kliklə">
-                      {(row.status?.toUpperCase() || "") === "ACTIVE"
-                        ? "Aktiv"
-                        : "Passiv"}
+                      {row.status?.toLowerCase() === "active" ? "Aktiv" : "Passiv"}
                     </span>
                   </td>
                   <td>

@@ -45,7 +45,7 @@ function Metal() {
   });
 
   const handleEdit = (metal) => {
-    navigate(`/edit-metal/${metal.id}`);
+    navigate(`/metals/edit/${metal.id}`);
   };
 
   const handleDelete = async (metal) => {
@@ -74,7 +74,7 @@ function Metal() {
           </div>
         </div>
         <div className="rightPart">
-          <Link className="addMetal" to={"/add-metal"}>
+          <Link className="addMetal" to={"add"}>
             <IoMdAdd className="addMetalIcon" /> Yenisini əlavə et
           </Link>
           <button

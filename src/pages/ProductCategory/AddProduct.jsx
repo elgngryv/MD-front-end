@@ -87,6 +87,7 @@ function AddProduct() {
             name="categoryId"
             value={formData.categoryId}
             onChange={handleChange}
+            className=""
             required
           >
             <option value="">Kateqoriya seçin</option>
