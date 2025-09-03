@@ -5,7 +5,6 @@ const BASE_URL =
   "http://161.97.179.107:5555/api/v1" ||
   "http://161.97.179.107/";
 
-// Bütün funksiyalardan tokeni ayrı-ayrılıqda almaq
 const getToken = () => {
   return localStorage.getItem("token");
 };
@@ -13,10 +12,14 @@ const getToken = () => {
 export const createPatient = async (patientData) => {
   try {
     const token = getToken();
+
     const dataToSend = {
       ...patientData,
+      finCode: patientData.finCode === "" ? null : patientData.finCode,
       doctor_id: patientData.doctorId,
     };
+
+    delete dataToSend.doctorId;
 
     const response = await axios.post(
       `${BASE_URL}/patient/create`,
@@ -38,16 +41,19 @@ export const createPatient = async (patientData) => {
 export const editPatient = async (patientData) => {
   try {
     const token = getToken();
-    const response = await axios.put(
-      `${BASE_URL}/patient/update`,
-      patientData,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
+
+    // Prepare data for backend - ensure finCode is null if empty
+    const dataToSend = {
+      ...patientData,
+      finCode: patientData.finCode === "" ? null : patientData.finCode,
+    };
+
+    const response = await axios.put(`${BASE_URL}/patient/update`, dataToSend, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
     return response.data;
   } catch (error) {
     console.error("Pasiyent məlumatları yenilənərkən xəta baş verdi:", error);

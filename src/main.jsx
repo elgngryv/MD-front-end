@@ -239,7 +239,6 @@ import AddXRay from "./pages/patient/AddXray";
 
 import InfoInsurancePatient from "./pages/patient/InfoInsurancePatient.jsx";
 
-
 // Constants
 const roomOptions = [
   { value: "1", label: "Otaq 1" },
@@ -320,9 +319,6 @@ const WORK_HOURS = [
   "18:00",
 ];
 
-
-
-
 const WEEKDAYS_SHORT = ["B.e", "Ç.a", "Ç", "C.a", "C", "Ş", "B"];
 
 // Create a client
@@ -353,9 +349,8 @@ const AnimatedRoutes = () => {
   }, [loadTokenFromStorage]);
   return (
     <AnimatePresence mode="wait">
-
       <div className="app-wrapper">
-        <Redirecter/>
+        <Redirecter />
         <Routes location={location} key={location.pathname}>
           {/* Auth Routes */}
           {/* <Route path="/" element={<LogIn />} /> */}
@@ -411,12 +406,30 @@ const AnimatedRoutes = () => {
               <Route path="history/edit" element={<EditHistory />} />
               <Route path="insurance" element={<Insurance />} />
               <Route path="insurance/add" element={<AddInsurancePatient />} />
-              <Route path="insurance/info/:id" element={<InfoInsurancePatient />} />
-              <Route path="insurance/edit/:insuranceId" element={<EditInsurancePatient />} />
-              <Route path="insurance/insurance-balance/:id" element={<PatientInsuranceBalance />} />
-              <Route path="insurance/insurance-balance/:id/add" element={<PatientInsuranceBalanceAdd />} />
-              <Route path="insurance/insurance-balance/:id/edit/:id" element={<PatientInsuranceBalanceEdit />} />
-              <Route path="insurance/insurance-balance/:id/info/:id" element={<PatientInsuranceBalanceInfo />} />
+              <Route
+                path="insurance/info/:id"
+                element={<InfoInsurancePatient />}
+              />
+              <Route
+                path="insurance/edit/:insuranceId"
+                element={<EditInsurancePatient />}
+              />
+              <Route
+                path="insurance/insurance-balance/:id"
+                element={<PatientInsuranceBalance />}
+              />
+              <Route
+                path="insurance/insurance-balance/:id/add"
+                element={<PatientInsuranceBalanceAdd />}
+              />
+              <Route
+                path="insurance/insurance-balance/:id/edit/:id"
+                element={<PatientInsuranceBalanceEdit />}
+              />
+              <Route
+                path="insurance/insurance-balance/:id/info/:id"
+                element={<PatientInsuranceBalanceInfo />}
+              />
               {/* <Route
                 path="insurance/:id"
                 element={<ViewInsurance mode="view" />}
@@ -550,12 +563,21 @@ const AnimatedRoutes = () => {
             <Route path="/stock/entry" element={<StockEntryList />} />
             <Route path="/stock/entry/:id" element={<StockEntryDetail />} />
 
-              {/* Stock Export Routes */}
+            {/* Stock Export Routes */}
             <Route path="/stock/export" element={<StockExportList />} />
             <Route path="/stock/export/:id/add" element={<AddExportStock />} />
-            <Route path="/stock/export/:id/detail/edit" element={<EditExportStock />} />
-            <Route path="/stock/export/:id/detail" element={<InfoExportStock />} />
-            <Route path="/stock/export/:id/edit" element={<EditExportStock />} />
+            <Route
+              path="/stock/export/:id/detail/edit"
+              element={<EditExportStock />}
+            />
+            <Route
+              path="/stock/export/:id/detail"
+              element={<InfoExportStock />}
+            />
+            <Route
+              path="/stock/export/:id/edit"
+              element={<EditExportStock />}
+            />
             <Route path="/stock/export/:id" element={<StockExports />} />
 
             {/* Product Usage Routes */}
@@ -588,8 +610,10 @@ const AnimatedRoutes = () => {
             <Route path="/received-orders" element={<ReceivedOrders />} />
             <Route path="/technicals-report" element={<TechnicalsReport />} />
             <Route path="/technicals-report/add" element={<AddTechReport />} />
-            <Route path="/technicals-report/:techReportID" element={<TechReportDetail />} />
-
+            <Route
+              path="/technicals-report/:techReportID"
+              element={<TechReportDetail />}
+            />
 
             {/* Settings Routes */}
 

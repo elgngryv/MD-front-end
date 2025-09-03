@@ -5,7 +5,6 @@ import axios from "axios";
 // Icons
 import { CiSearch, CiCircleInfo } from "react-icons/ci";
 import { GoTrash, GoChevronLeft, GoChevronRight } from "react-icons/go";
-import { FiEdit3 } from "react-icons/fi";
 
 // Style
 import "../../assets/style/PatientsPage/patientslist.css";
@@ -16,7 +15,7 @@ import OrdinaryListHeader from "../../components/OrdinaryList/OrdinaryListHeader
 const initialSearch = {
   name: "",
   surname: "",
-  patronymic: "", // New: Added patronymic to the initial state
+  patronymic: "",
   fin: "",
   phone: "",
   gender: "",
@@ -49,11 +48,14 @@ function PatientsList() {
   const removePatient = async (id) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://161.97.179.107:5555/api/v1/patient/delete/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await axios.delete(
+        `http://161.97.179.107:5555/api/v1/patient/delete/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       setData(data.filter((item) => item.id !== id));
     } catch (error) {
       console.error("Error deleting patient:", error);
@@ -64,12 +66,21 @@ function PatientsList() {
     .reverse()
     .filter(
       (item) =>
-        item.name.toLowerCase().includes(search.name.toLowerCase()) &&
-        item.surname.toLowerCase().includes(search.surname.toLowerCase()) &&
-        // New: Filter by patronymic
-        item.patronymic.toLowerCase().includes(search.patronymic.toLowerCase()) &&
-        item.finCode.toLowerCase().includes(search.fin.toLowerCase()) &&
-        item.phone.toLowerCase().includes(search.phone.toLowerCase()) &&
+        (item.name || "")
+          .toLowerCase()
+          .includes(search.name.toLowerCase()) &&
+        (item.surname || "")
+          .toLowerCase()
+          .includes(search.surname.toLowerCase()) &&
+        (item.patronymic || "")
+          .toLowerCase()
+          .includes(search.patronymic.toLowerCase()) &&
+        (item.finCode || "")
+          .toLowerCase()
+          .includes(search.fin.toLowerCase()) &&
+        (item.phone || "")
+          .toLowerCase()
+          .includes(search.phone.toLowerCase()) &&
         (search.gender ? item.genderStatus === search.gender : true) &&
         (search.status ? item.priceCategoryName === search.status : true)
     );
@@ -92,11 +103,6 @@ function PatientsList() {
       action: (row) => navigate(`patient/${row.id}/general`),
       className: "info",
     },
-    // {
-    //   icon: FiEdit3,
-    //   action: (row) => navigate(`patient/${row.id}`),
-    //   className: "edit"
-    // },
     {
       icon: GoTrash,
       action: (row) => {
@@ -136,12 +142,13 @@ function PatientsList() {
                 setSearch({ ...search, surname: e.target.value })
               }
             />
-            {/* New: Added input for patronymic */}
             <input
               type="text"
               placeholder="Ata adı"
               value={search.patronymic}
-              onChange={(e) => setSearch({ ...search, patronymic: e.target.value })}
+              onChange={(e) =>
+                setSearch({ ...search, patronymic: e.target.value })
+              }
             />
             <input
               type="text"
