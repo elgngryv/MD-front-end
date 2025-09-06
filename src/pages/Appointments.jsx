@@ -283,7 +283,7 @@ const Appointments = () => {
         </div>
       </div>
 
-      <div className="right-side">
+      <div className="right-side width-[100vh]">
         <div className="schedule-header">
           <div className="date-and-navigation">
             <div className="date-display">
