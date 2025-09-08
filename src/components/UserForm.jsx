@@ -1,6 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-import { SketchPicker } from "react-color";
-import { MdColorLens } from "react-icons/md";
 import "../assets/style/form.css";
 import ProfileImage from "./ProfileImage";
 import { LuPenLine } from "react-icons/lu";
@@ -13,7 +11,6 @@ import Modal from "./Modal";
 import CustomDropdown from "./CustomDropdown";
 import useWorkerStore from "../../stores/workerStore";
 import usePermissionStore from "../../stores/permissionStore";
-// Import eye icons
 import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
 
 function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
@@ -24,14 +21,10 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
     loading: permissionsLoading,
   } = usePermissionStore();
   const [mode, setMode] = useState(initialMode);
-  const [showColorPicker, setShowColorPicker] = useState(false);
-  // Add state for password visibility
-  const [showPassword, setShowPassword] = useState(false);
-  const colorPickerRef = useRef(null);
-  const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
 
-  // Transform permissions to include both ID and name
   const permissionList = rawPermissions
     .filter((permission) => permission.status === "ACTIVE")
     .map((permission) => ({
@@ -44,7 +37,6 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
     fetchPermissions();
   }, [fetchPermissions]);
 
-  // Convert permission names back to IDs when initializing form with existing data
   const getDefaultPermissions = () => {
     if (!userData || !userData.permissions) return [];
     return userData.permissions.map((permissionName) => {
@@ -152,6 +144,7 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
       mode !== "view"
         ? yup.array().min(1, "Ən azı bir icazə seçilməlidir")
         : yup.array(),
+    colorCode: yup.string().required("Rəng kodu tələb olunur"),
   });
 
   const {
@@ -191,25 +184,10 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
         },
   });
 
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (
-        colorPickerRef.current &&
-        !colorPickerRef.current.contains(event.target)
-      ) {
-        setShowColorPicker(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
   const handleEditButton = () => setMode("edit");
   const handleCancelButton = () =>
     mode === "edit" ? setMode("view") : navigate(-1);
-  const handleColorChange = (color) => setValue("colorCode", color.hex);
 
-  // Toggle password visibility
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
@@ -227,7 +205,6 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
   };
 
   const handleFormSubmit = (data) => {
-    // Transform permission IDs to names before submission
     const permissionsWithNames = data.permissions.map((permissionId) => {
       const permission = rawPermissions.find(
         (p) => p.id.toString() === permissionId
@@ -235,26 +212,10 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
       return permission ? permission.permissionName : permissionId;
     });
 
-    // Fix color code format
-    let fixedColorCode = data.colorCode;
-    if (data.colorCode.startsWith("6")) {
-      fixedColorCode = `#${data.colorCode.substring(1)}`;
-    } else if (!data.colorCode.startsWith("#")) {
-      fixedColorCode = `#${data.colorCode}`;
-    }
-
     const transformedData = {
-      username: data.username,
+      ...data,
       password: mode === "create" ? data.password : undefined,
-      name: data.name,
-      surname: data.surname,
-      patronymic: data.patronymic,
-      finCode: data.finCode,
-      colorCode: fixedColorCode,
-      genderStatus: data.genderStatus,
-      dateOfBirth: data.dateOfBirth,
       degree: data.degree || null,
-      phone: data.phone,
       phone2: data.phone2 || null,
       homePhone: data.homePhone || null,
       phone3: data.phone3 || null,
@@ -264,12 +225,11 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
       permissions: permissionsWithNames,
     };
 
-    console.log("Submitting data:", transformedData);
-
     if (mode === "edit") {
       const updateData = Object.keys(transformedData).reduce((acc, key) => {
-        if (transformedData[key] !== userData[key])
+        if (JSON.stringify(transformedData[key]) !== JSON.stringify(userData[key])) {
           acc[key] = transformedData[key];
+        }
         return acc;
       }, {});
       onSubmit(updateData);
@@ -459,34 +419,21 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
               )}
             </div>
 
-            <div className="main-form-group color-selector-group">
-              <label htmlFor="colorCode">Rəng kodu</label>
+            <div className="main-form-group">
+              <label htmlFor="colorCode">
+                Rəng kodu <span className="text-red-500">*</span>
+              </label>
               <input
                 id="colorCode"
-                type="text"
+                type="color"
                 {...register("colorCode")}
-                readOnly
-                className={mode === "view" ? "readonly" : ""}
+                disabled={mode === "view"}
+                className={`${mode === "view" ? "readonly-color" : ""} ${
+                  errors.colorCode ? "error" : ""
+                }`}
               />
-              {mode !== "view" && (
-                <span
-                  className="color-icon"
-                  onClick={() => setShowColorPicker(!showColorPicker)}>
-                  <MdColorLens />
-                </span>
-              )}
-              <span
-                className="color-swatch"
-                style={{ backgroundColor: watch("colorCode") }}></span>
-
-              {showColorPicker && (
-                <div ref={colorPickerRef} className="color-picker-dropdown">
-                  <SketchPicker
-                    disableAlpha={true}
-                    color={watch("colorCode")}
-                    onChangeComplete={handleColorChange}
-                  />
-                </div>
+              {errors.colorCode && (
+                <p className="error-message">{errors.colorCode.message}</p>
               )}
             </div>
 

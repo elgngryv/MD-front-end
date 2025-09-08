@@ -258,6 +258,8 @@ import EditPrescription from "./pages/patient/EditPrescription.jsx";
 import AddTechReport from "./pages/Laboratory/AddTechReport.jsx";
 import TechReportDetail from "./pages/Laboratory/TechReportDetail.jsx";
 
+import DatePicker from "./components/DatePicker.jsx";
+
 const employees = [
   {
     id: 1,

@@ -44,7 +44,7 @@ function getMonday(date) {
   return new Date(d.setDate(diff))
 }
 
-// Həftənin bütün günlərini qaytır
+// Həftənin bütün günlərini qaytar
 function getWeekDates(startDate) {
   const days = []
   for (let i = 0; i < 7; i++) {
@@ -138,26 +138,14 @@ const EmployeeSchedule = () => {
         }
 
         const [employeesResponse, schedulesResponse, roomsResponse] = await Promise.all([
-          fetch("http://161.97.179.107:5555/api/v1/add-worker/read", {
-            headers,
-          }),
-          fetch("http://161.97.179.107:5555/api/v1/workers-work-schedule/read", {
-            headers,
-          }),
-          fetch("http://161.97.179.107:5555/api/v1/general-calendar/read-rooms", {
-            headers,
-          }),
+          fetch("http://161.97.179.107:5555/api/v1/add-worker/read", { headers }),
+          fetch("http://161.97.179.107:5555/api/v1/workers-work-schedule/read", { headers }),
+          fetch("http://161.97.179.107:5555/api/v1/general-calendar/read-rooms", { headers }),
         ])
 
-        if (!employeesResponse.ok) {
-          throw new Error(`Failed to fetch employees: ${employeesResponse.status}`)
-        }
-        if (!schedulesResponse.ok) {
-          throw new Error(`Failed to fetch schedules: ${schedulesResponse.status}`)
-        }
-        if (!roomsResponse.ok) {
-          throw new Error(`Failed to fetch rooms: ${roomsResponse.status}`)
-        }
+        if (!employeesResponse.ok) throw new Error(`Failed to fetch employees: ${employeesResponse.status}`)
+        if (!schedulesResponse.ok) throw new Error(`Failed to fetch schedules: ${schedulesResponse.status}`)
+        if (!roomsResponse.ok) throw new Error(`Failed to fetch rooms: ${roomsResponse.status}`)
 
         const employeesData = await employeesResponse.json()
         const schedulesData = await schedulesResponse.json()
@@ -191,12 +179,12 @@ const EmployeeSchedule = () => {
 
   const handleEmployeeChange = (e) => {
     setSelectedEmployee(e.target.value)
-    setSelectedRoom("")
+    if (e.target.value) setSelectedRoom("")
   }
 
   const handleRoomChange = (e) => {
     setSelectedRoom(e.target.value)
-    setSelectedEmployee("")
+    if (e.target.value) setSelectedEmployee("")
   }
 
   const handleClearFilters = () => {
@@ -205,28 +193,23 @@ const EmployeeSchedule = () => {
   }
 
   function getScheduleForEmployeeAndDay(userId, weekDay) {
-    const schedule = schedules.find(
-      (s) => s.userId === userId && s.weekDay === weekDay && (!selectedRoom || s.room === selectedRoom),
+    return schedules.find(
+      (s) => s.userId === userId && s.weekDay === weekDay && (!selectedRoom || s.cabinetName === selectedRoom)
     )
-    return schedule
   }
 
   const filteredEmployees = useMemo(() => {
     let result = employees
-
     if (selectedEmployee) {
       result = result.filter((e) => e.id === selectedEmployee)
     } else if (selectedRoom) {
-      const employeeIdsWithRoom = new Set(schedules.filter((s) => s.room === selectedRoom).map((s) => s.userId))
+      const employeeIdsWithRoom = new Set(schedules.filter((s) => s.cabinetName === selectedRoom).map((s) => s.userId))
       result = result.filter((e) => employeeIdsWithRoom.has(e.id))
     }
-
     return result
   }, [employees, schedules, selectedEmployee, selectedRoom])
 
-  const showDetailedView = useMemo(() => {
-    return selectedEmployee || (selectedRoom && filteredEmployees.length > 0)
-  }, [selectedEmployee, selectedRoom, filteredEmployees])
+  const showDetailedView = useMemo(() => selectedEmployee || selectedRoom, [selectedEmployee, selectedRoom])
 
   if (error) {
     return (
@@ -266,12 +249,7 @@ const EmployeeSchedule = () => {
                 </option>
               ))}
             </select>
-            <select
-              className="ews-filter-select"
-              style={{ marginLeft: 8 }}
-              value={selectedRoom}
-              onChange={handleRoomChange}
-            >
+            <select className="ews-filter-select" style={{ marginLeft: 8 }} value={selectedRoom} onChange={handleRoomChange}>
               <option value="">Otaq</option>
               {rooms.map((room) => (
                 <option key={room.cabinetName} value={room.cabinetName}>
@@ -317,168 +295,150 @@ const EmployeeSchedule = () => {
             />
             <p style={{ marginTop: "16px", color: "#666" }}>Məlumatlar yüklənir...</p>
           </div>
-        ) : showDetailedView ? (
-          <table className="ews-table">
-            <thead>
-              <tr>
-                <th style={{ width: 70, background: "#F7F8FA" }}></th>
-                {weekDates.map((d, i) => {
-                  const isToday = isSameDay(weekDates[i], today)
-                  return (
-                    <th key={i} className={isToday ? "current-day-header" : ""}>
-                      <div className={isToday ? "day-name current-day-name" : "day-name"}>{weekDays[i].label}</div>
-                      <div className={isToday ? "day-date current-day-date" : "day-date"}>{d.getDate()}</div>
-                    </th>
-                  )
-                })}
-              </tr>
-            </thead>
-            <tbody>
-              {filteredEmployees.map((emp, empIdx) => {
-                let minHour = 9,
-                  maxHour = 18
-                weekDays.forEach((d) => {
-                  const sched = getScheduleForEmployeeAndDay(emp.id, d.key)
-                  if (sched) {
-                    const startHour = Number.parseInt(sched.startTime.split(":")[0])
-                    const endHour = Number.parseInt(sched.finishTime.split(":")[0])
-                    minHour = Math.min(minHour, startHour)
-                    maxHour = Math.max(maxHour, endHour)
-                  }
-                })
-
-                const intervals = generateTimeIntervals(
-                  `${String(minHour).padStart(2, "0")}:00`,
-                  `${String(maxHour + 1).padStart(2, "0")}:00`,
-                )
-
-                const empSchedules = weekDays.map((d) => getScheduleForEmployeeAndDay(emp.id, d.key))
-                const blockRendered = Array(weekDays.length).fill(false)
-
-                return intervals.map((interval, intervalIdx) => (
-                  <tr key={`${emp.id}-${intervalIdx}`}>
-                    {intervalIdx === 0 && (
-                      <td className="vertical-header w-30 font-bold capitalize" rowSpan={intervals.length}>
-                        <div style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          justifyContent: "center",
-                          alignItems: "center",
-                          height: "100%",
-                          textAlign: "center"
-                        }}>
-                          <div className="avatarPicker"></div>
-                          <img
-                            src={`https://avatar.iran.liara.run/username?username=${emp.name}+${emp.surname}`}
-                            alt="avatar"
-                            className="employee-avatar h-20px"
-                            style={{ width: "32px", height: "32px", borderRadius: "50%", marginBottom: "4px" }}
-                          />
-                          <div>
-                            {emp.name} {emp.surname}
-                          </div>
-                        </div>
-                      </td>
-                    )}
-                    {weekDays.map((d, dayIdx) => {
-                      const sched = empSchedules[dayIdx]
-                      if (!sched) {
-                        return <td key={d.key} style={{ background: "#F7F8FA" }}></td>
-                      }
-
-                      const intervalTime = interval.hour * 60 + interval.minute
-                      const schedStart =
-                        Number.parseInt(sched.startTime.split(":")[0]) * 60 +
-                        Number.parseInt(sched.startTime.split(":")[1])
-                      const schedEnd =
-                        Number.parseInt(sched.finishTime.split(":")[0]) * 60 +
-                        Number.parseInt(sched.finishTime.split(":")[1])
-
-                      if (!blockRendered[dayIdx] && intervalTime === schedStart) {
-                        const span = getIntervalCount(sched.startTime, sched.finishTime)
-                        blockRendered[dayIdx] = true
-                        return (
-                          <td key={d.key} rowSpan={span} style={{ verticalAlign: "top", padding: "0 4px" }}>
-                            <div
-                              className={`ews-schedule-block ews-schedule-block-${getBlockColor(empIdx)} vertical-view`}
-                              style={{ height: 60 * span - 8 }}
-                            >
-                              <div className="block-doctor">
-                                {emp.name} {emp.surname}
-                              </div>
-                              <div className="block-time">
-                                {formatTime(sched.startTime)} - {formatTime(sched.finishTime)}
-                              </div>
-                              <div className="block-room">{sched.room}</div>
-                            </div>
-                          </td>
-                        )
-                      }
-
-                      if (blockRendered[dayIdx] && intervalTime >= schedStart && intervalTime < schedEnd) {
-                        return null
-                      }
-
-                      return <td key={d.key} style={{ background: "#F7F8FA" }}></td>
-                    })}
-                  </tr>
-                ))
-              })}
-            </tbody>
-          </table>
         ) : (
-          <table className="ews-table">
-            <thead>
-              <tr>
-                <th className="text-left">Ad, soyad</th>
-                {weekDays.map((d, i) => {
-                  const isToday = isSameDay(weekDates[i], today)
-                  return (
-                    <th key={d.key} className={`dateContainerTH ${isToday ? "current-day-header" : ""}`}>
-                      <div className={`day-name ${isToday ? "current-day-name" : ""}`}>{d.label}</div>
-                      <div className={`day-date ${isToday ? "current-day-date" : ""}`}>{weekDates[i].getDate()}</div>
-                    </th>
-                  )
-                })}
-              </tr>
-            </thead>
-            <tbody>
-              {filteredEmployees.map((emp) => (
-                <tr key={emp.id}>
-                  <td className="font-medium">
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                      <img
-                        src={`https://avatar.iran.liara.run/username?username=${emp.name}+${emp.surname}`}
-                        alt="avatar"
-                        style={{ width: "24px", height: "24px", borderRadius: "50%" }}
-                      />
-                      <span>
-                        {emp.name} {emp.surname}
-                      </span>
-                    </div>
-                  </td>
-                  {weekDays.map((d, dayIdx) => {
-                    const sched = getScheduleForEmployeeAndDay(emp.id, d.key)
+          <div className="table-scroll-container">
+            <table className="ews-table">
+              <thead>
+                <tr>
+                  <th className="text-left" style={{ width: showDetailedView ? "auto" : "120px" }}>
+                    {showDetailedView ? "Ad, soyad" : "Ad, soyad"}
+                  </th>
+                  {weekDates.map((d, i) => {
+                    const isToday = isSameDay(weekDates[i], today)
                     return (
-                      <td key={d.key}>
-                        {sched ? (
-                          <div
-                            className={`ews-schedule-block ews-schedule-block-${getBlockColor(dayIdx)}`}
-                            style={{ minWidth: 120, margin: "0 auto" }}
-                          >
-                            <div>
-                              {formatTime(sched.startTime)} - {formatTime(sched.finishTime)}
-                            </div>
-                            <div className="ews-room">{sched.room}</div>
-                          </div>
-                        ) : null}
-                      </td>
+                      <th key={i} className={`dateContainerTH ${isToday ? "current-day-header" : ""}`}>
+                        <div className={isToday ? "day-name current-day-name" : "day-name"}>{weekDays[i].label}</div>
+                        <div className={isToday ? "day-date current-day-date" : "day-date"}>{d.getDate()}</div>
+                      </th>
                     )
                   })}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {showDetailedView
+                  ? filteredEmployees.map((emp, empIdx) => {
+                      let minHour = 9,
+                        maxHour = 18
+                      weekDays.forEach((d) => {
+                        const sched = getScheduleForEmployeeAndDay(emp.id, d.key)
+                        if (sched) {
+                          const startHour = Number.parseInt(sched.startTime.split(":")[0])
+                          const endHour = Number.parseInt(sched.finishTime.split(":")[0])
+                          minHour = Math.min(minHour, startHour)
+                          maxHour = Math.max(maxHour, endHour)
+                        }
+                      })
+
+                      const intervals = generateTimeIntervals(
+                        `${String(minHour).padStart(2, "0")}:00`,
+                        `${String(maxHour + 1).padStart(2, "0")}:00`
+                      )
+
+                      const empSchedules = weekDays.map((d) => getScheduleForEmployeeAndDay(emp.id, d.key))
+                      const blockRendered = Array(weekDays.length).fill(false)
+
+                      return intervals.map((interval, intervalIdx) => (
+                        <tr key={`${emp.id}-${intervalIdx}`}>
+                          {intervalIdx === 0 && (
+                            <td className="vertical-header" rowSpan={intervals.length}>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  height: "100%",
+                                  textAlign: "center",
+                                }}
+                              >
+                                <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                                  <img
+                                    src={`https://avatar.iran.liara.run/username?username=${emp.name}+${emp.surname}`}
+                                    alt="avatar"
+                                    className="employee-avatar"
+                                    style={{ width: "32px", height: "32px", borderRadius: "50%", marginBottom: "4px" }}
+                                  />
+                                  <div>
+                                    {emp.name} {emp.surname}
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                          )}
+                          {weekDays.map((d, dayIdx) => {
+                            const sched = empSchedules[dayIdx]
+                            const intervalTime = interval.hour * 60 + interval.minute
+                            const isTimeSlotInSchedule =
+                              sched &&
+                              intervalTime >= Number.parseInt(sched.startTime.split(":")[0]) * 60 + Number.parseInt(sched.startTime.split(":")[1]) &&
+                              intervalTime < Number.parseInt(sched.finishTime.split(":")[0]) * 60 + Number.parseInt(sched.finishTime.split(":")[1])
+
+                            if (!sched) return <td key={d.key} className="empty-cell"></td>
+
+                            if (!blockRendered[dayIdx] && isTimeSlotInSchedule) {
+                              const span = getIntervalCount(sched.startTime, sched.finishTime)
+                              blockRendered[dayIdx] = true
+                              return (
+                                <td key={d.key} rowSpan={span} className="schedule-cell">
+                                  <div
+                                    className={`ews-schedule-block ews-schedule-block-${getBlockColor(empIdx)} vertical-view`}
+                                    style={{ height: 60 * span - 8 }}
+                                  >
+                                    <div className="block-doctor">
+                                      {emp.name} {emp.surname}
+                                    </div>
+                                    <div className="block-time">
+                                      {formatTime(sched.startTime)} - {formatTime(sched.finishTime)}
+                                    </div>
+                                    <div className="block-room">{sched.cabinetName}</div>
+                                  </div>
+                                </td>
+                              )
+                            }
+
+                            if (blockRendered[dayIdx] && isTimeSlotInSchedule) return <></>
+                            return <td key={d.key} className="empty-cell"></td>
+                          })}
+                        </tr>
+                      ))
+                    })
+                  : filteredEmployees.map((emp, empIdx) => (
+                      <tr key={emp.id}>
+                        <td className="font-medium">
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            <img
+                              src={`https://avatar.iran.liara.run/username?username=${emp.name}+${emp.surname}`}
+                              alt="avatar"
+                              style={{ width: "24px", height: "24px", borderRadius: "50%" }}
+                            />
+                            <span>
+                              {emp.name} {emp.surname}
+                            </span>
+                          </div>
+                        </td>
+                        {weekDays.map((d, dayIdx) => {
+                          const sched = getScheduleForEmployeeAndDay(emp.id, d.key)
+                          return (
+                            <td key={d.key}>
+                              {sched ? (
+                                <div
+                                  className={`ews-schedule-block ews-schedule-block-${getBlockColor(dayIdx)}`}
+                                  style={{ minWidth: 120, margin: "0 auto" }}
+                                >
+                                  <div>
+                                    {formatTime(sched.startTime)} - {formatTime(sched.finishTime)}
+                                  </div>
+                                  <div className="ews-room">{sched.cabinetName}</div>
+                                </div>
+                              ) : null}
+                            </td>
+                          )
+                        })}
+                      </tr>
+                    ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>

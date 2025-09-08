@@ -10,6 +10,7 @@ import {
 
 // Style
 import "../assets/style/sidebar-menu.css";
+import "../../logout.css";
 
 // Images
 import mdLogo from "../assets/images/md-logo.svg";
@@ -24,17 +25,8 @@ import WarehouseIcon from "./sidebar-icons/WarehouseIcon.jsx";
 import SettingsIcon from "./sidebar-icons/SettingsIcon.jsx";
 import ExitIcon from "./sidebar-icons/ExitIcon.jsx";
 
-// Zustand Store importları
-  import useSidebarStore from "../../stores/sidebarStore.js";
-import useAuthStore from "../../stores/authStore.js";
-
-import "../../logout.css";
-
-const SidebarMenu = () => {
-  const { logout } = useAuthStore();
-  // Sidebar vəziyyətini Zustand-dan alırıq
-  const { isCollapsed, toggleSidebar } = useSidebarStore();
-
+// Props olaraq isCollapsed və toggleSidebar qəbul edirik
+const SidebarMenu = ({ isCollapsed, toggleSidebar }) => {
   const [expandedItems, setExpandedItems] = useState([]);
   const location = useLocation();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -46,7 +38,6 @@ const SidebarMenu = () => {
       localStorage.removeItem("token");
       localStorage.removeItem("refreshToken");
       localStorage.removeItem("user");
-
       window.location.href = "/login";
     }, 1000); // 1 saniyəlik gözləmə (animasiya üçün)
   };
@@ -56,11 +47,7 @@ const SidebarMenu = () => {
       id: 1,
       title: "İşçilər",
       icon: (isActive) => (
-        <DoctorIcon
-          width={20}
-          height={20}
-          stroke={isActive ? "#fff" : "#155EEF"}
-        />
+        <DoctorIcon width={20} height={20} stroke={isActive ? "#fff" : "#155EEF"} />
       ),
       children: [
         { id: 11, title: "İşçilərin siyahısı", path: "/employees" },
@@ -72,11 +59,7 @@ const SidebarMenu = () => {
       id: 2,
       title: "Ümumi təqvim",
       icon: (isActive) => (
-        <CalendarIcon
-          width={20}
-          height={20}
-          stroke={isActive ? "#fff" : "#155EEF"}
-        />
+        <CalendarIcon width={20} height={20} stroke={isActive ? "#fff" : "#155EEF"} />
       ),
       children: [
         { id: 22, title: "Randevular", path: "/appointments" },
@@ -88,36 +71,24 @@ const SidebarMenu = () => {
       title: "Pasiyentlər",
       path: "/patients",
       icon: (isActive) => (
-        <PatientsIcon
-          width={20}
-          height={20}
-          stroke={isActive ? "#fff" : "#155EEF"}
-        />
+        <PatientsIcon width={20} height={20} stroke={isActive ? "#fff" : "#155EEF"} />
       ),
-      children: [], // Boş buraxın, çünki path var və alt element yoxdur
+      children: [],
     },
     {
       id: 4,
       title: "Görülmüş işlər",
-      path: "reports", // path-i düzgün olduğundan əmin olun
+      path: "reports",
       icon: (isActive) => (
-        <WorkDoneIcon
-          width={20}
-          height={20}
-          stroke={isActive ? "#fff" : "#155EEF"}
-        />
+        <WorkDoneIcon width={20} height={20} stroke={isActive ? "#fff" : "#155EEF"} />
       ),
-      children: [], // Boş buraxın
+      children: [],
     },
     {
       id: 5,
       title: "Laboratoriya",
       icon: (isActive) => (
-        <LaboratoryIcon
-          width={20}
-          height={20}
-          stroke={isActive ? "#fff" : "#155EEF"}
-        />
+        <LaboratoryIcon width={20} height={20} stroke={isActive ? "#fff" : "#155EEF"} />
       ),
       children: [
         { id: 51, title: "Göndərilən sifarişlər", path: "/sent-orders" },
@@ -129,11 +100,7 @@ const SidebarMenu = () => {
       id: 6,
       title: "Anbar əməliyyatları",
       icon: (isActive) => (
-        <WarehouseIcon
-          width={20}
-          height={20}
-          stroke={isActive ? "#fff" : "#155EEF"}
-        />
+        <WarehouseIcon width={20} height={20} stroke={isActive ? "#fff" : "#155EEF"} />
       ),
       children: [
         { id: 61, title: "Klinikanın stoku", path: "/stock/clinic" },
@@ -150,11 +117,7 @@ const SidebarMenu = () => {
       id: 7,
       title: "Tənzimləmələr",
       icon: (isActive) => (
-        <SettingsIcon
-          width={20}
-          height={20}
-          stroke={isActive ? "#fff" : "#155EEF"}
-        />
+        <SettingsIcon width={20} height={20} stroke={isActive ? "#fff" : "#155EEF"} />
       ),
       children: [
         { id: 71, title: "İcazələr", path: "/permissions" },
@@ -219,11 +182,10 @@ const SidebarMenu = () => {
   return (
     <div className={`sidebar-menu ${isCollapsed ? "collapsed" : ""}`}>
       <div className="sidebar-header">
-        {/* Logo sadəcə isCollapsed false olduqda görünür */}
         {!isCollapsed && (
           <img src={mdLogo} alt="MD Logo" className="logo-image" />
         )}
-        {/* Sidebar-ın öz toggle düyməsi */}
+        {/* toggleSidebar funksiyasını basma hadisəsi ilə bağlayırıq */}
         <button className="toggle-button" onClick={toggleSidebar}>
           {isCollapsed ? <IoIosArrowForward /> : <IoIosArrowBack />}
         </button>
@@ -240,7 +202,6 @@ const SidebarMenu = () => {
 
           return (
             <div key={item.id}>
-              {/* Əgər item.path varsa Link, yoxdursa div istifadə edin */}
               {item.path ? (
                 <Link
                   to={item.path}
@@ -248,7 +209,6 @@ const SidebarMenu = () => {
                     isHighlighted ? "active-header" : ""
                   }`}
                   onClick={(e) => {
-                    // Əgər alt elementləri varsa, linkin default keçidini əngəlləyin
                     if (item.children && item.children.length > 0) {
                       e.preventDefault();
                       toggleItem(item.id);
@@ -308,7 +268,6 @@ const SidebarMenu = () => {
                 </div>
               )}
 
-              {/* Submenu-nun render olunma məntiqi */}
               {!isCollapsed &&
                 expandedItems.includes(item.id) &&
                 item.children &&

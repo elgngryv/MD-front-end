@@ -4,8 +4,8 @@ import UserForm from "../../components/UserForm";
 import { useCreateWorker } from "../../hooks/useWorkers";
 import BeatLoader from 'react-spinners/BeatLoader'; 
 import { toast } from "react-toastify";
-import { useWorkers } from "../../hooks/useWorkers";
 import { useNavigate } from "react-router-dom";
+
 function EmployeeAdd() {
     const navigate = useNavigate();
     const { mutate, isPending, isError, isSuccess } = useCreateWorker();
@@ -21,10 +21,8 @@ function EmployeeAdd() {
         if (isSuccess) {
             toast.success("Uğurla yaradıldı");
             navigate("/employees");
-            
         }
-
-    }, [isError, isSuccess]);
+    }, [isError, isSuccess, navigate]);
 
     return (
         <div className="relative">
@@ -34,7 +32,7 @@ function EmployeeAdd() {
                    <BeatLoader />
                 </div>
             )}
-                <UserForm mode="create" onSubmit={handleSubmit} />
+            <UserForm mode="create" onSubmit={handleSubmit} />
         </div>
     );
 }

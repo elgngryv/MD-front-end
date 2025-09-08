@@ -1,6 +1,4 @@
-/* Employee Schedule Styles */
-
-.employeeScheduleContainer{
+.employeeScheduleContainer {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -11,24 +9,10 @@
 
 .schedule-out {
   padding: 20px;
-  width: 100% !important;
+  width: 100%;
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.dateContainerTH{
-  width: 120px;
-  
-  >.day-name{
-    width: 100% !important;
-    text-align: center !important;
-  }
-  >.day-date{
-    text-align: center;
-    width: 100%;
-    font-size: 18px;
-  }
 }
 
 .schedule-header {
@@ -102,8 +86,7 @@
   gap: 8px;
 }
 
-.nav-button,
-.calendar-button {
+.nav-button {
   padding: 8px;
   border: 1px solid #d1d5db;
   border-radius: 6px;
@@ -114,9 +97,19 @@
   justify-content: center;
 }
 
-.nav-button:hover,
-.calendar-button:hover {
+.nav-button:hover {
   background: #f3f4f6;
+}
+
+.table-scroll-container {
+  max-height: 600px;
+  overflow-y: auto;
+  overflow-x: hidden; /* Enable horizontal scrolling for small screens */
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin-top: 16px;
+  position: relative;
 }
 
 .ews-table {
@@ -124,14 +117,24 @@
   border-collapse: collapse;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
-  overflow: hidden;
+  table-layout: fixed;
 }
 
-.ews-table th {
+.table-scroll-container thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
   background: #f9fafb;
+}
+
+.table-scroll-container thead th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
   padding: 12px 8px;
   text-align: center;
-  border-bottom: 1px solid #e5e7eb;
   font-weight: 600;
   color: #374151;
 }
@@ -139,6 +142,60 @@
 .ews-table th.text-left {
   text-align: left;
   padding-left: 16px;
+  width: 120px; /* Fixed width for name column in non-detailed view */
+}
+
+.dateContainerTH {
+  width: 120px;
+  padding: 12px 8px;
+  text-align: center;
+  border-right: 1px solid #e5e7eb;
+}
+
+.dateContainerTH:last-child {
+  border-right: none;
+}
+
+.dateContainerTH > .day-name,
+.dateContainerTH > .day-date {
+  width: 100%;
+  text-align: center;
+}
+
+.dateContainerTH > .day-date {
+  font-size: 18px;
+}
+
+.day-name {
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.day-date {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.current-day-header {
+  background: #dbeafe;
+  border-radius: 8px 8px 0 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: background 0.3s ease;
+  background-color: #2d60ec !important;
+}
+
+.current-day-name {
+  color: white !important;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.current-day-date {
+  color: #fff !important;
+  font-weight: bold;
+  font-size: 14px;
+  margin-top: 4px;
 }
 
 .ews-table td {
@@ -153,52 +210,6 @@
   font-weight: 500;
   text-align: left;
   padding-left: 16px;
-}
-
-
-.day-name {
-  font-size: 12px;
-  font-weight: 500;
-  margin-bottom: 2px;
-}
-.current-day-header {
-  background: #dbeafe !important; /* Daha parlaq mavi */
-  border-radius: 8px 8px 0 0;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-  transition: background 0.3s ease;
-}
-
-.current-day-name {
-  color: #1d4ed8; /* Daha tünd mavi */
-  font-weight: 600;
-  font-size: 16px;
-}
-
-.current-day-date {
-  color: #1d4ed8;
-  font-weight: bold;
-  font-size: 14px;
-  margin-top: 4px;
-}
-
-.dateContainerTH {
-  padding: 12px 8px;
-  text-align: center;
-  border-right: 1px solid #e5e7eb;
-}
-
-.dateContainerTH:last-child {
-  border-right: none;
-}
-
-
-.day-date {
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.current-day-date {
-  color: #2563eb;
 }
 
 .ews-schedule-block {
@@ -256,6 +267,18 @@
   margin-top: 2px;
 }
 
+.empty-cell {
+  background: #f9f9f9;
+}
+
+.vertical-header {
+  vertical-align: middle;
+}
+
+.schedule-cell {
+  vertical-align: top;
+}
+
 .spinner {
   animation: spin 1s linear infinite;
 }
@@ -292,7 +315,15 @@
   }
 
   .ews-schedule-block {
-    min-width: 100px !important;
+    min-width: 100px;
     font-size: 11px;
+  }
+
+  .ews-table th.text-left {
+    width: 100px;
+  }
+
+  .dateContainerTH {
+    width: 100px;
   }
 }
