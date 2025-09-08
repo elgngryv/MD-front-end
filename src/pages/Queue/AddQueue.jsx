@@ -8,6 +8,7 @@ import usePatientStore from "../../../stores/patiendStore";
 import useCalendarStore from "../../../stores/calendarStore";
 import useReservationStore from "../../../stores/reservationStore";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 function AddQueue() {
   const navigator = useNavigate();
@@ -19,8 +20,8 @@ function AddQueue() {
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [selectedDays, setSelectedDays] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   const [isDaysDropdownOpen, setIsDaysDropdownOpen] = useState(false);
+  const [dateValidationError, setDateValidationError] = useState("");
 
   const startDateRef = useRef(null);
   const endDateRef = useRef(null);
@@ -28,14 +29,16 @@ function AddQueue() {
   const endTimeRef = useRef(null);
   const daysDropdownRef = useRef(null);
 
+  const minYear = 1800;
+  const maxYear = 3000;
+
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true);
-        await fetchPatients();
-        await fetchDoctors();
+        await Promise.all([fetchPatients(), fetchDoctors()]);
       } catch (err) {
-        setError(err.message);
+        toast.error("Məlumatlar yüklənərkən xəta baş verdi.");
       } finally {
         setLoading(false);
       }
@@ -45,18 +48,20 @@ function AddQueue() {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (daysDropdownRef.current && !daysDropdownRef.current.contains(event.target)) {
-        console.log("Clicked outside, closing dropdown"); // Debug
+      if (
+        daysDropdownRef.current &&
+        !daysDropdownRef.current.contains(event.target)
+      ) {
         setIsDaysDropdownOpen(false);
       }
     };
 
     if (isDaysDropdownOpen) {
-      document.addEventListener("click", handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
-      document.removeEventListener("click", handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isDaysDropdownOpen]);
 
@@ -65,7 +70,9 @@ function AddQueue() {
     label: `${patient.name} ${patient.surname} (${patient.finCode})`,
     labelText: `${patient.name} ${patient.surname} (${patient.finCode})`,
     icon: patient.isBlocked ? (
-      <RiUserForbidLine style={{ color: "red", fontSize: "18px", marginLeft: "auto" }} />
+      <RiUserForbidLine
+        style={{ color: "red", fontSize: "18px", marginLeft: "auto" }}
+      />
     ) : null,
   }));
 
@@ -94,7 +101,6 @@ function AddQueue() {
   };
 
   const handleDaySelect = (day) => {
-    console.log("Selected day:", day); // Debug
     const isSelected = selectedDays.some((d) => d.value === day.value);
     if (isSelected) {
       setSelectedDays(selectedDays.filter((d) => d.value !== day.value));
@@ -107,9 +113,21 @@ function AddQueue() {
     return t && t.length === 5 ? `${t}:00` : "00:00:00";
   };
 
+  const validateDates = (startDate, endDate) => {
+    const startYear = new Date(startDate).getFullYear();
+    const endYear = new Date(endDate).getFullYear();
+
+    if (startYear < minYear || startYear > maxYear || endYear < minYear || endYear > maxYear) {
+      setDateValidationError(`Tarix ${minYear} və ${maxYear} illəri arasında olmalıdır.`);
+      return false;
+    }
+    setDateValidationError("");
+    return true;
+  };
+
   const handleSubmit = async () => {
     if (!selectedPatient || !selectedDoctor || selectedDays.length === 0) {
-      setError("Zəhmət olmasa bütün məlumatları doldurun.");
+      toast.error("Zəhmət olmasa bütün məlumatları doldurun.");
       return;
     }
 
@@ -119,7 +137,12 @@ function AddQueue() {
     const endTime = formatTime(endTimeRef.current.value);
 
     if (!startDate || !endDate || !startTime || !endTime) {
-      setError("Zəhmət olmasa tarix və saatları doldurun.");
+      toast.error("Zəhmət olmasa tarix və saatları doldurun.");
+      return;
+    }
+
+    if (!validateDates(startDate, endDate)) {
+      toast.error(dateValidationError);
       return;
     }
 
@@ -135,8 +158,6 @@ function AddQueue() {
       validTimeRange: true,
     };
 
-    console.log("🚀 GÖNDƏRİLƏN PAYLOAD:", payload);
-
     try {
       setLoading(true);
       await addReservation(payload);
@@ -150,11 +171,11 @@ function AddQueue() {
       startTimeRef.current.value = "";
       endTimeRef.current.value = "";
 
-      alert("Rezervasiya uğurla yaradıldı!");
+      toast.success("Rezervasiya uğurla yaradıldı!");
       navigator("/queue");
     } catch (err) {
       console.error("❌ Xəta:", err.response?.data || err.message);
-      setError("Rezervasiya zamanı xəta baş verdi.");
+      toast.error("Rezervasiya zamanı xəta baş verdi.");
     } finally {
       setLoading(false);
     }
@@ -164,11 +185,11 @@ function AddQueue() {
     setSelectedPatient(null);
     setSelectedDoctor(null);
     setSelectedDays([]);
+    setDateValidationError("");
     if (startDateRef.current) startDateRef.current.value = "";
     if (endDateRef.current) endDateRef.current.value = "";
     if (startTimeRef.current) startTimeRef.current.value = "";
     if (endTimeRef.current) endTimeRef.current.value = "";
-    setError(null);
     navigator("/queue");
   };
 
@@ -179,13 +200,12 @@ function AddQueue() {
 
   return (
     <div className="addQueuePageContainer">
-
       <div className="addQueuePageWrapper">
-        {error && <div className="error-message">{error}</div>}
-
         <div className="queuePageWrapperInputRow">
           <div className="queuePageWrapperInput">
-            <p>Pasiyent<span>*</span></p>
+            <p>
+              Pasiyent<span>*</span>
+            </p>
             <CustomDropdown
               options={formattedPatients}
               onChange={handlePatientChange}
@@ -195,7 +215,9 @@ function AddQueue() {
           </div>
 
           <div className="queuePageWrapperInput">
-            <p>Həkim<span>*</span></p>
+            <p>
+              Həkim<span>*</span>
+            </p>
             <CustomDropdown
               options={formattedDoctors}
               onChange={handleDoctorChange}
@@ -207,7 +229,9 @@ function AddQueue() {
 
         <div className="queuePageWrapperInputRow">
           <div className="queuePageWrapperInput">
-            <p>Başlama tarixi<span>*</span></p>
+            <p>
+              Başlama tarixi<span>*</span>
+            </p>
             <input
               className="addQueueBasicInput"
               type="date"
@@ -216,7 +240,9 @@ function AddQueue() {
             />
           </div>
           <div className="queuePageWrapperInput">
-            <p>Bitmə tarixi<span>*</span></p>
+            <p>
+              Bitmə tarixi<span>*</span>
+            </p>
             <input
               className="addQueueBasicInput"
               type="date"
@@ -225,10 +251,13 @@ function AddQueue() {
             />
           </div>
         </div>
+        {dateValidationError && <p className="validation-error-message">{dateValidationError}</p>}
 
         <div className="queuePageWrapperInputRow">
           <div className="queuePageWrapperInput">
-            <p>Başlama saatı<span>*</span></p>
+            <p>
+              Başlama saatı<span>*</span>
+            </p>
             <input
               className="addQueueBasicInput"
               type="time"
@@ -237,7 +266,9 @@ function AddQueue() {
             />
           </div>
           <div className="queuePageWrapperInput">
-            <p>Bitmə saatı<span>*</span></p>
+            <p>
+              Bitmə saatı<span>*</span>
+            </p>
             <input
               className="addQueueBasicInput"
               type="time"
@@ -248,15 +279,13 @@ function AddQueue() {
         </div>
 
         <div className="queuePageWrapperInputWeek">
-          <p>Həftənin günləri<span>*</span></p>
+          <p>
+            Həftənin günləri<span>*</span>
+          </p>
           <div className="dropdown-checklist" ref={daysDropdownRef}>
             <div
               className="checklist-header"
-              onClick={() => {
-                console.log("Toggling dropdown to:", !isDaysDropdownOpen); // Debug
-                setIsDaysDropdownOpen(!isDaysDropdownOpen);
-              }}
-            >
+              onClick={() => setIsDaysDropdownOpen(!isDaysDropdownOpen)}>
               <div className="selected-pills-container">
                 {selectedDays.length > 0 ? (
                   selectedDays.map((day) => (
@@ -264,8 +293,7 @@ function AddQueue() {
                       {day.label}
                       <span
                         className="remove-item"
-                        onClick={(e) => removePill(e, day)}
-                      >
+                        onClick={(e) => removePill(e, day)}>
                         &times;
                       </span>
                     </span>
@@ -283,8 +311,7 @@ function AddQueue() {
                   stroke="currentColor"
                   strokeWidth="2"
                   strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
+                  strokeLinejoin="round">
                   <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
               </span>
@@ -292,25 +319,21 @@ function AddQueue() {
             {isDaysDropdownOpen && (
               <div className="dropdown-list-wrapper">
                 <ul className="dropdown-list">
-                  {weekDayOptions.map((day) => {
-                    console.log("Rendering day:", day.label); // Debug
-                    return (
-                      <li
-                        key={day.value}
-                        className="dropdown-item"
-                        onClick={() => handleDaySelect(day)}
-                      >
-                        <div className="checkbox-container">
-                          <input
-                            type="checkbox"
-                            checked={selectedDays.some((d) => d.value === day.value)}
-                            onChange={() => {}}
-                          />
-                          <span>{day.label}</span>
-                        </div>
-                      </li>
-                    );
-                  })}
+                  {weekDayOptions.map((day) => (
+                    <li
+                      key={day.value}
+                      className="dropdown-item"
+                      onClick={() => handleDaySelect(day)}>
+                      <div className="checkbox-container">
+                        <input
+                          type="checkbox"
+                          checked={selectedDays.some((d) => d.value === day.value)}
+                          onChange={() => {}}
+                        />
+                        <span>{day.label}</span>
+                      </div>
+                    </li>
+                  ))}
                 </ul>
               </div>
             )}
@@ -326,8 +349,7 @@ function AddQueue() {
         <button
           className="acceptAddQueue"
           onClick={handleSubmit}
-          disabled={loading}
-        >
+          disabled={loading}>
           <img src={acceptForm} alt="save" />
           {loading ? "Yüklənir..." : "Yadda saxla"}
         </button>

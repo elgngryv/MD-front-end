@@ -66,7 +66,14 @@ const StockDeleteForm = ({
 }) => {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { register, handleSubmit, setValue, reset, watch } = useForm({
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    reset,
+    watch,
+    formState: { errors },
+  } = useForm({
     defaultValues: initialData,
   });
 
@@ -508,19 +515,22 @@ const StockDeleteForm = ({
   return (
     <form
       onSubmit={handleSubmit(handleFormSubmit)}
-      className="flex flex-col gap-2">
+      className="flex flex-col gap-2"
+    >
       {mode === "view" && (
         <div className="flex self-end gap-2">
           <button
             type="button"
             onClick={() => navigate("edit")}
-            className="p-2 hover:bg-gray-100 rounded">
+            className="p-2 hover:bg-gray-100 rounded"
+          >
             <EditIcon />
           </button>
           <button
             type="button"
             onClick={handleDelete}
-            className="p-2 hover:bg-gray-100 rounded">
+            className="p-2 hover:bg-gray-100 rounded"
+          >
             <DeleteIcon />
           </button>
         </div>
@@ -534,13 +544,27 @@ const StockDeleteForm = ({
           <input
             id="orderDate"
             type="date"
-            {...register("orderDate", { required: true })}
+            {...register("orderDate", {
+              required: "Sifariş tarixi daxil edilməlidir.",
+              validate: (value) => {
+                const year = new Date(value).getFullYear();
+                if (year >= 1800 && year <= 3000) {
+                  return true;
+                }
+                return "İl 1800-dən kiçik və ya 3000-dən böyük ola bilməz.";
+              },
+            })}
             readOnly={mode === "view"}
             className={`w-[950px] h-10 border border-[#D4DCE8] rounded-lg px-4 py-2 ${
               mode === "view" ? "bg-gray-200" : ""
             }`}
             disabled={isLoading}
           />
+          {errors.orderDate && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.orderDate.message}
+            </p>
+          )}
         </div>
       </div>
 
@@ -614,7 +638,8 @@ const StockDeleteForm = ({
                     }
                   }}
                   disabled={isLoading}
-                  className="h-10 border border-[#D4DCE8] rounded-lg px-4 py-2">
+                  className="h-10 border border-[#D4DCE8] rounded-lg px-4 py-2"
+                >
                   <option value="">Anbar girişi seçin</option>
                   {entries?.map((entry) => (
                     <option key={entry.id} value={entry.id.toString()}>
@@ -654,7 +679,8 @@ const StockDeleteForm = ({
                       }
                     }}
                     disabled={!currentProduct.warehouseEntryId || isLoading}
-                    className="h-10 border border-[#D4DCE8] rounded-lg px-4 py-2">
+                    className="h-10 border border-[#D4DCE8] rounded-lg px-4 py-2"
+                  >
                     <option value="">Məhsul seçin</option>
                     {warehouseEntryProducts.map((product) => (
                       <option key={product.value} value={product.value}>
@@ -705,7 +731,8 @@ const StockDeleteForm = ({
                     !currentProduct.warehouseEntryProductId ||
                     !currentProduct.quantity
                   }
-                  className="flex items-center justify-center px-4 py-2 border text-[#155EEF] bg-[#155EEF] text-white rounded-lg hover:bg-[#1046b8] disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed w-[184px] h-[44px] gap-2">
+                  className="flex items-center justify-center px-4 py-2 border text-[#155EEF] bg-[#155EEF] text-white rounded-lg hover:bg-[#1046b8] disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed w-[184px] h-[44px] gap-2"
+                >
                   <FontAwesomeIcon icon={faPlus} />
                   Məhsul əlavə et
                 </button>
@@ -748,7 +775,8 @@ const StockDeleteForm = ({
             type="button"
             onClick={handleCancel}
             disabled={isLoading}
-            className="flex items-center justify-center px-4 py-2 border text-[#155EEF] border-[#155EEF] rounded-lg hover:bg-gray-100 w-[184px] h-[44px] gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+            className="flex items-center justify-center px-4 py-2 border text-[#155EEF] border-[#155EEF] rounded-lg hover:bg-gray-100 w-[184px] h-[44px] gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             <FontAwesomeIcon icon={faXmark} />
             Ləğv et
           </button>
@@ -757,7 +785,8 @@ const StockDeleteForm = ({
             disabled={
               isSubmitting || warehouseProducts.length === 0 || isLoading
             }
-            className="flex items-center justify-center px-4 py-2 bg-[#155EEF] text-white rounded-lg hover:bg-[#1046b8] disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed w-[184px] h-[44px] gap-2">
+            className="flex items-center justify-center px-4 py-2 bg-[#155EEF] text-white rounded-lg hover:bg-[#1046b8] disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed w-[184px] h-[44px] gap-2"
+          >
             {isSubmitting ? (
               <>
                 <FontAwesomeIcon icon={faSpinner} spin />

@@ -396,6 +396,8 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
                     value={formData.date}
                     onChange={handleInputChange}
                     required
+                    min="1800-01-01"
+                    max="3000-12-31"
                   />
                 </div>
 

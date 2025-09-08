@@ -88,7 +88,8 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
     genderStatus: yup.string().required("Cinsiyyət seçilməlidir"),
     dateOfBirth: yup
       .date()
-      .max(new Date(), "Doğum tarixi bu gündən sonra ola bilməz")
+      .min("1800-01-01", "Doğum tarixi 1800-cü ildən əvvəl ola bilməz")
+      .max("3000-12-31", "Doğum tarixi 3000-ci ildən sonra ola bilməz")
       .required("Doğum tarixi tələb olunur"),
     phone: yup
       .string()
@@ -446,6 +447,8 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                 type="date"
                 {...register("dateOfBirth")}
                 readOnly={mode === "view"}
+                min="1800-01-01"
+                max="3000-12-31"
                 className={`${mode === "view" ? "readonly" : ""} ${
                   errors.dateOfBirth ? "error" : ""
                 }`}

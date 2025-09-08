@@ -449,7 +449,7 @@ const StockOrderForm = ({
       const payload = {
         date: data.orderDate,
         time: timeString,
-        cabinetName: data.cabinetName, // Added cabinetName to payload
+        cabinetName: data.cabinetName,
         orderFromWarehouseProductRequests: products.map((p) => ({
           warehouseEntryId: Number.parseInt(p.warehouseEntryId),
           warehouseEntryProductId: Number.parseInt(p.warehouseEntryProductId),
@@ -631,6 +631,8 @@ const StockOrderForm = ({
               mode === "view" ? "bg-gray-200" : ""
             }`}
             disabled={isLoading}
+            min="1800-01-01"
+            max="3000-12-31"
           />
         </div>
       </div>

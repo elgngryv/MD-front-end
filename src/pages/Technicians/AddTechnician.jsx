@@ -129,6 +129,17 @@ function AddTechnician({ onClose }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Doğum tarixi validasiyası
+    if (formData.dateOfBirth) {
+      const date = new Date(formData.dateOfBirth);
+      const year = date.getFullYear();
+      if (year < 1800 || year > 3000) {
+        toast.warn("Doğum tarixi ilini 1800 ilə 3000 arasında daxil edin.");
+        return; // Validasiya uğursuz olduqda funksiyanı dayandırırıq
+      }
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -169,8 +180,7 @@ function AddTechnician({ onClose }) {
         pauseOnHover: true,
         draggable: true,
       });
-      
-      // setTimeout-u sildik, çünki store yenilənməni özü edir.
+
       navigate("/technicians");
 
       if (typeof onClose === "function") {
