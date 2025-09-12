@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import "../assets/style/form.css";
 import ProfileImage from "./ProfileImage";
 import { LuPenLine } from "react-icons/lu";
@@ -23,6 +23,7 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
   const [mode, setMode] = useState(initialMode);
   const [showModal, setShowModal] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
   const navigate = useNavigate();
 
   const permissionList = rawPermissions
@@ -80,11 +81,11 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
       .required("Ata Adı tələb olunur"),
     finCode: yup
       .string()
+      .nullable()
       .matches(
-        /^[A-Z0-9]{7}$/,
-        "FIN kod yalnız böyük hərflər və rəqəmlərdən ibarət 7 simvol olmalıdır"
-      )
-      .required("FIN kod tələb olunur"),
+        /^$|^[A-Z0-9]{7}$/,
+        "FIN kod boş və ya yalnız böyük hərflər və rəqəmlərdən ibarət 7 simvol olmalıdır"
+      ),
     genderStatus: yup.string().required("Cinsiyyət seçilməlidir"),
     dateOfBirth: yup
       .date()
@@ -98,17 +99,16 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
         "Telefon nömrəsini (000)-000-00-00 formatında daxil edin"
       )
       .required("Telefon nömrəsi tələb olunur"),
-    phone2: yup
-      .string()
-      .nullable()
-      .test(
-        "phone2-format",
-        "Telefon nömrəsini (000)-000-00-00 formatında daxil edin",
-        function (value) {
-          if (!value) return true;
-          return /^\(\d{3}\)-\d{3}-\d{2}-\d{2}$/.test(value);
-        }
-      ),
+    phone2:
+      mode === "create"
+        ? yup
+            .string()
+            .matches(
+              /^\(\d{3}\)-\d{3}-\d{2}-\d{2}$/,
+              "Telefon nömrəsini (000)-000-00-00 formatında daxil edin"
+            )
+            .required("Mobil nömrə 2 tələb olunur")
+        : yup.string().nullable(),
     homePhone: yup
       .string()
       .nullable()
@@ -133,10 +133,12 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
       ),
     email: yup
       .string()
+      .nullable()
       .matches(
-        /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+        /^$|^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
         "Düzgün e-poçt ünvanı daxil edin"
       ),
+    address: yup.string().nullable(),
     experience: yup
       .number()
       .min(0, "Təcrübə mənfi ola bilməz")
@@ -162,6 +164,9 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
       ? {
           ...userData,
           permissions: getDefaultPermissions(),
+          phone2: userData.phone2 || "",
+          email: userData.email || "",
+          address: userData.address || "",
         }
       : {
           username: "",
@@ -173,7 +178,6 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
           colorCode: "#ffffff",
           genderStatus: "",
           dateOfBirth: "",
-          degree: "",
           phone: "",
           phone2: "",
           homePhone: "",
@@ -205,7 +209,8 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
     )}-${phoneNumber.slice(6, 8)}-${phoneNumber.slice(8, 10)}`;
   };
 
-  const handleFormSubmit = (data) => {
+  const handleFormSubmit = async (data) => {
+    setErrorMessage(null);
     const permissionsWithNames = data.permissions.map((permissionId) => {
       const permission = rawPermissions.find(
         (p) => p.id.toString() === permissionId
@@ -216,7 +221,6 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
     const transformedData = {
       ...data,
       password: mode === "create" ? data.password : undefined,
-      degree: data.degree || null,
       phone2: data.phone2 || null,
       homePhone: data.homePhone || null,
       phone3: data.phone3 || null,
@@ -226,16 +230,26 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
       permissions: permissionsWithNames,
     };
 
-    if (mode === "edit") {
-      const updateData = Object.keys(transformedData).reduce((acc, key) => {
-        if (JSON.stringify(transformedData[key]) !== JSON.stringify(userData[key])) {
-          acc[key] = transformedData[key];
-        }
-        return acc;
-      }, {});
-      onSubmit(updateData);
-    } else {
-      onSubmit(transformedData);
+    try {
+      if (mode === "edit") {
+        const updateData = Object.keys(transformedData).reduce((acc, key) => {
+          if (
+            JSON.stringify(transformedData[key]) !==
+            JSON.stringify(userData[key])
+          ) {
+            acc[key] = transformedData[key];
+          }
+          return acc;
+        }, {});
+        await onSubmit(updateData);
+      } else {
+        await onSubmit(transformedData);
+      }
+    } catch (error) {
+      console.error("Form submission error:", error);
+      console.error("Error details:", error.response);
+      const apiErrorMessage = error?.response?.message || "Xəta baş verdi. Zəhmət olmasa, yenidən cəhd edin.";
+      setErrorMessage(apiErrorMessage);
     }
   };
 
@@ -255,6 +269,11 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
           ? "İşçi məlumatlarını yenilə"
           : "İşçi məlumatları"}
       </h3>
+      {errorMessage && (
+        <div className="alert alert-danger" role="alert">
+          {errorMessage}
+        </div>
+      )}
 
       <form className="main-form" onSubmit={handleSubmit(handleFormSubmit)}>
         <div className={`${mode === "view" ? "profile-buttons" : ""}`}>
@@ -403,9 +422,7 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
             </div>
 
             <div className="main-form-group">
-              <label htmlFor="finCode">
-                FIN kod <span className="text-red-500">*</span>
-              </label>
+              <label htmlFor="finCode">FIN kod</label>
               <input
                 id="finCode"
                 type="text"
@@ -457,17 +474,6 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                 <p className="error-message">{errors.dateOfBirth.message}</p>
               )}
             </div>
-
-            <div className="main-form-group">
-              <label htmlFor="degree">Elmi dərəcə</label>
-              <input
-                id="degree"
-                type="text"
-                {...register("degree")}
-                readOnly={mode === "view"}
-                className={mode === "view" ? "readonly" : ""}
-              />
-            </div>
           </div>
 
           <div className="right">
@@ -496,7 +502,10 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
             </div>
 
             <div className="main-form-group">
-              <label htmlFor="phone2">Mobil nömrə 2</label>
+              <label htmlFor="phone2">
+                Mobil nömrə 2
+                {mode === "create" && <span className="text-red-500">*</span>}
+              </label>
               <input
                 id="phone2"
                 type="tel"

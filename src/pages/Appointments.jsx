@@ -51,7 +51,6 @@ const Appointments = () => {
   const navigate = useNavigate();
   const calendarRef = useRef(null);
 
-  const [searchQuery, setSearchQuery] = useState("");
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [selectedDoctorId, setSelectedDoctorId] = useState(null);
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -73,44 +72,24 @@ const Appointments = () => {
     fetchRoomPatients,
   } = useGeneralCalendarStore();
 
-  // Həkimləri və otaqları yüklə
   useEffect(() => {
     fetchDoctors();
     fetchRooms();
   }, [fetchDoctors, fetchRooms]);
 
-  // Default həkim seç
-  useEffect(() => {
-    if (
-      doctors.length > 0 &&
-      selectedDoctorId === null &&
-      selectedRoom === null
-    ) {
-      const defaultDoctor = doctors[0];
-      setSelectedDoctorId(defaultDoctor.doctorId);
-      fetchDoctorPatients(defaultDoctor.doctorId);
-    }
-  }, [doctors, selectedDoctorId, selectedRoom]);
-
-  // Həkim seçiləndə randevularını yüklə
+  // Həkim və ya otaq seçiləndə randevuları yüklə
   useEffect(() => {
     if (selectedDoctorId) {
       setDebugInfo(`Həkim ID: ${selectedDoctorId} üçün randevular yüklənir...`);
       fetchDoctorPatients(selectedDoctorId);
       setSelectedRoom(null);
-    }
-  }, [selectedDoctorId, fetchDoctorPatients]);
-
-  // Otaq seçiləndə randevuları yüklə
-  useEffect(() => {
-    if (selectedRoom) {
+    } else if (selectedRoom) {
       setDebugInfo(`Otaq: ${selectedRoom.value} üçün randevular yüklənir...`);
       fetchRoomPatients(selectedRoom.value);
-      setSelectedDoctorId(null);
     }
-  }, [selectedRoom, fetchRoomPatients]);
+  }, [selectedDoctorId, selectedRoom, fetchDoctorPatients, fetchRoomPatients]);
 
-  // Rəngləri saxla
+  // Rəngləri saxlamaq
   useEffect(() => {
     setDebugInfo(`${appointments.length} randevu yükləndi`);
     const newAppointmentColors = {};
@@ -129,20 +108,22 @@ const Appointments = () => {
   const handleRoomChange = (option) => {
     setSelectedRoom(option);
     setSelectedDoctorId(null);
-    if (option) {
-      fetchRoomPatients(option.value);
-    } else if (doctors.length > 0) {
-      const defaultDoctor = doctors[0];
-      setSelectedDoctorId(defaultDoctor.doctorId);
-      fetchDoctorPatients(defaultDoctor.doctorId);
-    }
   };
 
-  const handleSearchChange = (e) => setSearchQuery(e.target.value);
+  const handleDoctorChange = (option) => {
+    setSelectedDoctorId(option ? option.value : null);
+    setSelectedRoom(null);
+  };
 
-  const filteredDoctors = doctors.filter((doctor) =>
-    doctor.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const doctorOptions = doctors.map((doctor) => ({
+    value: doctor.doctorId,
+    label: doctor.name,
+  }));
+
+  const roomOptions = rooms.map((room) => ({
+    value: room.cabinetName,
+    label: room.cabinetName,
+  }));
 
   const weekDates = [...Array(7)].map((_, i) => addDays(selectedWeekStart, i));
   const dateRangeText = `${format(weekDates[0], "d MMMM", {
@@ -155,7 +136,6 @@ const Appointments = () => {
     setSelectedWeekStart(addWeeks(selectedWeekStart, 1));
   const toggleCalendar = () => setShowCalendar(!showCalendar);
 
-  // ✅ Randevu style (cədvəldən çıxmır artıq)
   const getAppointmentStyle = (appointment) => {
     try {
       const cellHeightPx = 60;
@@ -193,10 +173,9 @@ const Appointments = () => {
       const top = offsetMinutes * pixelsPerMinute;
       let height = totalDurationMinutes * pixelsPerMinute;
 
-      // Konteyner hündürlüyünü keçməsin
       const containerHeight = WORK_HOURS.length * cellHeightPx;
       if (top + height > containerHeight) {
-        height = containerHeight - top - 2; // -2 boşluq üçün
+        height = containerHeight - top - 2;
       }
 
       const uniqueKey = `${appointment.patientName}-${appointment.date}-${appointment.time}`;
@@ -205,7 +184,7 @@ const Appointments = () => {
 
       return {
         top: `${top}px`,
-        height: `${Math.max(height, 20)}px`, // min 20px
+        height: `${Math.max(height, 20)}px`,
         backgroundColor: backgroundColor,
         borderRadius: "4px",
         padding: "5px",
@@ -226,64 +205,30 @@ const Appointments = () => {
 
   return (
     <div className="appointments-container">
-      <div className="left-side">
-        <div className="select-options-container">
+      <div className="full-width-container">
+        <div className="select-options-row">
           <CustomSelect
-            options={rooms.map((room) => ({
-              value: room.cabinetName,
-              label: room.cabinetName,
-            }))}
+            options={doctorOptions}
+            onChange={handleDoctorChange}
+            placeholder="Həkim seç"
+            value={
+              doctorOptions.find((opt) => opt.value === selectedDoctorId) || null
+            }
+            isClearable
+            isSearchable
+            className="select-item"
+          />
+          <CustomSelect
+            options={roomOptions}
             onChange={handleRoomChange}
             placeholder="Otaq seç"
             value={selectedRoom}
             isClearable
             isSearchable
+            className="select-item"
           />
         </div>
-        <input
-          type="text"
-          className="search-input"
-          placeholder="Həkim axtar..."
-          value={searchQuery}
-          onChange={handleSearchChange}
-        />
-        <div className="doctors-container">
-          {loading && <div className="loading-bar">Yüklənir...</div>}
-          {!loading && filteredDoctors.length === 0 && (
-            <div className="no-doctors">Axtarışa uyğun həkim tapılmadı</div>
-          )}
-          {!loading &&
-            filteredDoctors.map((doctor) => (
-              <div
-                key={doctor.doctorId}
-                className={`doctor-card ${
-                  selectedDoctorId === doctor.doctorId ? "selected" : ""
-                }`}
-                onClick={() => {
-                  setSelectedDoctorId(doctor.doctorId);
-                  setSelectedRoom(null);
-                  fetchDoctorPatients(doctor.doctorId);
-                }}
-              >
-                <div className="doctor-image-container">
-                  <img
-                    src={`https://avatar.iran.liara.run/username?username=${encodeURIComponent(
-                      doctor.name.replace(" ", "+")
-                    )}`}
-                    alt={doctor.name}
-                    className="doctor-image"
-                  />
-                </div>
-                <div className="doctor-info">
-                  <h3 className="doctor-name">{doctor.name}</h3>
-                  <p className="doctor-position">{doctor.position}</p>
-                </div>
-              </div>
-            ))}
-        </div>
-      </div>
 
-      <div className="right-side width-[100vh]">
         <div className="schedule-header">
           <div className="date-and-navigation">
             <div className="date-display">
@@ -372,7 +317,11 @@ const Appointments = () => {
                 <div key={dayIndex} className="day-column">
                   <div
                     className="time-blocks-container"
-                    style={{ position: "relative", overflow: "hidden" }} // ✅ burda da çölə çıxmaz
+                    style={{
+                      position: "relative",
+                      overflow: "hidden",
+                      height: `${WORK_HOURS.length * 60}px`, // Dinamik height
+                    }}
                   >
                     {WORK_HOURS.map((time, timeIndex) => (
                       <div
