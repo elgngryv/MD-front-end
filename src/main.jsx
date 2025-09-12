@@ -250,7 +250,7 @@ const roomOptions = [
 
 import AddInsurancePatient from "./pages/patient/AddInsurancePatient.jsx";
 import EditInsurancePatient from "./pages/patient/EditInsurancePatient.jsx";
-import PatientInsuranceBalance from "./pages/patient/PatientInsuranceBalance.JSX";
+import PatientInsuranceBalance from "./pages/patient/PatientInsuranceBalance.jsx";
 import PatientInsuranceBalanceAdd from "./pages/patient/PatientInsuranceBalanceAdd.jsx";
 import PatientInsuranceBalanceEdit from "./pages/patient/PatientInsuranceBalanceEdit.jsx";
 import PatientInsuranceBalanceInfo from "./pages/patient/PatientInsuranceBalanceInfo.jsx";

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
-import './History.css';
+import './history.css';
 import useAnamnesisStore from '../../../stores/anamnesisStore'; // Zustand store'u import edirik
 import { FaFolder, FaTrash } from "react-icons/fa";
 
