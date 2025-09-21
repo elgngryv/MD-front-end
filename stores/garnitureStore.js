@@ -110,11 +110,15 @@ const useGarnitureStore = create((set) => ({
 
   // Get simple garniture list (without pagination etc)
   fetchGarnitureList: async () => {
+    set({ loading: true, error: null });
     try {
-      const list = await getGarnitureList();
-      return list;
+      const response = await getGarnitureList();
+      // ✅ DÜZƏLİŞ: Alınan məlumat state-ə yazılır.
+      // API cavabı birbaşa massivdirsə, `response.data` istifadə edilir.
+      set({ garnitures: response.data || [], loading: false });
     } catch (error) {
-      set({ error: error.message || "Xəta baş verdi" });
+      console.error("Error fetching garniture list:", error);
+      set({ error: error.message || "Xəta baş verdi", loading: false });
     }
   },
 }));

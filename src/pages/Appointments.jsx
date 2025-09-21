@@ -212,7 +212,8 @@ const Appointments = () => {
             onChange={handleDoctorChange}
             placeholder="Həkim seç"
             value={
-              doctorOptions.find((opt) => opt.value === selectedDoctorId) || null
+              doctorOptions.find((opt) => opt.value === selectedDoctorId) ||
+              null
             }
             isClearable
             isSearchable
@@ -249,8 +250,7 @@ const Appointments = () => {
               </button>
               <button
                 className="addNewAppointment"
-                onClick={() => navigate("/appointments/add")}
-              >
+                onClick={() => navigate("/appointments/add")}>
                 <TbCalendarPlus className="addNewAppointmentIcon" />
                 Yeni randevu əlavə et
               </button>
@@ -283,8 +283,7 @@ const Appointments = () => {
                   <div
                     className={`day-date ${
                       isSameDay(date, new Date()) ? "active" : ""
-                    }`}
-                  >
+                    }`}>
                     {format(date, "d")}
                   </div>
                 </div>
@@ -321,8 +320,7 @@ const Appointments = () => {
                       position: "relative",
                       overflow: "hidden",
                       height: `${WORK_HOURS.length * 60}px`, // Dinamik height
-                    }}
-                  >
+                    }}>
                     {WORK_HOURS.map((time, timeIndex) => (
                       <div
                         key={timeIndex}
@@ -336,8 +334,7 @@ const Appointments = () => {
                               },
                             },
                           })
-                        }
-                      ></div>
+                        }></div>
                     ))}
 
                     {dayAppointments.length === 0 && (
@@ -350,19 +347,14 @@ const Appointments = () => {
                       <div
                         key={`${appointment.patientName}-${appointment.date}-${appointment.time}-${apIndex}`}
                         className="appointment-event-block"
-                        style={getAppointmentStyle(appointment)}
-                      >
+                        style={getAppointmentStyle(appointment)}>
                         <div className="appointment-event-content">
                           {appointment.patientName} <br />
                           <small>
                             {appointment.time?.slice(0, 5)} -{" "}
                             {format(
                               addMinutes(
-                                parse(
-                                  appointment.time,
-                                  "HH:mm:ss",
-                                  new Date()
-                                ),
+                                parse(appointment.time, "HH:mm:ss", new Date()),
                                 parse(
                                   appointment.period,
                                   "HH:mm:ss",

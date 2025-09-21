@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark, faCheck } from "@fortawesome/free-solid-svg-icons";
@@ -16,7 +16,7 @@ import useCeramicsStore from "../../stores/ceramicStore";
 import useMetalStore from "../../stores/metalsStore";
 import "../assets/style/form.css";
 
-// Fallback data for when API fails
+// Fallback data
 const fallbackColors = [
   { value: 1, label: "A1" },
   { value: 2, label: "A2" },
@@ -24,26 +24,39 @@ const fallbackColors = [
   { value: 4, label: "A3.5" },
   { value: 5, label: "A4" },
 ];
-
 const fallbackMetals = [
   { value: 1, label: "Nikel-Krom" },
   { value: 2, label: "Kobalt-Krom" },
   { value: 3, label: "Titanyum" },
   { value: 4, label: "Altın Alaşım" },
 ];
-
 const fallbackGarnitures = [
   { value: 1, label: "Standard" },
   { value: 2, label: "Premium" },
   { value: 3, label: "Lüks" },
 ];
 
+// Helper function to format date strings to YYYY-MM-DD
+const formatDate = (dateString) => {
+  if (!dateString) return "";
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return "";
+    }
+    return date.toISOString().split("T")[0];
+  } catch (e) {
+    console.error("Invalid date string:", dateString);
+    return "";
+  }
+};
+
 const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
   const { register, handleSubmit, setValue, watch, reset } = useForm({
     defaultValues: initialData || {},
   });
 
-  // State for stores and dropdown options
+  // State for dropdown options
   const [garnitures, setGarnitures] = useState([]);
   const [colors, setColors] = useState([]);
   const [technicians, setTechnicians] = useState([]);
@@ -52,12 +65,12 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
   const [ceramics, setCeramics] = useState([]);
   const [metals, setMetals] = useState([]);
 
-  // State for tooth selection
+  // Other component states
   const [selectedTeeth, setSelectedTeeth] = useState(
     initialData?.teethList || []
   );
   const [isChild, setIsChild] = useState(
-    initialData?.isChild !== undefined ? initialData.isChild : true
+    initialData?.isChild !== undefined ? initialData.isChild : false
   );
   const [toothDetails, setToothDetails] = useState(
     initialData?.toothDetailIds || []
@@ -66,137 +79,112 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
 
   // Initialize stores
   const dentalOrderStore = useDentalOrderStore();
-  const garnitureStore = useGarnitureStore();
-  const colorStore = useColorStore();
-  const technicianStore = useTechnicianStore();
-  const patientStore = usePatientStore();
-  const calendarStore = useCalendarStore();
-  const ceramicsStore = useCeramicsStore();
-  const metalStore = useMetalStore();
 
   // Reset form when initialData changes
   useEffect(() => {
     if (initialData) {
-      reset(initialData);
+      const formattedData = {
+        ...initialData,
+        orderDate: formatDate(initialData.orderDate),
+        inspectionDate: formatDate(
+          initialData.inspectionDate || initialData.checkDate
+        ),
+        deliveryDate: formatDate(initialData.deliveryDate),
+        doctor: initialData.doctorId,
+        technician: initialData.technicianId,
+        patient: initialData.patientId,
+        workType: initialData.dentalWorkType,
+        notes: initialData.description || initialData.notes,
+        color: initialData.orderDentureInfo?.color,
+        garniture: initialData.orderDentureInfo?.garniture,
+      };
+      reset(formattedData);
       setSelectedTeeth(initialData.teethList || []);
       setToothDetails(initialData.toothDetailIds || []);
-      setIsChild(initialData.isChild !== undefined ? initialData.isChild : true);
-
-      // Set initial values for dropdowns
-      if (initialData.doctorId) setValue("doctor", initialData.doctorId);
-      if (initialData.technicianId)
-        setValue("technician", initialData.technicianId);
-      if (initialData.patientId) setValue("patient", initialData.patientId);
-      if (initialData.dentalWorkType)
-        setValue("workType", initialData.dentalWorkType);
-      
-      // Set denture info if available
-      if (initialData.orderDentureInfo) {
-        if (initialData.orderDentureInfo.color)
-          setValue("color", initialData.orderDentureInfo.color);
-        if (initialData.orderDentureInfo.garniture)
-          setValue("garniture", initialData.orderDentureInfo.garniture);
-      }
+      setIsChild(
+        initialData.isChild !== undefined ? initialData.isChild : false
+      );
     }
-  }, [initialData, reset, setValue]);
+  }, [initialData, reset]);
 
-  // Fetch data on component mount
+  // Fetch data only once on component mount
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch all necessary data with error handling
-        const promises = [
-          garnitureStore
-            .fetchGarnitureList()
-            .catch((e) => console.error("Garniture error:", e)),
-          colorStore
-            .fetchColorList()
-            .catch((e) => console.error("Color error:", e)),
-          technicianStore
-            .fetchTechnicians()
-            .catch((e) => console.error("Technician error:", e)),
-          patientStore
-            .fetchPatients()
-            .catch((e) => console.error("Patient error:", e)),
-          calendarStore
-            .fetchDoctors()
-            .catch((e) => console.error("Doctor error:", e)),
-          ceramicsStore
-            .fetchCeramicsList()
-            .catch((e) => console.error("Ceramics error:", e)),
-          metalStore
-            .fetchMetals()
-            .catch((e) => console.error("Metal error:", e)),
-        ];
+        await Promise.allSettled([
+          useGarnitureStore.getState().fetchGarnitureList(),
+          useColorStore.getState().fetchColorList(),
+          useTechnicianStore.getState().fetchTechnicians(),
+          usePatientStore.getState().fetchPatients(),
+          useCalendarStore.getState().fetchDoctors(),
+          useCeramicsStore.getState().fetchCeramicsList(),
+          useMetalStore.getState().fetchMetals(),
+        ]);
 
-        await Promise.allSettled(promises);
-
-        // Set dropdown options (only if data is available)
         setGarnitures(
-          garnitureStore.garnitures?.map((item) => ({
+          useGarnitureStore.getState().garnitures?.map((item) => ({
             value: item.id,
-            label: item.data.name || item.label,
+            // ✅ DÜZƏLİŞ: `item.data.name` yerinə `item.name` istifadə edilir.
+            label: item.name || "N/A",
           })) || fallbackGarnitures
         );
-
         setColors(
-          colorStore.colors.map((item) => ({
-            value: item.id,
-            label: item.name || item.label,
-          }))
+          useColorStore
+            .getState()
+            .colors?.map((item) => ({
+              value: item.id,
+              label: item.name || "N/A",
+            })) || fallbackColors
         );
-
         setTechnicians(
-          technicianStore.technicians?.map((item) => ({
-            value: item.id,
-            label: `${item.name} ${item.surname}`,
-          })) || []
+          useTechnicianStore
+            .getState()
+            .technicians?.map((item) => ({
+              value: item.id,
+              label: `${item.name} ${item.surname}`,
+            })) || []
         );
-
         setPatients(
-          patientStore.patients?.map((item) => ({
-            value: item.id,
-            label: `${item.name} ${item.surname}`,
-          })) || []
+          usePatientStore
+            .getState()
+            .patients?.map((item) => ({
+              value: item.id,
+              label: `${item.name} ${item.surname}`,
+            })) || []
         );
-
         setDoctors(
-          calendarStore.doctors?.map((item) => ({
-            value: item.doctorId || item.id,
-            label: `${item.name} ${item.surname}`,
-          })) || []
+          useCalendarStore
+            .getState()
+            .doctors?.map((item) => ({
+              value: item.doctorId || item.id,
+              label: `${item.name} ${item.surname}`,
+            })) || []
         );
-
         setCeramics(
-          ceramicsStore.ceramics?.map((item) => ({
-            value: item.id,
-            label: item.name,
-          })) || []
+          useCeramicsStore
+            .getState()
+            .ceramics?.map((item) => ({ value: item.id, label: item.name })) ||
+            []
         );
-
         setMetals(
-          metalStore.metals?.map((item) => ({
-            value: item.id,
-            label: item.name,
-          })) || fallbackMetals
+          useMetalStore
+            .getState()
+            .metals?.map((item) => ({ value: item.id, label: item.name })) ||
+            fallbackMetals
         );
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
-
     fetchData();
   }, []);
 
-  // Handle tooth selection
   const handleToothSelect = (tooth) => {
     const newSelectedTeeth = selectedTeeth.includes(tooth)
       ? selectedTeeth.filter((t) => t !== tooth)
       : [...selectedTeeth, tooth];
-
     setSelectedTeeth(newSelectedTeeth);
 
-    // Initialize tooth details for new teeth
     const newToothDetails = [...toothDetails];
     newSelectedTeeth.forEach((toothNumber) => {
       if (
@@ -211,37 +199,30 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
       }
     });
 
-    // Remove details for deselected teeth
     const filteredDetails = newToothDetails.filter((detail) =>
       newSelectedTeeth.includes(detail.toothNumber)
     );
-
     setToothDetails(filteredDetails);
   };
 
-  // Handle tooth detail changes
   const handleToothDetailChange = (toothNumber, field, value) => {
-    const updatedDetails = toothDetails.map((detail) => {
-      if (detail.toothNumber === toothNumber) {
-        return { ...detail, [field]: value };
-      }
-      return detail;
-    });
-
+    const updatedDetails = toothDetails.map((detail) =>
+      detail.toothNumber === toothNumber
+        ? { ...detail, [field]: value }
+        : detail
+    );
     setToothDetails(updatedDetails);
   };
 
-  // Handle file uploads
   const handleFilesChange = (newFiles) => {
     setFiles(newFiles);
   };
 
-  // Prepare data for submission
   const prepareSubmitData = (data) => {
     const submitData = {
-      checkDate: data.inspectionDate || data.checkDate,
+      checkDate: data.inspectionDate,
       deliveryDate: data.deliveryDate,
-      description: data.notes || data.description || "",
+      description: data.notes || "",
       dentalWorkType: data.workType,
       orderDentureInfo: {
         color: data.color,
@@ -254,28 +235,20 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
       patientId: parseInt(data.patient),
     };
 
-    // Only include files if there are any
     if (files.length > 0) {
       submitData.files = files.map((file) => file.base64 || file);
     }
-
     return submitData;
   };
 
-  // Handle form submission
   const handleFormSubmit = async (data) => {
     try {
       const submitData = prepareSubmitData(data);
-
       if (mode === "create") {
         await dentalOrderStore.addOrder(submitData);
       } else if (mode === "edit") {
-        await dentalOrderStore.editOrder({
-          ...submitData,
-          id: initialData.id,
-        });
+        await dentalOrderStore.editOrder({ ...submitData, id: initialData.id });
       }
-
       if (onSubmit) {
         onSubmit(submitData);
       }
@@ -284,36 +257,58 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
     }
   };
 
-  // Work types (could also be fetched from an API)
   const workTypes = [
     { value: "PROTEZ", label: "Protez" },
     { value: "KORONKA", label: "Koronka" },
     { value: "IMPLANT", label: "İmplant" },
   ];
-
-  // Get current values from form
   const formValues = watch();
-  const selectedWorkType = formValues.workType;
 
-  const renderDentureFields = selectedWorkType === "PROTEZ";
-  const renderToothFields = selectedWorkType === "KORONKA";
+  const selectedDoctor = useMemo(
+    () => doctors.find((d) => d.value === formValues.doctor) || null,
+    [doctors, formValues.doctor]
+  );
+  const selectedTechnician = useMemo(
+    () => technicians.find((t) => t.value === formValues.technician) || null,
+    [technicians, formValues.technician]
+  );
+  const selectedPatient = useMemo(
+    () => patients.find((p) => p.value === formValues.patient) || null,
+    [patients, formValues.patient]
+  );
+  const selectedWorkType = useMemo(
+    () => workTypes.find((w) => w.value === formValues.workType) || null,
+    [workTypes, formValues.workType]
+  );
+  const selectedColor = useMemo(
+    () => colors.find((c) => c.value === formValues.color) || null,
+    [colors, formValues.color]
+  );
+  const selectedGarniture = useMemo(
+    () => garnitures.find((g) => g.value === formValues.garniture) || null,
+    [garnitures, formValues.garniture]
+  );
+  const renderDentureFields = formValues.workType === "PROTEZ";
+  const renderToothFields = formValues.workType === "KORONKA";
 
   return (
     <form
       onSubmit={handleSubmit(handleFormSubmit)}
-      className="flex flex-col gap-2"
-    >
+      className="flex flex-col gap-2">
       <div className="flex flex-col gap-2 border border-[#E5E7EB] rounded-lg p-6 bg-white">
         {/* Doctor Dropdown */}
         <div className="flex justify-between items-center gap-2">
           <label htmlFor="doctor">
-            Həkim <span className="text-red-500">*</span>
+            {" "}
+            Həkim <span className="text-red-500">*</span>{" "}
           </label>
           <div className="w-[950px]">
             <CustomDropdown
               options={doctors}
-              value={formValues.doctor}
-              onChange={(value) => setValue("doctor", value)}
+              value={selectedDoctor}
+              onChange={(option) =>
+                setValue("doctor", option ? option.value : null)
+              }
               placeholder="Həkim seçin"
               name="doctor"
               disabled={mode === "view"}
@@ -324,13 +319,16 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
         {/* Technician Dropdown */}
         <div className="flex justify-between items-center gap-2">
           <label htmlFor="technician">
-            Texnik <span className="text-red-500">*</span>
+            {" "}
+            Texnik <span className="text-red-500">*</span>{" "}
           </label>
           <div className="w-[950px]">
             <CustomDropdown
               options={technicians}
-              value={formValues.technician}
-              onChange={(value) => setValue("technician", value)}
+              value={selectedTechnician}
+              onChange={(option) =>
+                setValue("technician", option ? option.value : null)
+              }
               placeholder="Texnik seçin"
               name="technician"
               disabled={mode === "view"}
@@ -341,13 +339,16 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
         {/* Patient Dropdown */}
         <div className="flex justify-between items-center gap-2">
           <label htmlFor="patient">
-            Pasiyent <span className="text-red-500">*</span>
+            {" "}
+            Pasiyent <span className="text-red-500">*</span>{" "}
           </label>
           <div className="w-[950px]">
             <CustomDropdown
               options={patients}
-              value={formValues.patient}
-              onChange={(value) => setValue("patient", value)}
+              value={selectedPatient}
+              onChange={(option) =>
+                setValue("patient", option ? option.value : null)
+              }
               placeholder="Pasiyent seçin"
               name="patient"
               disabled={mode === "view"}
@@ -355,10 +356,11 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
           </div>
         </div>
 
-        {/* Order Date */}
+        {/* Date Inputs */}
         <div className="flex justify-between items-center gap-2">
           <label htmlFor="orderDate">
-            Sifariş tarixi <span className="text-red-500">*</span>
+            {" "}
+            Sifariş tarixi <span className="text-red-500">*</span>{" "}
           </label>
           <div className="w-[950px]">
             <input
@@ -366,17 +368,16 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
               type="date"
               {...register("orderDate", { required: true })}
               readOnly={mode === "view"}
-              className={`w-[950px] h-10 border border-[#D4DCE8] rounded-lg px-4 py-2 ${
+              className={`w-full h-10 border border-[#D4DCE8] rounded-lg px-4 py-2 ${
                 mode === "view" ? "bg-gray-200" : ""
               }`}
             />
           </div>
         </div>
-
-        {/* Inspection Date */}
         <div className="flex justify-between items-center gap-2">
           <label htmlFor="inspectionDate">
-            Yoxlanılma tarixi <span className="text-red-500">*</span>
+            {" "}
+            Yoxlanılma tarixi <span className="text-red-500">*</span>{" "}
           </label>
           <div className="w-[950px]">
             <input
@@ -384,17 +385,16 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
               type="date"
               {...register("inspectionDate", { required: true })}
               readOnly={mode === "view"}
-              className={`w-[950px] h-10 border border-[#D4DCE8] rounded-lg px-4 py-2 ${
+              className={`w-full h-10 border border-[#D4DCE8] rounded-lg px-4 py-2 ${
                 mode === "view" ? "bg-gray-200" : ""
               }`}
             />
           </div>
         </div>
-
-        {/* Delivery Date */}
         <div className="flex justify-between items-center gap-2">
           <label htmlFor="deliveryDate">
-            Təhvil tarixi <span className="text-red-500">*</span>
+            {" "}
+            Təhvil tarixi <span className="text-red-500">*</span>{" "}
           </label>
           <div className="w-[950px]">
             <input
@@ -402,7 +402,7 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
               type="date"
               {...register("deliveryDate", { required: true })}
               readOnly={mode === "view"}
-              className={`w-[950px] h-10 border border-[#D4DCE8] rounded-lg px-4 py-2 ${
+              className={`w-full h-10 border border-[#D4DCE8] rounded-lg px-4 py-2 ${
                 mode === "view" ? "bg-gray-200" : ""
               }`}
             />
@@ -412,15 +412,16 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
         {/* Work Type Dropdown */}
         <div className="flex justify-between items-center gap-2">
           <label htmlFor="workType">
-            İşin növü <span className="text-red-500">*</span>
+            {" "}
+            İşin növü <span className="text-red-500">*</span>{" "}
           </label>
           <div className="w-[950px]">
             <CustomDropdown
               options={workTypes}
-              value={formValues.workType}
-              onChange={(value) => {
-                setValue("workType", value);
-                setSelectedTeeth([]); // Clear selected teeth when work type changes
+              value={selectedWorkType}
+              onChange={(option) => {
+                setValue("workType", option ? option.value : null);
+                setSelectedTeeth([]);
                 setToothDetails([]);
               }}
               placeholder="İşin növünü seçin"
@@ -429,38 +430,39 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
             />
           </div>
         </div>
-        
-        {/* Conditionally render fields based on workType */}
+
+        {/* Conditional Denture Fields */}
         {renderDentureFields && (
           <>
-            {/* Color */}
             <div className="flex justify-between items-center gap-2">
-              <label>Rəng *</label>
+              <label>
+                {" "}
+                Rəng <span className="text-red-500">*</span>{" "}
+              </label>
               <div className="w-[950px]">
                 <CustomDropdown
                   options={colors}
-                  value={
-                    colors.find(
-                      (c) => c.value === initialData?.orderDentureInfo?.color
-                    ) || null
+                  value={selectedColor}
+                  onChange={(option) =>
+                    setValue("color", option ? option.value : null)
                   }
-                  onChange={(val) => setValue("color", val.value)}
                   placeholder="Rəng seçin"
                   disabled={mode === "view"}
                 />
               </div>
             </div>
-
-            {/* Furniture Dropdown */}
             <div className="flex justify-between items-center gap-2">
               <label htmlFor="garniture">
-                Qarnitur <span className="text-red-500">*</span>
+                {" "}
+                Qarnitur <span className="text-red-500">*</span>{" "}
               </label>
               <div className="w-[950px]">
                 <CustomDropdown
                   options={garnitures}
-                  value={formValues.garniture}
-                  onChange={(value) => setValue("garniture", value)}
+                  value={selectedGarniture}
+                  onChange={(option) =>
+                    setValue("garniture", option ? option.value : null)
+                  }
                   placeholder="Qarnitur seçin"
                   name="garniture"
                   disabled={mode === "view"}
@@ -470,7 +472,7 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
           </>
         )}
 
-        {/* Notes - Larger Textbox */}
+        {/* Notes */}
         <div className="flex justify-between items-center gap-2">
           <label htmlFor="notes">Qeyd</label>
           <div className="w-[950px]">
@@ -499,12 +501,11 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
         </div>
       </div>
 
-      {/* Conditional Tooth Selection Section */}
+      {/* Conditional Tooth Selection */}
       {renderToothFields && (
         <div className="flex flex-col border border-[#E5E7EB] bg-white rounded-lg w-full p-4 gap-2">
           <h1 className="text-lg font-bold">Diş qrafiki</h1>
           <h2>Təsirə məruz qalan dişlər və müalicə sahələri</h2>
-
           <div className="flex items-center justify-around border border-[#E5E7EB] rounded-lg w-[198px] h-[40px]">
             <button
               type="button"
@@ -515,9 +516,9 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
                 setIsChild(false);
                 setSelectedTeeth([]);
                 setToothDetails([]);
-              }}
-            >
-              Yetkin
+              }}>
+              {" "}
+              Yetkin{" "}
             </button>
             <button
               type="button"
@@ -528,12 +529,11 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
                 setIsChild(true);
                 setSelectedTeeth([]);
                 setToothDetails([]);
-              }}
-            >
-              Uşaq
+              }}>
+              {" "}
+              Uşaq{" "}
             </button>
           </div>
-
           <div>
             <ToothSelector
               showImage={true}
@@ -543,15 +543,12 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
               disabled={mode === "view"}
             />
           </div>
-
-          {/* Tooth Details */}
           {selectedTeeth.length > 0 && (
             <div className="mt-4">
               <h3 className="font-bold mb-2">Diş detalları:</h3>
               {selectedTeeth.map((toothNumber) => {
                 const toothDetail =
                   toothDetails.find((d) => d.toothNumber === toothNumber) || {};
-
                 return (
                   <div key={toothNumber} className="mb-4 p-2 border rounded">
                     <h4 className="font-semibold">Diş #{toothNumber}</h4>
@@ -560,9 +557,17 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
                         <label>Rəng:</label>
                         <CustomDropdown
                           options={colors}
-                          value={toothDetail.colorId}
-                          onChange={(value) =>
-                            handleToothDetailChange(toothNumber, "colorId", value)
+                          value={
+                            colors.find(
+                              (c) => c.value === toothDetail.colorId
+                            ) || null
+                          }
+                          onChange={(option) =>
+                            handleToothDetailChange(
+                              toothNumber,
+                              "colorId",
+                              option ? option.value : null
+                            )
                           }
                           placeholder="Rəng seçin"
                           disabled={mode === "view"}
@@ -572,12 +577,16 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
                         <label>Keramika:</label>
                         <CustomDropdown
                           options={ceramics}
-                          value={toothDetail.ceramicId}
-                          onChange={(value) =>
+                          value={
+                            ceramics.find(
+                              (c) => c.value === toothDetail.ceramicId
+                            ) || null
+                          }
+                          onChange={(option) =>
                             handleToothDetailChange(
                               toothNumber,
                               "ceramicId",
-                              value
+                              option ? option.value : null
                             )
                           }
                           placeholder="Keramika seçin"
@@ -588,9 +597,17 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
                         <label>Metal:</label>
                         <CustomDropdown
                           options={metals}
-                          value={toothDetail.metalId}
-                          onChange={(value) =>
-                            handleToothDetailChange(toothNumber, "metalId", value)
+                          value={
+                            metals.find(
+                              (m) => m.value === toothDetail.metalId
+                            ) || null
+                          }
+                          onChange={(option) =>
+                            handleToothDetailChange(
+                              toothNumber,
+                              "metalId",
+                              option ? option.value : null
+                            )
                           }
                           placeholder="Metal seçin"
                           disabled={mode === "view"}
@@ -610,18 +627,15 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
         <button
           type="button"
           className="flex items-center justify-center px-4 py-2 border text-[#155EEF] border-[#155EEF] rounded-lg hover:bg-gray-100 w-[184px] h-[44px] gap-2"
-          onClick={onCancel}
-        >
-          <FontAwesomeIcon icon={faXmark} />
-          Ləğv et
+          onClick={onCancel}>
+          <FontAwesomeIcon icon={faXmark} /> Ləğv et
         </button>
         {mode !== "view" && (
           <button
             type="submit"
             className="flex items-center justify-center px-4 py-2 bg-[#155EEF] text-white rounded-lg hover:bg-[#155EEF] w-[184px] h-[44px] gap-2"
-            disabled={dentalOrderStore.loading}
-          >
-            <FontAwesomeIcon icon={faCheck} />
+            disabled={dentalOrderStore.loading}>
+            <FontAwesomeIcon icon={faCheck} />{" "}
             {dentalOrderStore.loading ? "Yüklənir..." : "Yadda saxla"}
           </button>
         )}

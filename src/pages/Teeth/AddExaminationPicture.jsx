@@ -1,12 +1,14 @@
 import React, { useRef, useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { FiUpload, FiTrash2 } from "react-icons/fi";
+import { toast } from "react-toastify"; // 🔔 Toastify əlavə et
 import useExaminationStore from "../../../stores/examinationStore";
 import useTeethExaminationStore from "../../../stores/teeth-examinationStore";
 import "../../assets/style/Teeth/addexaminationpicture.css";
 
 const AddExaminationPicture = () => {
   const { id: teethId } = useParams();
+  const navigate = useNavigate(); // 🔄 navigate hook
   const fileInputRef = useRef();
 
   const [selectedExam, setSelectedExam] = useState("");
@@ -32,25 +34,33 @@ const AddExaminationPicture = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const selected = examinations.find((exam) => exam.typeName === selectedExam);
+    const selected = examinations.find(
+      (exam) => exam.typeName === selectedExam
+    );
 
     if (!selected) {
-      alert("Zəhmət olmasa düzgün müayinə seçin");
+      toast.error("Zəhmət olmasa düzgün müayinə seçin");
       return;
     }
 
     const payload = {
       teethId: Number(teethId),
       examinationId: Number(selected.id),
+      status: "ACTIVE",
     };
 
     try {
       await createTeethExamination(payload);
-      alert("Müvəffəqiyyətlə yadda saxlanıldı!");
+      toast.success("Müvəffəqiyyətlə yadda saxlanıldı ✅");
       setSelectedExam("");
       setImages([]);
+
+      // 🔄 1-2 saniyə sonra yönləndirək
+      setTimeout(() => {
+        navigate("/teeth");
+      }, 1500);
     } catch (err) {
-      alert("Xəta baş verdi: " + err.message);
+      toast.error("Xəta baş verdi: " + err.message);
     }
   };
 
