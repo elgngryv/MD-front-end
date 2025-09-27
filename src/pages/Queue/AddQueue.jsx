@@ -9,6 +9,7 @@ import useCalendarStore from "../../../stores/calendarStore";
 import useReservationStore from "../../../stores/reservationStore";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import "./quee.css";
 
 function AddQueue() {
   const navigator = useNavigate();
@@ -22,6 +23,7 @@ function AddQueue() {
   const [loading, setLoading] = useState(false);
   const [isDaysDropdownOpen, setIsDaysDropdownOpen] = useState(false);
   const [dateValidationError, setDateValidationError] = useState("");
+  const [timeValidationError, setTimeValidationError] = useState("");
 
   const startDateRef = useRef(null);
   const endDateRef = useRef(null);
@@ -117,12 +119,62 @@ function AddQueue() {
     const startYear = new Date(startDate).getFullYear();
     const endYear = new Date(endDate).getFullYear();
 
-    if (startYear < minYear || startYear > maxYear || endYear < minYear || endYear > maxYear) {
-      setDateValidationError(`Tarix ${minYear} və ${maxYear} illəri arasında olmalıdır.`);
+    if (
+      startYear < minYear ||
+      startYear > maxYear ||
+      endYear < minYear ||
+      endYear > maxYear
+    ) {
+      setDateValidationError(
+        `Tarix ${minYear} və ${maxYear} illəri arasında olmalıdır.`
+      );
       return false;
     }
+
+    if (new Date(startDate) > new Date(endDate)) {
+      setDateValidationError(
+        "Bitmə tarixi başlama tarixindən əvvələ ola bilməz"
+      );
+      return false;
+    }
+
     setDateValidationError("");
     return true;
+  };
+
+  const validateTimes = (startTime, endTime) => {
+    if (startTime && endTime) {
+      const start = new Date(`2000-01-01T${startTime}`);
+      const end = new Date(`2000-01-01T${endTime}`);
+
+      if (start >= end) {
+        setTimeValidationError(
+          "Bitmə vaxtı başlama vaxtından əvvələ ola bilməz"
+        );
+        return false;
+      }
+    }
+
+    setTimeValidationError("");
+    return true;
+  };
+
+  const handleDateChange = () => {
+    const startDate = startDateRef.current?.value;
+    const endDate = endDateRef.current?.value;
+
+    if (startDate && endDate) {
+      validateDates(startDate, endDate);
+    }
+  };
+
+  const handleTimeChange = () => {
+    const startTime = formatTime(startTimeRef.current?.value);
+    const endTime = formatTime(endTimeRef.current?.value);
+
+    if (startTime && endTime) {
+      validateTimes(startTime, endTime);
+    }
   };
 
   const handleSubmit = async () => {
@@ -141,8 +193,10 @@ function AddQueue() {
       return;
     }
 
-    if (!validateDates(startDate, endDate)) {
-      toast.error(dateValidationError);
+    const isDatesValid = validateDates(startDate, endDate);
+    const isTimesValid = validateTimes(startTime, endTime);
+
+    if (!isDatesValid || !isTimesValid) {
       return;
     }
 
@@ -154,8 +208,6 @@ function AddQueue() {
       doctorId: selectedDoctor.value,
       patientId: selectedPatient.value,
       weekDays: selectedDays.map((day) => day.value.toUpperCase()),
-      validDateRange: true,
-      validTimeRange: true,
     };
 
     try {
@@ -170,12 +222,42 @@ function AddQueue() {
       endDateRef.current.value = "";
       startTimeRef.current.value = "";
       endTimeRef.current.value = "";
+      setDateValidationError("");
+      setTimeValidationError("");
 
       toast.success("Rezervasiya uğurla yaradıldı!");
       navigator("/queue");
     } catch (err) {
       console.error("❌ Xəta:", err.response?.data || err.message);
-      toast.error("Rezervasiya zamanı xəta baş verdi.");
+
+      // Backend validasiya xətalarını əldə et
+      if (err.response?.data) {
+        const errorData = err.response.data;
+
+        if (
+          errorData.validDateRange ===
+          "Bitmə tarixi başlama tarixindən əvvələ ola bilməz"
+        ) {
+          setDateValidationError(
+            "Bitmə tarixi başlama tarixindən əvvələ ola bilməz"
+          );
+        }
+
+        if (
+          errorData.validTimeRange ===
+          "Bitmə vaxtı başlama vaxtından əvvələ ola bilməz"
+        ) {
+          setTimeValidationError(
+            "Bitmə vaxtı başlama vaxtından əvvələ ola bilməz"
+          );
+        }
+
+        if (!errorData.validDateRange && !errorData.validTimeRange) {
+          toast.error("Rezervasiya zamanı xəta baş verdi.");
+        }
+      } else {
+        toast.error("Rezervasiya zamanı xəta baş verdi.");
+      }
     } finally {
       setLoading(false);
     }
@@ -186,6 +268,7 @@ function AddQueue() {
     setSelectedDoctor(null);
     setSelectedDays([]);
     setDateValidationError("");
+    setTimeValidationError("");
     if (startDateRef.current) startDateRef.current.value = "";
     if (endDateRef.current) endDateRef.current.value = "";
     if (startTimeRef.current) startTimeRef.current.value = "";
@@ -236,6 +319,7 @@ function AddQueue() {
               className="addQueueBasicInput"
               type="date"
               ref={startDateRef}
+              onChange={handleDateChange}
               required
             />
           </div>
@@ -247,11 +331,19 @@ function AddQueue() {
               className="addQueueBasicInput"
               type="date"
               ref={endDateRef}
+              onChange={handleDateChange}
               required
             />
           </div>
         </div>
-        {dateValidationError && <p className="validation-error-message">{dateValidationError}</p>}
+        {dateValidationError && (
+          <div className="validation-error-container">
+            <span className="validation-error-icon">⚠</span>
+            <span className="validation-error-message">
+              {dateValidationError}
+            </span>
+          </div>
+        )}
 
         <div className="queuePageWrapperInputRow">
           <div className="queuePageWrapperInput">
@@ -262,6 +354,7 @@ function AddQueue() {
               className="addQueueBasicInput"
               type="time"
               ref={startTimeRef}
+              onChange={handleTimeChange}
               required
             />
           </div>
@@ -273,10 +366,19 @@ function AddQueue() {
               className="addQueueBasicInput"
               type="time"
               ref={endTimeRef}
+              onChange={handleTimeChange}
               required
             />
           </div>
         </div>
+        {timeValidationError && (
+          <div className="validation-error-container">
+            <span className="validation-error-icon">⚠</span>
+            <span className="validation-error-message">
+              {timeValidationError}
+            </span>
+          </div>
+        )}
 
         <div className="queuePageWrapperInputWeek">
           <p>
@@ -302,7 +404,10 @@ function AddQueue() {
                   <span className="placeholder-text">Gün seçin</span>
                 )}
               </div>
-              <span className={`checklist-arrow ${isDaysDropdownOpen ? "open" : ""}`}>
+              <span
+                className={`checklist-arrow ${
+                  isDaysDropdownOpen ? "open" : ""
+                }`}>
                 <svg
                   className="arrow-icon"
                   xmlns="http://www.w3.org/2000/svg"
@@ -327,7 +432,9 @@ function AddQueue() {
                       <div className="checkbox-container">
                         <input
                           type="checkbox"
-                          checked={selectedDays.some((d) => d.value === day.value)}
+                          checked={selectedDays.some(
+                            (d) => d.value === day.value
+                          )}
                           onChange={() => {}}
                         />
                         <span>{day.label}</span>
