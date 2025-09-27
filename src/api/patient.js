@@ -13,13 +13,18 @@ export const createPatient = async (patientData) => {
   try {
     const token = getToken();
 
+    // ✅ Düzgün field adları ilə data hazırlayın
     const dataToSend = {
       ...patientData,
       finCode: patientData.finCode === "" ? null : patientData.finCode,
-      doctor_id: patientData.doctorId,
+      // doctorId olduğu kimi qalsın, çünki backend doctorId gözləyir
+      // doctor_id əlavə etməyin və doctorId silməyin
     };
 
-    delete dataToSend.doctorId;
+    // ❌ BUNU SİLİN - doctorId silməyin
+    // delete dataToSend.doctorId;
+
+    console.log("API-ya göndərilən data:", JSON.stringify(dataToSend, null, 2));
 
     const response = await axios.post(
       `${BASE_URL}/patient/create`,

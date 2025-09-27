@@ -209,7 +209,7 @@ const PatientAdd = () => {
     const dataToSend = {
       ...formData,
       specializationName: formData.specializationName,
-      doctor_id: formData.doctorId,
+       doctorId: formData.doctorId ? formData.doctorId.toString() : "",
       priceCategoryName: formData.priceCategoryName,
       blacklistCategory:
         formData.isBlacklisted && formData.blacklistCategory
