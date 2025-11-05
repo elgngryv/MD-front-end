@@ -1,4 +1,4 @@
-name: CI | CD Avto Deploy (Main & Test)
+name: CI | CD Auto Deploy (Main & Test)
 
 on:
   push:
@@ -17,11 +17,17 @@ jobs:
       - name: Determine deploy path
         id: setpath
         run: |
-          if [[ "${GITHUB_REF##*/}" == "main" ]]; then
+          BRANCH="${GITHUB_REF##*/}"
+          echo "Branch: $BRANCH"
+
+          if [[ "$BRANCH" == "main" ]]; then
             echo "DEPLOY_PATH=/var/www/teths" >> $GITHUB_ENV
-          elif [[ "${GITHUB_REF##*/}" == "test" ]]; then
+          elif [[ "$BRANCH" == "test" ]]; then
             echo "DEPLOY_PATH=/var/www/teths-test" >> $GITHUB_ENV
+          else
+            echo "DEPLOY_PATH=/var/www/teths-test" >> $GITHUB_ENV  # default path
           fi
+          echo "DEPLOY_PATH set to $DEPLOY_PATH"
 
       - name: Deploy to server
         uses: appleboy/ssh-action@v1.2.0
