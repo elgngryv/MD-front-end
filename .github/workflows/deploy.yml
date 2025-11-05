@@ -1,0 +1,36 @@
+name: 🚀 Deploy to Nginx Server (Build on Server)
+
+on:
+  push:
+    branches:
+      - test
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🧩 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🚀 Deploy and build on server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /var/www/teths-test || exit
+            echo "🔁 Pulling latest code..."
+            git pull origin main
+
+            echo "🧹 Removing old dist..."
+            rm -rf dist
+
+            echo "📦 Installing dependencies..."
+            npm install --force
+
+            echo "🏗️ Building project..."
+            npm run build
+
+            echo "✅ Deployment complete!"
