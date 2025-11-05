@@ -14,41 +14,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set deploy path
-        run: |
-          set -o allexport
-
-          # Öncelik: .env
-          if [ -f .env ]; then
-            source .env
-            echo ".env yüklendi"
-          # .env yoksa .env.example
-          elif [ -f .env.example ]; then
-            source .env.example
-            echo ".env.example yüklendi"
-          else
-            echo "Ne .env ne .env.example bulunamadı"
-          fi
-
-          set +o allexport
-
-          # DEPLOY_PATH yoksa default
-          if [ -z "$DEPLOY_PATH" ]; then
-            echo "DEPLOY_PATH yok, default olarak /var/www/teths-test kullanılacak"
-            echo "DEPLOY_PATH=/var/www/teths-test" >> $GITHUB_ENV
-          else
-            echo "DEPLOY_PATH set edildi: $DEPLOY_PATH"
-            echo "DEPLOY_PATH=$DEPLOY_PATH" >> $GITHUB_ENV
-
       - name: Deploy to server
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          env:
-            DEPLOY_PATH: ${{ env.DEPLOY_PATH }}
           script: |
+            DEPLOY_PATH="/var/www/teths"
             echo "Deploy başlıyır..."
             echo "Hedef dizin: $DEPLOY_PATH"
 
