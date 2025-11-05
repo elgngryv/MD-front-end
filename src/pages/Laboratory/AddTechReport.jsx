@@ -30,7 +30,7 @@ function AddTechReport() {
           return;
         }
 
-        const response = await fetch("http://161.97.179.107:5555/api/v1/technician/read", {
+        const response = await fetch("http://62.84.178.128:5555/api/v1/technician/read", {
           headers: {
             Authorization: `Bearer ${refreshToken}`,
           },

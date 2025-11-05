@@ -32,7 +32,7 @@ function PatientsList() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     axios
-      .get("http://161.97.179.107:5555/api/v1/patient/read", {
+      .get("http://62.84.178.128:5555/api/v1/patient/read", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -49,7 +49,7 @@ function PatientsList() {
     try {
       const token = localStorage.getItem("token");
       await axios.delete(
-        `http://161.97.179.107:5555/api/v1/patient/delete/${id}`,
+        `http://62.84.178.128:5555/api/v1/patient/delete/${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

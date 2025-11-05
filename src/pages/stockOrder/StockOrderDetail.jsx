@@ -15,7 +15,7 @@ import useWorkerStore from "../../../stores/workerStore";
 import useCalendarStore from "../../../stores/calendarStore";
 import "../../assets/style/StockOrder/stockorderedit.css";
 
-const API_BASE_URL = "http://161.97.179.107:5555/api/v1";
+const API_BASE_URL = "http://62.84.178.128:5555/api/v1";
 
 const StockOrderDetail = () => {
   const navigate = useNavigate();

@@ -56,7 +56,7 @@ const History = () => {
 
     try {
       const response = await axios.get(
-        'http://161.97.179.107:5555/api/v1/anamnesis-categories/read',
+        'http://62.84.178.128:5555/api/v1/anamnesis-categories/read',
         {
           headers: {
             'Authorization': `Bearer ${refreshToken}`,

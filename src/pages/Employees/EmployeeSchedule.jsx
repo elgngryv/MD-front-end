@@ -138,9 +138,9 @@ const EmployeeSchedule = () => {
         }
 
         const [employeesResponse, schedulesResponse, roomsResponse] = await Promise.all([
-          fetch("http://161.97.179.107:5555/api/v1/add-worker/read", { headers }),
-          fetch("http://161.97.179.107:5555/api/v1/workers-work-schedule/read", { headers }),
-          fetch("http://161.97.179.107:5555/api/v1/general-calendar/read-rooms", { headers }),
+          fetch("http://62.84.178.128:5555/api/v1/add-worker/read", { headers }),
+          fetch("http://62.84.178.128:5555/api/v1/workers-work-schedule/read", { headers }),
+          fetch("http://62.84.178.128:5555/api/v1/general-calendar/read-rooms", { headers }),
         ])
 
         if (!employeesResponse.ok) throw new Error(`Failed to fetch employees: ${employeesResponse.status}`)

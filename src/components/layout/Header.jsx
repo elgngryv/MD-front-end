@@ -24,7 +24,7 @@ function Header() {
         try {
           const refreshToken = localStorage.getItem("refreshToken");
           const response = await axios.get(
-            `http://161.97.179.107:5555/api/v1/add-worker/info/${user.id}`,
+            `http://62.84.178.128:5555/api/v1/add-worker/info/${user.id}`,
             {
               headers: {
                 Authorization: `Bearer ${refreshToken}`,
