@@ -84,6 +84,7 @@ function LogIn() {
           <div className="username-part">
             <input
               type="text"
+              name="stamatoloq"
               placeholder="İstifadəçinin adı"
               value={username}
               onChange={(e) => setUsername(e.target.value)}

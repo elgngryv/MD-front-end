@@ -13,12 +13,13 @@ const ToothSelector = ({ selectedTeeth, onSelect, showImage = true, mode = "edit
   ] : [
     85, 84, 83, 82, 81, 71, 72, 73, 74,75
   ];
+console.log("s");
 
 
   return (
     <div className="flex justify-center items-center">
     <div className="tooth-selector">
-      <h3 className="jaw-title">Üst çənə</h3>
+      <h3 className="jaw-title">Üst çəne</h3>
       <div className="tooth-selector-grid upper-jaw">
         {upperJawTeeth.map((tooth) => (
           <div key={tooth} className="tooth-item">
