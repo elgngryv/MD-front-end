@@ -53,7 +53,7 @@ const PatientEdit = () => {
         const token = localStorage.getItem("token");
         const response = await axios.get(
           `${
-            import.meta.env.VITE_BASE_URL || "http://161.97.179.107:5555/api/v1"
+            import.meta.env.VITE_BASE_URL || "http://62.84.178.128:5555/api/v1"
           }/general-calendar/read-doctors`,
           {
             headers: {

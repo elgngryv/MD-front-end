@@ -2,7 +2,7 @@ import axios from "axios";
 
 const BASE_URL =
   import.meta.env.VITE_BASE_URL ||
-  "http://161.97.179.107:5555/api/v1" ||
+  "http://62.84.178.128:5555/api/v1" ||
   "http://161.97.179.107/";
 
 const getToken = () => {

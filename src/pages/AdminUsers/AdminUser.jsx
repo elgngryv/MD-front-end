@@ -33,7 +33,7 @@ const AdminUser = () => {
         }
 
         const response = await fetch(
-          "http://161.97.179.107:5555/api/v1/add-worker/read",
+          "http://62.84.178.128:5555/api/v1/add-worker/read",
           {
             headers: {
               Authorization: `Bearer ${refreshToken}`,
@@ -92,7 +92,7 @@ const AdminUser = () => {
       }
 
       const response = await fetch(
-        `http://161.97.179.107:5555/api/v1/add-worker/delete/${userToDeleteId}`,
+        `http://62.84.178.128:5555/api/v1/add-worker/delete/${userToDeleteId}`,
         {
           method: "DELETE",
           headers: {

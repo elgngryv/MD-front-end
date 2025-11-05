@@ -24,7 +24,7 @@ function TechReportDetail() {
           return;
         }
 
-        const response = await fetch("http://161.97.179.107:5555/api/v1/laboratory-payment/read", {
+        const response = await fetch("http://62.84.178.128:5555/api/v1/laboratory-payment/read", {
           headers: {
             Authorization: `Bearer ${refreshToken}`,
           },

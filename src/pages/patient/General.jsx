@@ -34,7 +34,7 @@ const General = () => {
       try {
         const token = localStorage.getItem("token");
         const res = await axios.get(
-          "http://161.97.179.107:5555/api/v1/general-calendar/read-doctors",
+          "http://62.84.178.128:5555/api/v1/general-calendar/read-doctors",
           {
             headers: {
               Authorization: `Bearer ${token}`,

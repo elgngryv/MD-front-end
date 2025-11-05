@@ -47,7 +47,7 @@ function EditAdmin() {
       try {
         // Fetch permissions list
         const permissionsResponse = await fetch(
-          "http://161.97.179.107:5555/api/v1/permission/read",
+          "http://62.84.178.128:5555/api/v1/permission/read",
           { headers }
         );
         if (!permissionsResponse.ok) {
@@ -70,7 +70,7 @@ function EditAdmin() {
       try {
         // Fetch specific admin info
         const workerInfoResponse = await fetch(
-          `http://161.97.179.107:5555/api/v1/add-worker/info/${id}`,
+          `http://62.84.178.128:5555/api/v1/add-worker/info/${id}`,
           { headers }
         );
         if (!workerInfoResponse.ok) {
@@ -155,7 +155,7 @@ function EditAdmin() {
       };
 
       const response = await fetch(
-        `http://161.97.179.107:5555/api/v1/add-worker/update`,
+        `http://62.84.178.128:5555/api/v1/add-worker/update`,
         {
           method: "PUT",
           headers: {

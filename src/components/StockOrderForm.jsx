@@ -17,7 +17,7 @@ import axios from "axios";
 import useOrdersFromWarehouseStore from "../../stores/orderFromWarehouseStore";
 import useCabinetStore from "../../stores/cabinetStore";
 
-const API_BASE_URL = "http://161.97.179.107:5555/api/v1/";
+const API_BASE_URL = "http://62.84.178.128:5555/api/v1/";
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,

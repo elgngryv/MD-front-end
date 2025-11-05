@@ -21,7 +21,7 @@ import { useProductStore } from "../../stores/productStore";
 import useWarehouseEntryStore from "../../stores/warehouseEntryStore";
 import axios from "axios";
 
-const API_BASE_URL = "http://161.97.179.107:5555/api/v1/";
+const API_BASE_URL = "http://62.84.178.128:5555/api/v1/";
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
