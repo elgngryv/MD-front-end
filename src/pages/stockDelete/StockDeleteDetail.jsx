@@ -1,52 +1,98 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import StockDeleteForm from "../../components/StockDeleteForm.jsx";
 import { useNavigate, useParams } from "react-router-dom";
+import useWarehouseDeletionStore from "../../../stores/warehouseDeletionStore.js";
 
-    const StockDeleteDetail = ({mode}) => {
-    const navigate = useNavigate();
-    const { id } = useParams();
+const StockDeleteDetail = ({ mode }) => {
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const [initialData, setInitialData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
+  const {
+    fetchDeletionById,
+    updateDeletion,
+    selectedDeletion,
+    loading: storeLoading,
+    error,
+  } = useWarehouseDeletionStore();
 
-    const mockData = {
-        orderDate: "2024-03-20",
-        orderTime: "14:30",
-        typeCount: 5,
-        note: "Test note",
-        products: [
-            {
-                id: 1,
-                category: 1,
-                name: 1,
-                quantity: 10,
-                price: 100,
-                categoryName: "Dental Materials",
-                productName: "Composite Resin"
-            }
-        ]
-    };
+  useEffect(() => {
+    if (mode === "edit" && id) {
+      fetchDeletionById(id);
+    } else {
+      setLoading(false);
+    }
+  }, [mode, id, fetchDeletionById]);
 
-    const handleSubmit = (formData) => {
-        // Here you would typically make an API call to update the data
-        console.log("Form submitted:", formData);
-        // After successful submission, navigate back to the list view
-        navigate("/stock/delete");
-    };
+  useEffect(() => {
+    if (mode === "edit" && selectedDeletion) {
+      // API-dən gələn məlumatı formata uyğunlaşdır
+      // products əvvəlcə yoxlayırıq və default [] istifadə edirik
+      const products = selectedDeletion.products || [];
+      const formattedData = {
+        deletionFromWarehouseId: selectedDeletion.id,
+        date: selectedDeletion.date,
+        time: selectedDeletion.time || {
+          hour: 0,
+          minute: 0,
+          second: 0,
+          nano: 0,
+        },
+        description: selectedDeletion.description || "",
+        deletionFromWarehouseProductRequests: products.map((product) => ({
+          deletionFromWarehouseProductId: product.id || 0,
+          warehouseEntryId: product.warehouseEntryId || 0,
+          warehouseEntryProductId: product.warehouseEntryProductId || 0,
+          productId: product.productId || 0,
+          categoryId: product.categoryId || 0,
+          quantity: product.quantity || 0,
+        })),
+      };
+      setInitialData(formattedData);
+      setLoading(false);
+    }
+  }, [selectedDeletion, mode]);
 
-    const handleCancel = () => {
-        navigate("/stock/delete");
-    };
+  const handleSubmit = async (formData) => {
+    try {
+      if (mode === "edit") {
+        await updateDeletion(formData);
+      }
+      // After successful submission, navigate back to the list view
+      navigate("/stock/delete");
+    } catch (err) {
+      console.error("Form göndərilərkən xəta baş verdi:", err);
+    }
+  };
 
-    return (
-        <div className="flex flex-col border border-gray-200 rounded-lg p-4 bg-white">
-            <h1 className="text-2xl font-bold mb-4">Məhsul Sil</h1>
-            <StockDeleteForm 
-                initialData={mockData}
-                mode={mode}
-                onSubmit={handleSubmit}
-                onCancel={handleCancel}
-            />
-        </div>
-    );
+  const handleCancel = () => {
+    navigate("/stock/delete");
+  };
+
+  if ((mode === "edit" && loading) || storeLoading) {
+    return <div>Yüklənir...</div>;
+  }
+
+  if (error && mode === "edit") {
+    return <div>Xəta: {error}</div>;
+  }
+
+  return (
+    <div className="w-full h-screen flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-4xl min-h-screen border border-gray-200 rounded-lg p-4 bg-white">
+        <h1 className="text-2xl font-bold mb-4">
+          {mode === "edit" ? "Məhsul Silinməsinə Düzəliş" : "Məhsul Sil"}
+        </h1>
+        <StockDeleteForm
+          initialData={initialData}
+          mode={mode}
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+        />
+      </div>
+    </div>
+  );
 };
 
-export default StockDeleteDetail; 
+export default StockDeleteDetail;

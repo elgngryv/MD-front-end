@@ -1,7 +1,7 @@
 import React from "react";
 import "../assets/style/tooth_selector.css";
 
-const ToothSelector = ({ selectedTeeth, onSelect, showImage = true, mode = "edit", isChild = true }) => {
+const ToothSelector = ({ selectedTeeth, onSelect, showImage = true, mode = "edit", isChild = false }) => {
   const upperJawTeeth = (!isChild) ? [
     18, 17, 16, 15, 14, 13, 12, 11, 21, 22, 23, 24, 25, 26, 27, 28,
   ] : [
@@ -13,12 +13,13 @@ const ToothSelector = ({ selectedTeeth, onSelect, showImage = true, mode = "edit
   ] : [
     85, 84, 83, 82, 81, 71, 72, 73, 74,75
   ];
+console.log("s");
 
 
   return (
     <div className="flex justify-center items-center">
     <div className="tooth-selector">
-      <h3 className="jaw-title">Üst çənə</h3>
+      <h3 className="jaw-title">Üst çəne</h3>
       <div className="tooth-selector-grid upper-jaw">
         {upperJawTeeth.map((tooth) => (
           <div key={tooth} className="tooth-item">

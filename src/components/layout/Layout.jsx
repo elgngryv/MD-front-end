@@ -1,23 +1,36 @@
+// src/components/Layout.jsx
+import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
 import Header from "./Header";
 import SidebarMenu from "../SidebarMenu";
 import Breadcrumb from "../Breadcrumb";
-import '../../assets/style/layout.css'; // Import your CSS file for layout styles
-import '../../assets/style/breadcrumb.css';
 
-// <Header />
-//    <SidebarMenu/>
-//    <Breadcrumb />
-//    <Outlet /> {
 const Layout = () => {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // Sidebar-ı yığmaq/açmaq funksiyası
+  const toggleSidebar = () => {
+    setIsCollapsed(!isCollapsed);
+  };
+
+  // Main content üçün dinamik Tailwind sinifləri
+  const mainContentClasses = `flex flex-col flex-1 ${
+    isCollapsed ? 'ml-[84px]' : 'ml-[254px]'
+  } transition-all duration-300`;
+
   return (
-    <div className="flex w-full">
-        <div><SidebarMenu/></div>
-        <div className="flex flex-col w-full mt-0 m-4">
-          <Header/>
-          <Breadcrumb/>
-          <Outlet/>
-        </div>
+    <div className="flex w-full min-h-screen">
+      <div>
+        <SidebarMenu isCollapsed={isCollapsed} toggleSidebar={toggleSidebar} />
+      </div>
+
+      <div className={mainContentClasses}>
+        <Header />
+        <Breadcrumb />
+        <main className="p-4 w-full">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 };

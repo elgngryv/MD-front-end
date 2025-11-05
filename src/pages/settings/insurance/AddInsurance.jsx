@@ -7,7 +7,7 @@ const AddInsurance = () => {
     const handleAddInsurance = () => {
         console.log('Insurance yaratildi');
         const id=1
-        navigate(`/settings/insurance/${id}`)
+        navigate(`/insurance/${id}`)
     }
 
   return (

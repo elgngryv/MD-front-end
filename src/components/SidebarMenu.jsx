@@ -1,205 +1,310 @@
-import React, { useState } from 'react';
-import { IoIosArrowBack, IoIosArrowForward, IoIosArrowDown, IoIosArrowForward as IoIosChevronRight } from 'react-icons/io';
-import { Link, useLocation } from 'react-router-dom';
-import '../assets/style/sidebar-menu.css';
-import mdLogo from '../assets/images/md-logo.svg';
+// src/components/SidebarMenu.jsx
+import React, { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import {
+  IoIosArrowBack,
+  IoIosArrowForward,
+  IoIosArrowDown,
+  IoIosArrowForward as IoIosChevronRight,
+} from "react-icons/io";
 
-// React komponentləri olan SVG ikonları import edək
-import DoctorIcon from './sidebar-icons/DoctorIcon.jsx';
-import CalendarIcon from './sidebar-icons/CalendarIcon.jsx';
-import PatientsIcon from './sidebar-icons/PatientsIcon.jsx';
-import WorkDoneIcon from './sidebar-icons/WorkDoneIcon.jsx';
-import LaboratoryIcon from './sidebar-icons/LaboratoryIcon.jsx';
-import WarehouseIcon from './sidebar-icons/WarehouseIcon.jsx';
-import SettingsIcon from './sidebar-icons/SettingsIcon.jsx';
+// Style
+import "../assets/style/sidebar-menu.css";
+import "../../logout.css";
 
-const SidebarMenu = () => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+// Images
+import mdLogo from "../assets/images/md-logo.svg";
+
+// Icons
+import DoctorIcon from "./sidebar-icons/DoctorIcon.jsx";
+import CalendarIcon from "./sidebar-icons/CalendarIcon.jsx";
+import PatientsIcon from "./sidebar-icons/PatientsIcon.jsx";
+import WorkDoneIcon from "./sidebar-icons/WorkDoneIcon.jsx";
+import LaboratoryIcon from "./sidebar-icons/LaboratoryIcon.jsx";
+import WarehouseIcon from "./sidebar-icons/WarehouseIcon.jsx";
+import SettingsIcon from "./sidebar-icons/SettingsIcon.jsx";
+import ExitIcon from "./sidebar-icons/ExitIcon.jsx";
+
+// Props olaraq isCollapsed və toggleSidebar qəbul edirik
+const SidebarMenu = ({ isCollapsed, toggleSidebar }) => {
   const [expandedItems, setExpandedItems] = useState([]);
-  const location = useLocation(); // Cari səhifə yolunu əldə etmək üçün
+  const location = useLocation();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  // URL-ə uyğun olan menyunun aktiv vəziyyətə gətirilməsi
-  React.useEffect(() => {
-    const currentPath = location.pathname;
-    // Alt elementdə aktiv səhifə var mı yoxlayırıq
-    menuItems.forEach(item => {
-      const hasActiveChild = item.children.some(child => child.path === currentPath);
-      if (hasActiveChild && !expandedItems.includes(item.id)) {
-        setExpandedItems(prev => [...prev, item.id]);
-      }
-    });
-  }, [location.pathname]);
+  const handleLogout = () => {
+    setIsLoggingOut(true);
 
-  // Ana elementlərin məlumatları - funksiya ilə
+    setTimeout(() => {
+      localStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("user");
+      window.location.href = "/login";
+    }, 1000); // 1 saniyəlik gözləmə (animasiya üçün)
+  };
+
   const menuItems = [
     {
       id: 1,
-      title: 'İşçilər',
-      icon: (isActive) => <DoctorIcon width={20} height={20} stroke={isActive ? "#fff" : "#155EEF"} />,
+      title: "İşçilər",
+      icon: (isActive) => (
+        <DoctorIcon width={20} height={20} stroke={isActive ? "#fff" : "#155EEF"} />
+      ),
       children: [
-        { id: 11, title: 'İşçilərin siyahısı', path: '/employees' },
-        { id: 12, title: 'İşçilərin iş qrafiki', path: '/employee-schedule' },
-        { id: 13, title: 'Yeni işçi əlavə et', path: '/user/add' }
-      ]
+        { id: 11, title: "İşçilərin siyahısı", path: "/employees" },
+        { id: 12, title: "İşçilərin iş qrafiki", path: "/employees/employee-schedule" },
+        { id: 13, title: "Yeni işçi əlavə et", path: "/employees/employee-add" },
+      ],
     },
     {
       id: 2,
-      title: 'Ümumi təqvim',
-      path: '/calendar',
-      icon: (isActive) => <CalendarIcon width={20} height={20} stroke={isActive ? "#fff" : "#155EEF"} />,
+      title: "Ümumi təqvim",
+      icon: (isActive) => (
+        <CalendarIcon width={20} height={20} stroke={isActive ? "#fff" : "#155EEF"} />
+      ),
       children: [
-        { id: 21, title: 'Bütün Randevular', path: '/appointments' },
-        { id: 22, title: 'Yeni Randevu', path: '/add-new-appointment' },
-        { id: 23, title: 'Randevu Kartı', path: '/randevu-card' }
-      ]
+        { id: 22, title: "Randevular", path: "/appointments" },
+        { id: 21, title: "Növbə gözləyənlər", path: "/queue" },
+      ],
     },
     {
       id: 3,
-      title: 'Pasiyentlər',
-      path: '/patients',
-      icon: (isActive) => <PatientsIcon width={20} height={20} stroke={isActive ? "#fff" : "#155EEF"} />,
-      children: [
-        { id: 31, title: 'Pasiyent Siyahısı', path: '/patients' },
-        { id: 32, title: 'Yeni Pasiyent', path: '/patient/add' }
-      ]
+      title: "Pasiyentlər",
+      path: "/patients",
+      icon: (isActive) => (
+        <PatientsIcon width={20} height={20} stroke={isActive ? "#fff" : "#155EEF"} />
+      ),
+      children: [],
     },
     {
       id: 4,
-      title: 'Görülmüş işlər',
-      path: '/work-done',
-      icon: (isActive) => <WorkDoneIcon width={20} height={20} stroke={isActive ? "#fff" : "#155EEF"} />,
-      children: [
-        { id: 41, title: 'Həkim Siyahısı', path: '/' },
-        { id: 42, title: 'Yeni Həkim',  path: '/user/add' }
-      ]
+      title: "Görülmüş işlər",
+      path: "reports",
+      icon: (isActive) => (
+        <WorkDoneIcon width={20} height={20} stroke={isActive ? "#fff" : "#155EEF"} />
+      ),
+      children: [],
     },
     {
       id: 5,
-      title: 'Laboratoriya',
-      path: '/laboratory',
-      icon: (isActive) => <LaboratoryIcon width={20} height={20} stroke={isActive ? "#fff" : "#155EEF"} />,
+      title: "Laboratoriya",
+      icon: (isActive) => (
+        <LaboratoryIcon width={20} height={20} stroke={isActive ? "#fff" : "#155EEF"} />
+      ),
       children: [
-        { id: 51, title: 'Sifarişlərin qəbulu', path: '/receiving-orders' },
-        { id: 52, title: 'Yeni Sifariş', path: '/lab/order/add' }
-      ]
+        { id: 51, title: "Göndərilən sifarişlər", path: "/sent-orders" },
+        { id: 52, title: "Gələn sifarişlər", path: "/received-orders" },
+        { id: 53, title: "Texniklər üzrə hesabat", path: "/technicals-report" },
+      ],
     },
     {
       id: 6,
-      title: 'Anbar əməliyyatları',
-      path: '/warehouse',
-      icon: (isActive) => <WarehouseIcon width={20} height={20} stroke={isActive ? "#fff" : "#155EEF"} />,
+      title: "Anbar əməliyyatları",
+      icon: (isActive) => (
+        <WarehouseIcon width={20} height={20} stroke={isActive ? "#fff" : "#155EEF"} />
+      ),
       children: [
-        { id: 61, title: 'Klinika Anbarı', path: '/stock/clinic' },
-        { id: 62, title: 'Kabinet Anbarı', path: '/stock/cabinet' },
-        { id: 63, title: 'Medaxil', path: '/stock/import' },
-        { id: 64, title: 'Sifarişlər', path: '/stock/order' },
-        { id: 65, title: 'Daxilolma', path: '/stock/entry' },
-        { id: 66, title: 'Silinmə', path: '/stock/delete' },
-        { id: 67, title: 'İstifadə', path: '/stock/usage' }
-      ]
+        { id: 61, title: "Klinikanın stoku", path: "/stock/clinic" },
+        { id: 62, title: "Kabinet/Obyekt stoku", path: "/stock/cabinet" },
+        { id: 63, title: "Anbara mədaxil", path: "/stock/import" },
+        { id: 64, title: "Anbara sifariş", path: "/stock/order" },
+        { id: 65, title: "Anbardan məxaric", path: "/stock/export" },
+        { id: 66, title: "Anbardan daxilolmalar", path: "/stock/entry" },
+        { id: 67, title: "Anbardan silinmə", path: "/stock/delete" },
+        { id: 68, title: "Məhsul istifadəsi", path: "/stock/usage" },
+      ],
     },
     {
       id: 7,
-      title: 'Tənzimləmələr',
-      path: '/settings',
-      icon: (isActive) => <SettingsIcon width={20} height={20} stroke={isActive ? "#fff" : "#155EEF"} />,
+      title: "Tənzimləmələr",
+      icon: (isActive) => (
+        <SettingsIcon width={20} height={20} stroke={isActive ? "#fff" : "#155EEF"} />
+      ),
       children: [
-        { id: 71, title: 'Müayinələr', path: '/settings/examination' },
-        { id: 72, title: 'Rənglər', path: '/settings/color' },
-        { id: 73, title: 'Sığorta', path: '/settings/insurance' }
-      ]
+        { id: 71, title: "İcazələr", path: "/permissions" },
+        { id: 72, title: "Admin istifadəçiləri", path: "/admin-users" },
+        { id: 73, title: "Texniklər", path: "/technicians" },
+        { id: 74, title: "Randevu tipləri", path: "/appointment-types" },
+        { id: 75, title: "Müayinə siyahısı", path: "/checklist" },
+        { id: 76, title: "Əməliyyat növləri", path: "/operations" },
+        { id: 77, title: "Dişlər", path: "/teeth" },
+        { id: 78, title: "Rənglər", path: "/colors" },
+        { id: 79, title: "İmplantlar", path: "/implants" },
+        { id: 80, title: "Qarniturlar", path: "/dental-set" },
+        { id: 81, title: "Sığorta şirkətləri", path: "/insurance" },
+        { id: 82, title: "Qiymət kateqoriyaları", path: "/price-category" },
+        { id: 83, title: "Kabinetlər", path: "/cabinets" },
+        { id: 84, title: "Digər obyektlər", path: "/other-objects" },
+        { id: 85, title: "Reseptlər", path: "/recepts" },
+        { id: 86, title: "Tövsiyə edənlər", path: "/recommendations" },
+        { id: 87, title: "Anamnez siyahısı", path: "/anamnesis" },
+        { id: 88, title: "Elmi dərəcələr", path: "/academic-degrees" },
+        { id: 89, title: "İxtisaslar", path: "/specialities" },
+        { id: 90, title: "Metallar", path: "/metals" },
+        { id: 91, title: "Keramikalar", path: "/ceramics" },
+        { id: 92, title: "Qara siyahı səbəbləri", path: "/blacklist-reasons" },
+        { id: 93, title: "Ümumi tənzimləmələr", path: "/general-settings" },
+        { id: 94, title: "Məhsul kateqoriyaları", path: "/product-categories" },
+      ],
     },
-    {
-      id: 8,
-      title: 'Çıxış',
-      icon: '🚪',
-      children: []
-    }
   ];
 
-  // Sidebar-ı yığmaq/açmaq üçün funksiya
-  const toggleSidebar = () => {
-    setIsCollapsed(!isCollapsed);
-  };
+  useEffect(() => {
+    const currentPath = location.pathname;
+    const expanded = [];
 
-  // Alt elementləri açıb-bağlamaq üçün funksiya
+    menuItems.forEach((item) => {
+      const hasActiveChild = item.children?.some(
+        (child) => child.path === currentPath
+      );
+      if (hasActiveChild) {
+        expanded.push(item.id);
+      }
+    });
+
+    setExpandedItems(expanded);
+  }, [location.pathname]);
+
   const toggleItem = (itemId) => {
-    setExpandedItems(prev => 
-      prev.includes(itemId) 
-        ? prev.filter(id => id !== itemId)
+    setExpandedItems((prev) =>
+      prev.includes(itemId)
+        ? prev.filter((id) => id !== itemId)
         : [...prev, itemId]
     );
   };
-  // Elementin aktiv olub olmadığını yoxlayan funksiya
+  const Spinner = () => (
+    <div className="spinner-overlay">
+      <div className="spinner" />
+    </div>
+  );
+
   const isActive = (path) => location.pathname === path;
+
   return (
-    <div className={`sidebar-menu ${isCollapsed ? 'collapsed' : ''}`}>
-      {/* Logo və yığma/açma düyməsi */}
+    <div className={`sidebar-menu ${isCollapsed ? "collapsed" : ""}`}>
       <div className="sidebar-header">
-        {!isCollapsed && <img src={mdLogo} alt="MD Logo" className="logo-image" />} 
+        {!isCollapsed && (
+          <img src={mdLogo} alt="MD Logo" className="logo-image" />
+        )}
+        {/* toggleSidebar funksiyasını basma hadisəsi ilə bağlayırıq */}
         <button className="toggle-button" onClick={toggleSidebar}>
           {isCollapsed ? <IoIosArrowForward /> : <IoIosArrowBack />}
         </button>
       </div>
 
-      {/* Menu elementləri */}
       <div className="menu-items">
-        {menuItems.map(item => {
-          // İtem aktiv vəziyyətdə olub olmadığını təyin edirik
+        {menuItems.map((item) => {
           const isItemActive = expandedItems.includes(item.id);
-          // Ana element özü aktiv mi?
           const isItemPathActive = isActive(item.path);
-          // Alt elementlər arasında aktiv olan varmı?
-          const hasActiveChild = item.children.some(child => isActive(child.path));
-          
+          const hasActiveChild = item.children?.some(
+            (child) => isActive(child.path)
+          );
+          const isHighlighted = isItemPathActive || hasActiveChild;
+
           return (
-            <div key={item.id} className="menu-item">
-              <div 
-                className={`menu-item-header ${isItemPathActive || hasActiveChild ? 'active' : ''}`}
-                onClick={() => item.children.length > 0 && toggleItem(item.id)}
-              >
-                <span className={`menu-item-icon ${(isItemActive || isItemPathActive || hasActiveChild) ? 'active' : ''}`}>
-                  {typeof item.icon === 'function' ? item.icon(isItemActive || isItemPathActive || hasActiveChild) : item.icon}
-                </span>
-                {!isCollapsed && (
-                  <>
-                    <span className="menu-item-title">{item.title}</span>
-                    {item.children.length > 0 && (
-                      <IoIosArrowDown 
-                        className={`arrow-icon ${expandedItems.includes(item.id) ? 'rotated' : ''}`}
-                      />
-                    )}
-                  </>
-                )}
-              </div>
-              
-              {/* Alt elementlər */}
-              {!isCollapsed && expandedItems.includes(item.id) && item.children.length > 0 && (
-                <div className="submenu">
-                  {item.children.map(child => {
-                    const isChildActive = isActive(child.path);
-                    
-                    return (
-                      <Link 
-                        key={child.id} 
-                        to={child.path} 
-                        className={`submenu-item ${isChildActive ? 'active' : ''}`}
-                      >
-                        {isChildActive && (
-                          <IoIosChevronRight className="submenu-active-indicator" />
-                        )}
-                        {/* <span className={`submenu-item-icon ${isChildActive ? 'active' : ''}`}>
-                          {child.icon}
-                        </span> */}
-                        <span className="submenu-item-title">{child.title}</span>
-                      </Link>
-                    );
-                  })}
+            <div key={item.id}>
+              {item.path ? (
+                <Link
+                  to={item.path}
+                  className={`menu-item-header ${
+                    isHighlighted ? "active-header" : ""
+                  }`}
+                  onClick={(e) => {
+                    if (item.children && item.children.length > 0) {
+                      e.preventDefault();
+                      toggleItem(item.id);
+                    }
+                  }}
+                >
+                  <span
+                    className={`menu-item-icon ${isHighlighted ? "active" : ""}`}
+                  >
+                    {typeof item.icon === "function"
+                      ? item.icon(isHighlighted)
+                      : item.icon}
+                  </span>
+                  {!isCollapsed && (
+                    <>
+                      <span className="menu-item-title">{item.title}</span>
+                      {item.children && item.children.length > 0 && (
+                        <IoIosArrowDown
+                          className={`arrow-icon ${
+                            expandedItems.includes(item.id) ? "rotated" : ""
+                          }`}
+                        />
+                      )}
+                    </>
+                  )}
+                </Link>
+              ) : (
+                <div
+                  className={`menu-item-header ${
+                    isHighlighted ? "active-header" : ""
+                  }`}
+                  onClick={() => {
+                    if (item.children && item.children.length > 0) {
+                      toggleItem(item.id);
+                    }
+                  }}
+                >
+                  <span
+                    className={`menu-item-icon ${isHighlighted ? "active" : ""}`}
+                  >
+                    {typeof item.icon === "function"
+                      ? item.icon(isHighlighted)
+                      : item.icon}
+                  </span>
+                  {!isCollapsed && (
+                    <>
+                      <span className="menu-item-title">{item.title}</span>
+                      {item.children && item.children.length > 0 && (
+                        <IoIosArrowDown
+                          className={`arrow-icon ${
+                            expandedItems.includes(item.id) ? "rotated" : ""
+                          }`}
+                        />
+                      )}
+                    </>
+                  )}
                 </div>
               )}
+
+              {!isCollapsed &&
+                expandedItems.includes(item.id) &&
+                item.children &&
+                item.children.length > 0 && (
+                  <div className="submenu">
+                    {item.children.map((child) => {
+                      const isChildActive = isActive(child.path);
+                      return (
+                        <Link
+                          key={child.id}
+                          to={child.path}
+                          className={`submenu-item ${
+                            isChildActive ? "active-rov" : ""
+                          }`}
+                        >
+                          {isChildActive && (
+                            <IoIosChevronRight className="submenu-active-indicator" />
+                          )}
+                          <span className="submenu-item-title">
+                            {child.title}
+                          </span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
             </div>
           );
         })}
+
+        {isLoggingOut && <Spinner />}
+        <div onClick={handleLogout} className="menu-item-header logout-button">
+          <span className="menu-item-icon">
+            <ExitIcon width={20} height={20} fill="#155EEF" />
+          </span>
+          {!isCollapsed && <span className="menu-item-title">Çıxış</span>}
+        </div>
       </div>
     </div>
   );

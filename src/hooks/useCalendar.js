@@ -3,11 +3,11 @@ import {
   getDoctors,
   updateAppointment,
   createAppointment,
-  getRoomPatients,
-  getPatientDetails,
-  getDoctorPatients,
+  getRoomPatients,    // This is now expected to be in general-calendar.js
+  getPatientDetails, // This is now expected to be in general-calendar.js
+  getDoctorPatients, // This is now expected to be in general-calendar.js
   deleteAppointment
-} from '../api/general-calendar';
+} from '../api/general-calendar'; // Ensure this path is correct
 
 export const useDoctors = () => {
   return useQuery({
@@ -50,6 +50,8 @@ export const useCreateAppointment = () => {
       // Invalidate relevant queries after successful creation
       queryClient.invalidateQueries({ queryKey: ['roomPatients'] });
       queryClient.invalidateQueries({ queryKey: ['doctorPatients'] });
+      // You might also want to invalidate a general 'appointments' query if you have one
+      // queryClient.invalidateQueries({ queryKey: ['appointments'] }); 
     },
   });
 };
@@ -64,6 +66,7 @@ export const useUpdateAppointment = () => {
       // Invalidate relevant queries after successful update
       queryClient.invalidateQueries({ queryKey: ['roomPatients'] });
       queryClient.invalidateQueries({ queryKey: ['doctorPatients'] });
+      // queryClient.invalidateQueries({ queryKey: ['appointments'] }); 
     },
   });
 };
@@ -78,6 +81,7 @@ export const useDeleteAppointment = () => {
       // Invalidate relevant queries after successful deletion
       queryClient.invalidateQueries({ queryKey: ['roomPatients'] });
       queryClient.invalidateQueries({ queryKey: ['doctorPatients'] });
+      // queryClient.invalidateQueries({ queryKey: ['appointments'] }); 
     },
   });
 };

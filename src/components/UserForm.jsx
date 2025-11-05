@@ -1,28 +1,53 @@
-import React, { useState, useEffect, useRef } from "react";
-import { SketchPicker } from "react-color";
-import { MdColorLens } from "react-icons/md";
+import React, { useState, useEffect } from "react";
 import "../assets/style/form.css";
 import ProfileImage from "./ProfileImage";
 import { LuPenLine } from "react-icons/lu";
 import { FaRegTrashAlt } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import Modal from "./Modal";
-import { Controller } from "react-hook-form";
 import CustomDropdown from "./CustomDropdown";
-export default function UserForm({
-  mode: initialMode,
-  userData = null,
-  onSubmit,
-  onDelete,
-}) {
+import useWorkerStore from "../../stores/workerStore";
+import usePermissionStore from "../../stores/permissionStore";
+import { FaRegEye, FaRegEyeSlash } from "react-icons/fa";
+
+function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
+  const { addWorker } = useWorkerStore();
+  const {
+    permissions: rawPermissions,
+    fetchPermissions,
+    loading: permissionsLoading,
+  } = usePermissionStore();
   const [mode, setMode] = useState(initialMode);
-  const [showColorPicker, setShowColorPicker] = useState(false);
-  const colorPickerRef = useRef(null);
-  const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
+  const navigate = useNavigate();
+
+  const permissionList = rawPermissions
+    .filter((permission) => permission.status === "ACTIVE")
+    .map((permission) => ({
+      label: permission.permissionName,
+      value: permission.id.toString(),
+      name: permission.permissionName,
+    }));
+
+  useEffect(() => {
+    fetchPermissions();
+  }, [fetchPermissions]);
+
+  const getDefaultPermissions = () => {
+    if (!userData || !userData.permissions) return [];
+    return userData.permissions.map((permissionName) => {
+      const permission = rawPermissions.find(
+        (p) => p.permissionName === permissionName
+      );
+      return permission ? permission.id.toString() : permissionName;
+    });
+  };
+
   const validationSchema = yup.object().shape({
     username: yup
       .string()
@@ -56,15 +81,16 @@ export default function UserForm({
       .required("Ata Adı tələb olunur"),
     finCode: yup
       .string()
+      .nullable()
       .matches(
-        /^[A-Z0-9]{7}$/,
-        "FIN kod yalnız böyük hərflər və rəqəmlərdən ibarət 7 simvol olmalıdır"
-      )
-      .required("FIN kod tələb olunur"),
+        /^$|^[A-Z0-9]{7}$/,
+        "FIN kod boş və ya yalnız böyük hərflər və rəqəmlərdən ibarət 7 simvol olmalıdır"
+      ),
     genderStatus: yup.string().required("Cinsiyyət seçilməlidir"),
     dateOfBirth: yup
       .date()
-      .max(new Date(), "Doğum tarixi bu gündən sonra ola bilməz")
+      .min("1800-01-01", "Doğum tarixi 1800-cü ildən əvvəl ola bilməz")
+      .max("3000-12-31", "Doğum tarixi 3000-ci ildən sonra ola bilməz")
       .required("Doğum tarixi tələb olunur"),
     phone: yup
       .string()
@@ -73,17 +99,16 @@ export default function UserForm({
         "Telefon nömrəsini (000)-000-00-00 formatında daxil edin"
       )
       .required("Telefon nömrəsi tələb olunur"),
-    phone2: yup
-      .string()
-      .nullable()
-      .test(
-        "phone2-format",
-        "Telefon nömrəsini (000)-000-00-00 formatında daxil edin",
-        function (value) {
-          if (!value) return true; // Allow empty/null values
-          return /^\(\d{3}\)-\d{3}-\d{2}-\d{2}$/.test(value);
-        }
-      ),
+    phone2:
+      mode === "create"
+        ? yup
+            .string()
+            .matches(
+              /^\(\d{3}\)-\d{3}-\d{2}-\d{2}$/,
+              "Telefon nömrəsini (000)-000-00-00 formatında daxil edin"
+            )
+            .required("Mobil nömrə 2 tələb olunur")
+        : yup.string().nullable(),
     homePhone: yup
       .string()
       .nullable()
@@ -91,7 +116,7 @@ export default function UserForm({
         "homePhone-format",
         "Telefon nömrəsini (000)-000-00-00 formatında daxil edin",
         function (value) {
-          if (!value) return true; // Allow empty/null values
+          if (!value) return true;
           return /^\(\d{3}\)-\d{3}-\d{2}-\d{2}$/.test(value);
         }
       ),
@@ -102,28 +127,27 @@ export default function UserForm({
         "phone3-format",
         "Telefon nömrəsini (000)-000-00-00 formatında daxil edin",
         function (value) {
-          if (!value) return true; // Allow empty/null values
+          if (!value) return true;
           return /^\(\d{3}\)-\d{3}-\d{2}-\d{2}$/.test(value);
         }
       ),
     email: yup
       .string()
+      .nullable()
       .matches(
-        /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+        /^$|^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
         "Düzgün e-poçt ünvanı daxil edin"
       ),
+    address: yup.string().nullable(),
     experience: yup
       .number()
       .min(0, "Təcrübə mənfi ola bilməz")
       .typeError("Təcrübə rəqəm olmalıdır"),
-    authorities:
+    permissions:
       mode !== "view"
         ? yup.array().min(1, "Ən azı bir icazə seçilməlidir")
-        : yup
-            .array()
-            .transform((value) =>
-              Array.isArray(value) && value.length > 0 ? [value[0]] : []
-            ),
+        : yup.array(),
+    colorCode: yup.string().required("Rəng kodu tələb olunur"),
   });
 
   const {
@@ -136,44 +160,42 @@ export default function UserForm({
   } = useForm({
     resolver: yupResolver(validationSchema),
     mode: "onBlur",
-    defaultValues: userData || {
-      username: "",
-      password: "",
-      name: "",
-      surname: "",
-      patronymic: "",
-      finCode: "",
-      colorCode: "#ffffff",
-      genderStatus: "",
-      dateOfBirth: "",
-      degree: "",
-      phone: "",
-      phone2: "",
-      homePhone: "",
-      email: "",
-      address: "",
-      experience: 0,
-      authorities: [],
-    },
+    defaultValues: userData
+      ? {
+          ...userData,
+          permissions: getDefaultPermissions(),
+          phone2: userData.phone2 || "",
+          email: userData.email || "",
+          address: userData.address || "",
+        }
+      : {
+          username: "",
+          password: "",
+          name: "",
+          surname: "",
+          patronymic: "",
+          finCode: "",
+          colorCode: "#ffffff",
+          genderStatus: "",
+          dateOfBirth: "",
+          phone: "",
+          phone2: "",
+          homePhone: "",
+          phone3: "",
+          email: "",
+          address: "",
+          experience: 0,
+          permissions: [],
+        },
   });
-
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (
-        colorPickerRef.current &&
-        !colorPickerRef.current.contains(event.target)
-      ) {
-        setShowColorPicker(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   const handleEditButton = () => setMode("edit");
   const handleCancelButton = () =>
     mode === "edit" ? setMode("view") : navigate(-1);
-  const handleColorChange = (color) => setValue("colorCode", color.hex);
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
 
   const formatPhoneNumber = (value) => {
     if (!value) return value;
@@ -187,45 +209,49 @@ export default function UserForm({
     )}-${phoneNumber.slice(6, 8)}-${phoneNumber.slice(8, 10)}`;
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    if (["phone", "phone2", "homePhone", "phone3"].includes(name)) {
-      setValue(name, formatPhoneNumber(value));
-    } else {
-      setValue(name, value);
+  const handleFormSubmit = async (data) => {
+    setErrorMessage(null);
+    const permissionsWithNames = data.permissions.map((permissionId) => {
+      const permission = rawPermissions.find(
+        (p) => p.id.toString() === permissionId
+      );
+      return permission ? permission.permissionName : permissionId;
+    });
+
+    const transformedData = {
+      ...data,
+      password: mode === "create" ? data.password : undefined,
+      phone2: data.phone2 || null,
+      homePhone: data.homePhone || null,
+      phone3: data.phone3 || null,
+      email: data.email || null,
+      address: data.address || null,
+      experience: data.experience || 0,
+      permissions: permissionsWithNames,
+    };
+
+    try {
+      if (mode === "edit") {
+        const updateData = Object.keys(transformedData).reduce((acc, key) => {
+          if (
+            JSON.stringify(transformedData[key]) !==
+            JSON.stringify(userData[key])
+          ) {
+            acc[key] = transformedData[key];
+          }
+          return acc;
+        }, {});
+        await onSubmit(updateData);
+      } else {
+        await onSubmit(transformedData);
+      }
+    } catch (error) {
+      console.error("Form submission error:", error);
+      console.error("Error details:", error.response);
+      const apiErrorMessage = error?.response?.message || "Xəta baş verdi. Zəhmət olmasa, yenidən cəhd edin.";
+      setErrorMessage(apiErrorMessage);
     }
   };
-
-  const handleFormSubmit = (data) => {
-    // Transform values here
-    const transformedData = Object.fromEntries(
-      Object.entries(data).map(([key, value]) => [
-        key,
-        value === "" ? null : value,
-      ])
-    );
-
-    if (mode === "edit") {
-      const updateData = Object.keys(transformedData).reduce((acc, key) => {
-        if (transformedData[key] !== userData[key])
-          acc[key] = transformedData[key];
-        return acc;
-      }, {});
-      onSubmit(updateData);
-    } else {
-      onSubmit(transformedData);
-    }
-  };
-
-  const permissionList = [
-    { label: "ADMIN", value: "ADMIN" },
-    { label: "DOCTOR", value: "DOCTOR" },
-    { label: "DOCTOR_FULL_PERMISSION", value: "DOCTOR_FULL_PERMISSION" },
-    { label: "ACCOUNTANT", value: "ACCOUNTANT" },
-    { label: "USER", value: "USER" },
-    { label: "WAREHOUSE_MAN", value: "WAREHOUSE_MAN" },
-    { label: "RECEPTION", value: "RECEPTION" },
-  ];
 
   return (
     <div className="main-form-container">
@@ -243,6 +269,11 @@ export default function UserForm({
           ? "İşçi məlumatlarını yenilə"
           : "İşçi məlumatları"}
       </h3>
+      {errorMessage && (
+        <div className="alert alert-danger" role="alert">
+          {errorMessage}
+        </div>
+      )}
 
       <form className="main-form" onSubmit={handleSubmit(handleFormSubmit)}>
         <div className={`${mode === "view" ? "profile-buttons" : ""}`}>
@@ -281,20 +312,32 @@ export default function UserForm({
                   errors.username ? "error" : ""
                 }`}
               />
+              {errors.username && (
+                <p className="error-message">{errors.username.message}</p>
+              )}
             </div>
 
             {mode === "create" && (
-              <div className="main-form-group">
+              <div className="main-form-group password-field-group">
                 <label htmlFor="password">
                   Şifrə <span className="text-red-500">*</span>
                 </label>
-                <input
-                  id="password"
-                  type="password"
-                  {...register("password")}
-                  readOnly={mode === "view"}
-                  className={mode === "view" ? "readonly" : ""}
-                />
+                <div className="password-input-wrapper">
+                  <input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    {...register("password")}
+                    className={errors.password ? "error" : ""}
+                  />
+                  <span
+                    className="password-toggle-icon"
+                    onClick={togglePasswordVisibility}>
+                    {showPassword ? <FaRegEyeSlash /> : <FaRegEye />}
+                  </span>
+                </div>
+                {errors.password && (
+                  <p className="error-message">{errors.password.message}</p>
+                )}
               </div>
             )}
 
@@ -307,8 +350,13 @@ export default function UserForm({
                 type="text"
                 {...register("name")}
                 readOnly={mode === "view"}
-                className={mode === "view" ? "readonly" : ""}
+                className={`${mode === "view" ? "readonly" : ""} ${
+                  errors.name ? "error" : ""
+                }`}
               />
+              {errors.name && (
+                <p className="error-message">{errors.name.message}</p>
+              )}
             </div>
 
             <div className="main-form-group">
@@ -320,8 +368,13 @@ export default function UserForm({
                 type="text"
                 {...register("surname")}
                 readOnly={mode === "view"}
-                className={mode === "view" ? "readonly" : ""}
+                className={`${mode === "view" ? "readonly" : ""} ${
+                  errors.surname ? "error" : ""
+                }`}
               />
+              {errors.surname && (
+                <p className="error-message">{errors.surname.message}</p>
+              )}
             </div>
 
             <div className="main-form-group">
@@ -333,8 +386,13 @@ export default function UserForm({
                 type="text"
                 {...register("patronymic")}
                 readOnly={mode === "view"}
-                className={mode === "view" ? "readonly" : ""}
+                className={`${mode === "view" ? "readonly" : ""} ${
+                  errors.patronymic ? "error" : ""
+                }`}
               />
+              {errors.patronymic && (
+                <p className="error-message">{errors.patronymic.message}</p>
+              )}
             </div>
 
             <div className="main-form-group">
@@ -356,50 +414,44 @@ export default function UserForm({
                     label: "Qadın",
                   },
                 ]}
+                isDisabled={mode === "view"}
               />
+              {errors.genderStatus && (
+                <p className="error-message">{errors.genderStatus.message}</p>
+              )}
             </div>
 
             <div className="main-form-group">
-              <label htmlFor="finCode">
-                FIN kod <span className="text-red-500">*</span>
-              </label>
+              <label htmlFor="finCode">FIN kod</label>
               <input
                 id="finCode"
                 type="text"
                 {...register("finCode")}
                 readOnly={mode === "view"}
-                className={mode === "view" ? "readonly" : ""}
+                className={`${mode === "view" ? "readonly" : ""} ${
+                  errors.finCode ? "error" : ""
+                }`}
               />
+              {errors.finCode && (
+                <p className="error-message">{errors.finCode.message}</p>
+              )}
             </div>
 
-            <div className="main-form-group color-selector-group">
-              <label htmlFor="colorCode">Rəng kodu</label>
+            <div className="main-form-group">
+              <label htmlFor="colorCode">
+                Rəng kodu <span className="text-red-500">*</span>
+              </label>
               <input
                 id="colorCode"
-                type="text"
+                type="color"
                 {...register("colorCode")}
-                readOnly
-                className={mode === "view" ? "readonly" : ""}
+                disabled={mode === "view"}
+                className={`${mode === "view" ? "readonly-color" : ""} ${
+                  errors.colorCode ? "error" : ""
+                }`}
               />
-              {mode !== "view" && (
-                <span
-                  className="color-icon"
-                  onClick={() => setShowColorPicker(!showColorPicker)}>
-                  <MdColorLens />
-                </span>
-              )}
-              <span
-                className="color-swatch"
-                style={{ backgroundColor: watch("colorCode") }}></span>
-
-              {showColorPicker && (
-                <div ref={colorPickerRef} className="color-picker-dropdown">
-                  <SketchPicker
-                    disableAlpha={true}
-                    color={watch("colorCode")}
-                    onChangeComplete={handleColorChange}
-                  />
-                </div>
+              {errors.colorCode && (
+                <p className="error-message">{errors.colorCode.message}</p>
               )}
             </div>
 
@@ -412,19 +464,15 @@ export default function UserForm({
                 type="date"
                 {...register("dateOfBirth")}
                 readOnly={mode === "view"}
-                className={mode === "view" ? "readonly" : ""}
+                min="1800-01-01"
+                max="3000-12-31"
+                className={`${mode === "view" ? "readonly" : ""} ${
+                  errors.dateOfBirth ? "error" : ""
+                }`}
               />
-            </div>
-
-            <div className="main-form-group">
-              <label htmlFor="degree">Elmi dərəcə</label>
-              <input
-                id="degree"
-                type="text"
-                {...register("degree")}
-                readOnly={mode === "view"}
-                className={mode === "view" ? "readonly" : ""}
-              />
+              {errors.dateOfBirth && (
+                <p className="error-message">{errors.dateOfBirth.message}</p>
+              )}
             </div>
           </div>
 
@@ -444,12 +492,20 @@ export default function UserForm({
                   },
                 })}
                 readOnly={mode === "view"}
-                className={mode === "view" ? "readonly" : ""}
+                className={`${mode === "view" ? "readonly" : ""} ${
+                  errors.phone ? "error" : ""
+                }`}
               />
+              {errors.phone && (
+                <p className="error-message">{errors.phone.message}</p>
+              )}
             </div>
 
             <div className="main-form-group">
-              <label htmlFor="phone2">Mobil nömrə 2</label>
+              <label htmlFor="phone2">
+                Mobil nömrə 2
+                {mode === "create" && <span className="text-red-500">*</span>}
+              </label>
               <input
                 id="phone2"
                 type="tel"
@@ -461,8 +517,13 @@ export default function UserForm({
                   },
                 })}
                 readOnly={mode === "view"}
-                className={mode === "view" ? "readonly" : ""}
+                className={`${mode === "view" ? "readonly" : ""} ${
+                  errors.phone2 ? "error" : ""
+                }`}
               />
+              {errors.phone2 && (
+                <p className="error-message">{errors.phone2.message}</p>
+              )}
             </div>
 
             <div className="main-form-group">
@@ -478,8 +539,13 @@ export default function UserForm({
                   },
                 })}
                 readOnly={mode === "view"}
-                className={mode === "view" ? "readonly" : ""}
+                className={`${mode === "view" ? "readonly" : ""} ${
+                  errors.phone3 ? "error" : ""
+                }`}
               />
+              {errors.phone3 && (
+                <p className="error-message">{errors.phone3.message}</p>
+              )}
             </div>
             <div className="main-form-group">
               <label htmlFor="homePhone">Ev telefonu</label>
@@ -494,8 +560,13 @@ export default function UserForm({
                   },
                 })}
                 readOnly={mode === "view"}
-                className={mode === "view" ? "readonly" : ""}
+                className={`${mode === "view" ? "readonly" : ""} ${
+                  errors.homePhone ? "error" : ""
+                }`}
               />
+              {errors.homePhone && (
+                <p className="error-message">{errors.homePhone.message}</p>
+              )}
             </div>
 
             <div className="main-form-group">
@@ -505,8 +576,13 @@ export default function UserForm({
                 type="email"
                 {...register("email")}
                 readOnly={mode === "view"}
-                className={mode === "view" ? "readonly" : ""}
+                className={`${mode === "view" ? "readonly" : ""} ${
+                  errors.email ? "error" : ""
+                }`}
               />
+              {errors.email && (
+                <p className="error-message">{errors.email.message}</p>
+              )}
             </div>
 
             <div className="main-form-group">
@@ -519,17 +595,6 @@ export default function UserForm({
                 className={mode === "view" ? "readonly" : ""}
               />
             </div>
-            {/* 
-            <div className="main-form-group">
-              <label htmlFor="workAddress">İş ünvanı</label>
-              <input
-                id="workAddress"
-                type="text"
-                {...register('workAddress')}
-                readOnly={mode === 'view'}
-                className={mode === 'view' ? 'readonly' : ''}
-              />
-            </div> */}
 
             <div className="main-form-group">
               <label htmlFor="experience">Təcrübə (il)</label>
@@ -538,41 +603,76 @@ export default function UserForm({
                 type="number"
                 {...register("experience")}
                 readOnly={mode === "view"}
-                className={mode === "view" ? "readonly" : ""}
+                className={`${mode === "view" ? "readonly" : ""} ${
+                  errors.experience ? "error" : ""
+                }`}
               />
+              {errors.experience && (
+                <p className="error-message">{errors.experience.message}</p>
+              )}
             </div>
 
             <div className="main-form-group">
-              <label htmlFor="authorities">
+              <label htmlFor="permissions">
                 İcazələr <span className="text-red-500">*</span>
               </label>
               <div className="permissions-checklist">
-                <Controller
-                  name="authorities"
-                  control={control}
-                  render={({ field }) => (
-                    <>
-                      {permissionList.map((permission) => (
-                        <label key={permission.value}>
-                          <input
-                            type="checkbox"
-                            value={permission.value}
-                            checked={field.value.includes(permission.value)}
-                            onChange={() => {
-                              field.onChange([permission.value]); // replace with single value in array
-                            }}
-                            disabled={mode === "view"}
-                          />
-                          {permission.label}
-                        </label>
-                      ))}
-                    </>
-                  )}
-                />
+                {permissionsLoading ? (
+                  <div className="text-sm text-gray-500">
+                    İcazələr yüklənir...
+                  </div>
+                ) : permissionList.length === 0 ? (
+                  <div className="text-sm text-gray-500">İcazə tapılmadı</div>
+                ) : (
+                  <Controller
+                    name="permissions"
+                    control={control}
+                    render={({ field }) => (
+                      <div className="grid grid-cols-2 gap-2">
+                        {permissionList.map((permission) => (
+                          <label
+                            key={permission.value}
+                            className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              value={permission.value}
+                              checked={field.value?.includes(permission.value)}
+                              onChange={(e) => {
+                                const isChecked = e.target.checked;
+                                const currentValues = field.value || [];
+                                if (isChecked) {
+                                  field.onChange([
+                                    ...currentValues,
+                                    permission.value,
+                                  ]);
+                                } else {
+                                  field.onChange(
+                                    currentValues.filter(
+                                      (val) => val !== permission.value
+                                    )
+                                  );
+                                }
+                              }}
+                              disabled={mode === "view"}
+                              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <span>{permission.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  />
+                )}
               </div>
+              {errors.permissions && (
+                <p className="mt-1 text-sm text-red-600">
+                  {errors.permissions.message}
+                </p>
+              )}
             </div>
           </div>
         </div>
+
         {Object.keys(errors).length > 0 && (
           <div className="error-summary">
             <ul>
@@ -584,6 +684,7 @@ export default function UserForm({
             </ul>
           </div>
         )}
+
         {mode !== "view" && (
           <div className="main-form-actions">
             <button type="submit" className="btn-submit">
@@ -601,3 +702,5 @@ export default function UserForm({
     </div>
   );
 }
+
+export default UserForm;

@@ -35,4 +35,3 @@ const AddColor = () => {
 };
 
 export default AddColor;
-

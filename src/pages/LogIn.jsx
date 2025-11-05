@@ -1,5 +1,8 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../assets/style/login.css";
+import axios from "axios";
+import "./login.css";
 
 // Components
 import TitleUpdater from "../components/TitleUpdater";
@@ -11,18 +14,63 @@ import { FaCheck } from "react-icons/fa";
 
 // Images
 import logo from "../assets/images/general/logos/logo.png";
+import loginBg from "../assets/images/login-page-images/login-background-now.jpg";
+
+// Zustand store
+import useAuthStore from "../../stores/authStore";
 
 function LogIn() {
   const [passwordShown, setPasswordShown] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [localLoading, setLocalLoading] = useState(false);
+
+  const { login, error } = useAuthStore();
+  const navigate = useNavigate();
 
   const togglePasswordVisibility = () => {
     setPasswordShown(!passwordShown);
   };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLocalLoading(true);
+
+    try {
+      const loginSuccess = await useAuthStore
+        .getState()
+        .login({ username, password });
+
+      if (loginSuccess) {
+        console.log("Login Success ✅");
+
+        setTimeout(() => {
+          navigate("/");
+        }, 800);
+      } else {
+        console.log("Login failed ❌");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+    } finally {
+      setLocalLoading(false);
+    }
+  };
+
   return (
     <div className="login-container">
+      <img src={loginBg} alt="login background" className="login-bg-img" />
       <TitleUpdater title={"LogIn"} />
-      <div className="login-form-container">
+
+      {/* Fullscreen Loading Spinner */}
+      {localLoading && (
+        <div className={`spinner-overlay${localLoading ? "" : " hidden"}`}>
+          <div className="spinner"></div>
+        </div>
+      )}
+
+      <form className="login-form-container" onSubmit={handleLogin}>
         <div className="topPart">
           <img src={logo} alt="Müasir Stomatologiya" />
           <p className="logo-title">
@@ -31,14 +79,25 @@ function LogIn() {
           </p>
         </div>
         <p className="logo-motto">Uğur təbəssümdən başlayır!</p>
+
         <div className="inputs-container">
           <div className="username-part">
-            <input type="text" placeholder="İstifadəçinin adı" />
+            <input
+              type="text"
+              name="stamatoloq"
+              placeholder="İstifadəçinin adı"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+            />
           </div>
           <div className="password-part">
             <input
               type={passwordShown ? "text" : "password"}
               placeholder="Şifrə"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
             />
             {passwordShown ? (
               <GoEyeClosed
@@ -52,16 +111,20 @@ function LogIn() {
         </div>
 
         <div className="remember-me" onClick={() => setRememberMe(!rememberMe)}>
-          <div className={`custom-checkbox ${rememberMe ? "checked" : ""}`}>
+          <div className={`custom-checkbox${rememberMe ? " checked" : ""}`}>
             {rememberMe && <FaCheck className="check-icon" />}
           </div>
           <label>Yadda saxla</label>
         </div>
 
+        {error && <p className="error-message">{error}</p>}
+
         <div className="login-btn">
-          <button type="submit">Daxil ol</button>
+          <button type="submit" disabled={localLoading}>
+            Daxil ol
+          </button>
         </div>
-      </div>
+      </form>
     </div>
   );
 }

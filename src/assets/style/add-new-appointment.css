@@ -1,61 +1,60 @@
+/* Main container */
 .appointments-container {
+  max-width: 1200px; /* Added max-width to make it wider but not full-screen */
+  margin: 0 auto; /* Centered the container */
   height: 100vh;
+  display: flex;
+  justify-content: center;
+  width: 100% !important;
 }
 
+/* Form container */
 .form-container {
-  padding: 20px;
   background: #FCFCFD;
   height: 100%;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   position: relative;
-  padding-bottom: 100px;
+  padding: 20px; /* Added padding for better spacing */
 }
+
 .right-side {
   padding: 0;
+  
 }
-/* ===== Həkim & Pasiyent ======  */
-.first-row {
-  display: flex;
-  gap: 20px;
-  width: 100%;
-}
-.first-row .form-group {
-  width: 50%;
-}
-/* ===== Əməliyyat & Otaq ======  */
-.second-row {
-  display: flex;
-  gap: 20px;
-  width: 100%;
-}
-.second-row .form-group {
-  width: 50%;
-} 
-/* ===== Tarix & Saat & Müddət ======  */
-.third-row {
-  display: flex;
-  gap: 20px;
-  width: 100%;
-}
-.third-row .form-group {
-  width: 33.33%;
-}
-/* ===== Status & Pasient borcu ======  */
+
+/* Row layouts */
+.first-row,
+.second-row,
+.third-row,
 .fourth-row {
   display: flex;
   gap: 20px;
   width: 100%;
 }
+
+.first-row .form-group,
+.second-row .form-group,
 .fourth-row .form-group {
   width: 50%;
 }
 
+.third-row .form-group {
+  width: 33.33%;
+}
+
+.fourth-row {
+  padding-bottom: 200px;
+}
+
+/* Form heading */
 .form-container h2 {
   margin-bottom: 20px;
   color: #333;
   font-size: 24px;
 }
+
+/* Form group */
 .form-group {
   display: flex;
   flex-direction: column;
@@ -63,26 +62,26 @@
 }
 
 .form-group label {
-  align-self: flex-start;
-  margin: 10px 0;
-  width: 30%;
+  margin-bottom: 10px;
   font-size: 14px;
 }
 
 .form-group input,
-.form-group select {
+.form-group select,
+.patient-select {
   width: 100%;
   height: 40px;
   padding: 0 10px;
   border: 1px solid #CDD5DF;
   border-radius: 6px;
-  margin-right: 20px;
   background-color: #F8FAFC;
 }
 
-/* CustomSelect üçün əlavə stillər */
-.patient-select {
-  width: 100%;
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #0066cc;
+  box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
 }
 
 .form-group input.readonly {
@@ -94,31 +93,25 @@
   margin-bottom: 10px;
 }
 
-.form-group input:focus {
-  outline: none;
-  border-color: #0066cc;
-  box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
-}
-
-
-/* ===== Buttons ======  */
+/* Buttons */
 .buttons-container {
-  gap: 10px;
   display: flex;
   justify-content: flex-end;
+  gap: 10px;
   position: absolute;
   bottom: 40px;
   right: 20px;
 }
-.cancel-button, .confirm-button {
+
+.cancel-button,
+.confirm-button {
   padding: 8px 25px;
   font-size: 14px;
   font-weight: 500;
-  border-radius: 4px;
-  cursor: pointer;
   border-radius: 8px;
-  transition: 0.2s;
+  cursor: pointer;
   min-width: 100px;
+  transition: all 0.2s ease;
 }
 
 .cancel-button {
@@ -129,29 +122,32 @@
 
 .cancel-button:hover {
   background-color: #155EEF;
-    color: #fff;
+  color: #fff;
 }
-.confirm-button{
-    background-color: #155EEF;
-    color: #fff;
-    border: 1px solid transparent;
+
+.confirm-button {
+  background-color: #155EEF;
+  color: #fff;
+  border: 1px solid transparent;
 }
 
 .confirm-button:hover {
   background-color: transparent;
-    color: #155EEF;
-    border-color: #155EEF;
+  color: #155EEF;
+  border-color: #155EEF;
 }
 
-/* Təhlükəli əməliyyatlar üçün təsdiqləmə düyməsi */
 .confirm-button.danger {
   background-color: #F44336;
+  border-color: #F44336;
 }
 
 .confirm-button.danger:hover {
   background-color: #d32f2f;
+  border-color: #d32f2f;
 }
 
+/* Date picker */
 .date-input-container {
   position: relative;
   width: 100%;
@@ -180,7 +176,7 @@
   margin-top: 4px;
   width: 100%;
   min-width: 300px;
-  background: white;
+  background: #fff;
   border: 1px solid #E2E8F0;
   border-radius: 8px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
@@ -188,7 +184,7 @@
 
 .calendar-day.selected {
   background-color: #3B82F6;
-  color: white;
+  color: #fff;
 }
 
 .calendar-day.selected:hover {

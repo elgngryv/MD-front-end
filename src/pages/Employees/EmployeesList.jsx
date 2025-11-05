@@ -1,147 +1,387 @@
-import React, { useState } from 'react'
-
-// Components
-import OrdinaryListHeader from '../../components/OrdinaryList/OrdinaryListHeader'
-import OrdinaryList from '../../components/OrdinaryList/OrdinaryList';
-
-// Icons
-import { CiSearch } from "react-icons/ci";
-import { CiCircleInfo } from "react-icons/ci";
+import React, { useEffect, useState } from "react";
+import OrdinaryListHeader from "../../components/OrdinaryList/OrdinaryListHeader";
+import { CiSearch, CiCircleInfo, CiCalendar } from "react-icons/ci";
 import { GoTrash } from "react-icons/go";
 import { FiEdit3 } from "react-icons/fi";
+import { HiArrowsUpDown } from "react-icons/hi2";
+import "../../assets/style/EmployeesPage/employeespage.css";
+import useEmployeeStore from "../../../stores/workerStore";
+import { useNavigate, Link } from "react-router-dom";
+import "./EmployeList.css";
 
-// Style
-import "../../assets/style/EmployeesPage/employeespage.css"
+const EmployeesList = () => {
+  const {
+    workers,
+    fetchWorkers,
+    searchWorkers,
+    removeWorker,
+    searchResult,
+    loading,
+    setSearchResult,
+    fetchByPermission,
+    permissions,
+    fetchPermissions,
+  } = useEmployeeStore();
 
-const employeesData = [
-  {
-    username: "Dr.elmira",
-    name: "Elmira",
-    surname: "Aliyeva",
-    fatherName: "Rüstəm",
-    phone: "(050) xxx xx xx",
-    permission: "Tam icazə",
-    schedule: "09:00-17:00",
-    status: "Aktiv",
-    img: "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
-  },
-];
-
-while (employeesData.length < 8) {
-  employeesData.push({
-    ...employeesData[0],
-    status: employeesData.length < 4 ? "Aktiv" : "Passiv"
+  const [searchParams, setSearchParams] = useState({
+    username: "",
+    name: "",
+    surname: "",
+    patronymic: "",
+    phone: "",
+    enabled: "",
   });
-}
 
-const icons = [
-  {
-    icon: CiCircleInfo,
-    action: (row) => alert(`Məlumat: ${row.username}`),
-    className: "info"
-  },
-  {
-    icon: FiEdit3,
-    action: (row) => alert(`Redaktə: ${row.username}`),
-    className: "edit"
-  },
-  {
-    icon: GoTrash,
-    action: (row) => alert(`Silindi: ${row.username}`),
-    className: "delete"
-  }
-];
+  const [selectedPermission, setSelectedPermission] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
 
-function EmployeesList() {
-  const [searchUsername, setSearchUsername] = useState('');
-  const [searchName, setSearchName] = useState('');
-  const [searchSurname, setSearchSurname] = useState('');
-  const [searchFatherName, setSearchFatherName] = useState('');
-  const [searchPhone, setSearchPhone] = useState('');
-  const [searchStatus, setSearchStatus] = useState('');
+  const navigation = useNavigate();
 
-  // Filter employees based on search criteria
-  const filteredEmployees = employeesData.filter((employee) => {
-    return (
-      (employee.username.toLowerCase().includes(searchUsername.toLowerCase()) || searchUsername === '') &&
-      (employee.name.toLowerCase().includes(searchName.toLowerCase()) || searchName === '') &&
-      (employee.surname.toLowerCase().includes(searchSurname.toLowerCase()) || searchSurname === '') &&
-      (employee.fatherName.toLowerCase().includes(searchFatherName.toLowerCase()) || searchFatherName === '') &&
-      (employee.phone.includes(searchPhone) || searchPhone === '') &&
-      (employee.status.toLowerCase().includes(searchStatus.toLowerCase()) || searchStatus === '')
-    );
-  });
+  useEffect(() => {
+    fetchWorkers();
+    fetchPermissions();
+  }, [fetchWorkers, fetchPermissions]);
+
+  useEffect(() => {
+    if (
+      workers.length > 0 &&
+      searchResult.length === 0 &&
+      Object.values(searchParams).every(
+        (val) => val === "" || val === undefined
+      )
+    ) {
+      setSearchResult(workers);
+    }
+  }, [workers, searchResult, setSearchResult, searchParams]);
+
+  const getStatus = (emp) => (emp.enabled ? "Aktiv" : "Passiv");
+
+  const handlePermissionChange = async (e) => {
+    const perm = e.target.value;
+    setSelectedPermission(perm);
+
+    if (perm === "") {
+      setSearchResult(workers);
+    } else {
+      await fetchByPermission(perm);
+      setCurrentPage(1);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setSearchParams((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  
+    // Reset other search parameters if a specific one is being typed
+    // This is optional but can improve UX
+    if (name !== 'enabled' && selectedPermission) {
+      setSelectedPermission("");
+    }
+    
+    // Use a timeout to debounce the search, preventing API calls on every keystroke
+    setTimeout(() => {
+      handleSearch({ ...searchParams, [name]: value });
+    }, 300);
+  };
+  
+  const handleSearch = async (currentParams) => {
+    try {
+      const allSearchParamsEmpty = Object.values(currentParams).every(
+        (val) => val === "" || val === undefined
+      );
+
+      if (allSearchParamsEmpty && !selectedPermission) {
+        await fetchWorkers();
+        const updatedWorkers = useEmployeeStore.getState().workers;
+        setSearchResult(updatedWorkers);
+        setCurrentPage(1);
+        return;
+      }
+      
+      const enabledBoolean =
+        currentParams.enabled === "true"
+          ? true
+          : currentParams.enabled === "false"
+          ? false
+          : undefined;
+
+      await searchWorkers({
+        username: currentParams.username || undefined,
+        name: currentParams.name || undefined,
+        surname: currentParams.surname || undefined,
+        patronymic: currentParams.patronymic || undefined,
+        phone: currentParams.phone || undefined,
+        enabled: enabledBoolean,
+      });
+
+      setCurrentPage(1);
+    } catch (error) {
+      console.error("Axtarış xətası:", error);
+      alert("Axtarış zamanı xəta baş verdi");
+    }
+  };
+  
+
+  const icons = [
+    {
+      icon: CiCircleInfo,
+      action: (row) => navigation(`employee/${row.id}`),
+      className: "info",
+    },
+    {
+      icon: FiEdit3,
+      action: (row) => navigation(`edit-employee/${row.id}`),
+      className: "edit",
+    },
+    {
+      icon: GoTrash,
+      action: async (row) => {
+        const confirmDelete = window.confirm(
+          `İşçini silmək istədiyinizə əminsiniz? (${row.username})`
+        );
+        if (confirmDelete) {
+          try {
+            await removeWorker(row.id);
+            alert("İşçi uğurla silindi!");
+
+            const allSearchParamsEmpty = Object.values(searchParams).every(
+              (val) => val === "" || val === undefined
+            );
+
+            if (allSearchParamsEmpty) {
+              await fetchWorkers();
+              const updatedWorkers = useEmployeeStore.getState().workers;
+              setSearchResult(updatedWorkers);
+            } else {
+              handleSearch(searchParams);
+            }
+          } catch (err) {
+            alert("Silinmə zamanı xəta baş verdi.");
+          }
+        }
+      },
+      className: "delete",
+    },
+  ];
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentEmployees = searchResult.slice(
+    indexOfFirstItem,
+    indexOfLastItem
+  );
+  const totalPages = Math.ceil(searchResult.length / itemsPerPage);
 
   return (
-    <>
+    <div className="employeesListWrapper">
       <OrdinaryListHeader
-        title="İşçilər siyahısı"
-        addText="Yeni işçi əlavə et"
-        addLink="/employees/add"
+        title="İşçilər"
+        addText="Yenisini əlavə et"
+        addLink="/employees/employee-add"
         exportLink="/employees/export"
       />
-      <div className="workersSearchInputs">
+
+      <div className="patientsListSearch">
         <div className="leftPart">
-          <input 
-            type="text" 
-            placeholder='Istifadəçi adı' 
-            value={searchUsername}
-            onChange={(e) => setSearchUsername(e.target.value)} 
+          <input
+            name="username"
+            placeholder="İstifadəçi adı"
+            value={searchParams.username}
+            onChange={handleInputChange}
+            onKeyPress={(e) => e.key === "Enter" && handleSearch(searchParams)}
           />
-          <input 
-            type="text"  
-            placeholder='Ad'
-            value={searchName}
-            onChange={(e) => setSearchName(e.target.value)} 
+          <input
+            name="name"
+            placeholder="Ad"
+            value={searchParams.name}
+            onChange={handleInputChange}
+            onKeyPress={(e) => e.key === "Enter" && handleSearch(searchParams)}
           />
-          <input 
-            type="text" 
-            placeholder='Soyad'
-            value={searchSurname}
-            onChange={(e) => setSearchSurname(e.target.value)} 
+          <input
+            name="surname"
+            placeholder="Soyad"
+            value={searchParams.surname}
+            onChange={handleInputChange}
+            onKeyPress={(e) => e.key === "Enter" && handleSearch(searchParams)}
           />
-          <input 
-            type="text" 
-            placeholder='Ata adı' 
-            value={searchFatherName}
-            onChange={(e) => setSearchFatherName(e.target.value)} 
+          <input
+            name="patronymic"
+            placeholder="Ata adı"
+            value={searchParams.patronymic}
+            onChange={handleInputChange}
+            onKeyPress={(e) => e.key === "Enter" && handleSearch(searchParams)}
           />
-          <input 
-            type="number" 
-            placeholder='Mobil nömrə'
-            value={searchPhone}
-            onChange={(e) => setSearchPhone(e.target.value)} 
+          <input
+            name="phone"
+            placeholder="Telefon"
+            value={searchParams.phone}
+            onChange={handleInputChange}
+            onKeyPress={(e) => e.key === "Enter" && handleSearch(searchParams)}
           />
-          <CiSearch className='searchBTN'/>
+          <button className="cursor-pointer" onClick={() => handleSearch(searchParams)}>
+            <CiSearch className="searchBTN" />
+          </button>
         </div>
+
         <div className="rightPart">
-          <select 
-            value={searchStatus} 
-            onChange={(e) => setSearchStatus(e.target.value)} 
-            className='workersStatusChecker'
-          >
-            <option value="">Status</option>
-            <option value="Aktiv">Aktiv</option>
-            <option value="Passiv">Passiv</option>
+          <select value={selectedPermission} onChange={handlePermissionChange}>
+            <option value="">Hamısı</option>
+            {permissions.map((perm) => (
+              <option key={perm.id} value={perm.permissionName}>
+                {perm.permissionName}
+              </option>
+            ))}
+          </select>
+
+          <select
+            className="workersStatusChecker"
+            name="enabled"
+            value={searchParams.enabled}
+            onChange={handleInputChange}>
+            <option value="">Hamısı</option>
+            <option value="true">Aktiv</option>
+            <option value="false">Passiv</option>
           </select>
         </div>
       </div>
-      <OrdinaryList
-        tableHead={[
-          "İstifadəçi adı",
-          "Adı",
-          "Soyadı",
-          "Ata adı",
-          "Mobil nömrə",
-          "İcazələr",
-          "İş qrafiki",
-          "Status"
-        ]}
-        tableData={filteredEmployees}
-        icons={icons}
-      />
-    </>
+
+      <div className="employeesTableWrapper">
+        {loading ? (
+          <div className="flex-col gap-4 w-full flex items-center justify-center">
+            <div className="w-20 h-20 border-4 border-transparent text-blue-400 text-4xl animate-spin flex items-center justify-center border-t-blue-400 rounded-full">
+              <div className="w-16 h-16 border-4 border-transparent text-red-400 text-2xl animate-spin flex items-center justify-center border-t-red-400 rounded-full" />
+            </div>
+          </div>
+        ) : (
+          <>
+            <table className="employeesTable">
+              <thead>
+                <tr>
+                  <th>
+                    <div className="th-content">
+                      <span>
+                        <HiArrowsUpDown className="tableArrowIcon" /> İstifadəçi adı
+                      </span>
+                    </div>
+                  </th>
+                  <th>
+                    <div className="th-content">
+                      <span>
+                        <HiArrowsUpDown className="tableArrowIcon" /> Ad
+                      </span>
+                    </div>
+                  </th>
+                  <th>
+                    <div className="th-content">
+                      <span>
+                        <HiArrowsUpDown className="tableArrowIcon" /> Soyad
+                      </span>
+                    </div>
+                  </th>
+                  <th>
+                    <div className="th-content">
+                      <span>
+                        <HiArrowsUpDown className="tableArrowIcon" /> Ata adı
+                      </span>
+                    </div>
+                  </th>
+                  <th>
+                    <div className="th-content">
+                      <span>
+                        <HiArrowsUpDown className="tableArrowIcon" /> Telefon
+                      </span>
+                    </div>
+                  </th>
+                  <th>
+                    <div className="th-content">
+                      <span>
+                        <HiArrowsUpDown className="tableArrowIcon" /> Rollar
+                      </span>
+                    </div>
+                  </th>
+                  <th>
+                    <div className="th-content">
+                      <span>
+                        <CiCalendar className="tableArrowIcon" /> İş qrafiki
+                      </span>
+                    </div>
+                  </th>
+                  <th>
+                    <div className="th-content">
+                      <span>Status</span>
+                    </div>
+                  </th>
+                  <th>
+                    <div className="th-content">
+                      <span>Düzəliş</span>
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {currentEmployees.map((emp) => (
+                  <tr key={emp.id}>
+                    <td>{emp.username}</td>
+                    <td>{emp.name}</td>
+                    <td>{emp.surname}</td>
+                    <td>{emp.patronymic}</td>
+                    <td>{emp.phone}</td>
+                    <td>{emp.permissions?.join(", ")}</td>
+                    <td>
+                      <Link
+                        className="employeeScheduleTableData"
+                        to={`work-schedule/${emp.id}`}>
+                        <CiCalendar className="employeeScheduleTableDataIcon" />{" "}
+                        İş qrafiki
+                      </Link>
+                    </td>
+                    <td>
+                      <span
+                        className={`status ${
+                          emp.enabled ? "active" : "passive"
+                        }`}>
+                        {getStatus(emp)}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="icons flex gap-3 cursor-pointer">
+                        {icons.map((iconObj, idx) => (
+                          <iconObj.icon
+                            key={idx}
+                            className={iconObj.className}
+                            onClick={() => iconObj.action(emp)}
+                          />
+                        ))}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {totalPages > 1 && (
+              <div className="pagination">
+                {Array.from({ length: totalPages }, (_, i) => (
+                  <button
+                    key={i}
+                    className={`pagination-button ${
+                      currentPage === i + 1 ? "active" : ""
+                    }`}
+                    onClick={() => setCurrentPage(i + 1)}>
+                    {i + 1}
+                  </button>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
   );
-}
+};
 
 export default EmployeesList;

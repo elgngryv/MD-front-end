@@ -1,54 +1,150 @@
-import axiosInstance from './temp-axios-auth';
+import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_BASE_URL;
+const BASE_URL =
+  import.meta.env.VITE_BASE_URL ||
+  "http://161.97.179.107:5555/api/v1" ||
+  "http://161.97.179.107/";
+
+const getToken = () => {
+  return localStorage.getItem("token");
+};
 
 export const createPatient = async (patientData) => {
-  const response = await axiosInstance.post('/patient/create', patientData);
-  return response.data;
+  try {
+    const token = getToken();
+
+    // ✅ Düzgün field adları ilə data hazırlayın
+    const dataToSend = {
+      ...patientData,
+      finCode: patientData.finCode === "" ? null : patientData.finCode,
+      // doctorId olduğu kimi qalsın, çünki backend doctorId gözləyir
+      // doctor_id əlavə etməyin və doctorId silməyin
+    };
+
+    // ❌ BUNU SİLİN - doctorId silməyin
+    // delete dataToSend.doctorId;
+
+    console.log("API-ya göndərilən data:", JSON.stringify(dataToSend, null, 2));
+
+    const response = await axios.post(
+      `${BASE_URL}/patient/create`,
+      dataToSend,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Pasiyent əlavə edilərkən xəta baş verdi:", error);
+    throw error;
+  }
 };
 
-// Update patient
-export const updatePatient = async (patientData) => {
-  const response = await axiosInstance.put('/patient/update', patientData);
-  return response.data;
+export const editPatient = async (patientData) => {
+  try {
+    const token = getToken();
+
+    // Prepare data for backend - ensure finCode is null if empty
+    const dataToSend = {
+      ...patientData,
+      finCode: patientData.finCode === "" ? null : patientData.finCode,
+    };
+
+    const response = await axios.put(`${BASE_URL}/patient/update`, dataToSend, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Pasiyent məlumatları yenilənərkən xəta baş verdi:", error);
+    throw error;
+  }
 };
 
-// Search patients
-export const searchPatients = async (searchParams) => {
-  const response = await fetch('/patient/search', {
-    method: 'GET',
-    body: JSON.stringify(searchParams),
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  });
-
-  const data = await response.json();
-  return data;
-};
-
-// Read all patients
 export const readPatients = async () => {
-  const response = await axiosInstance.get('/patient/read');
-  return response.data;
+  try {
+    const token = getToken();
+    const response = await axios.get(`${BASE_URL}/patient/read`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Pasiyentlər oxunarkən xəta baş verdi:", error);
+    throw error;
+  }
 };
 
-// Read patient by ID
 export const readPatientById = async (id) => {
-  const response = await axiosInstance.get(`/patient/read-by-id/${id}`);
-  return response.data;
+  try {
+    const token = getToken();
+    const response = await axios.get(`${BASE_URL}/patient/read-by-id/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error(`ID ${id} olan pasiyent oxunarkən xəta baş verdi:`, error);
+    throw error;
+  }
 };
 
-// Export patients to Excel
-export const exportPatientsToExcel = async () => {
-  const response = await axiosInstance.get('/patient/export/excel', {
-    responseType: 'blob'
-  });
-  return response.data;
-};
-
-// Delete patient by ID
 export const deletePatient = async (id) => {
-  const response = await axiosInstance.delete(`/patient/delete/${id}`);
-  return response.data;
+  try {
+    const token = getToken();
+    await axios.delete(`${BASE_URL}/patient/delete/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log(`ID ${id} olan pasiyent uğurla silindi.`);
+  } catch (error) {
+    console.error(`ID ${id} olan pasiyent silinərkən xəta baş verdi:`, error);
+    throw error;
+  }
+};
+
+export const searchPatients = async (params) => {
+  try {
+    const token = getToken();
+    const response = await axios.post(`${BASE_URL}/patient/search`, params, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Pasiyent axtarışı zamanı xəta baş verdi:", error);
+    throw error;
+  }
+};
+
+export const exportPatientsToExcel = async () => {
+  try {
+    const token = getToken();
+    const response = await axios.get(`${BASE_URL}/patient/export/excel`, {
+      responseType: "blob",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "patients.xlsx");
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  } catch (error) {
+    console.error("Pasiyentlər Excel-ə ixrac edilərkən xəta baş verdi:", error);
+    throw error;
+  }
 };

@@ -1,251 +1,647 @@
-import React from "react";
-import { useState } from "react";
-import '../assets/style/form.css';
-import CustomDropdown from "./CustomDropdown";
+import React, { useState, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faXmark, faCheck } from "@fortawesome/free-solid-svg-icons";
-import { useNavigate } from "react-router-dom";
+import CustomDropdown from "./CustomDropdown";
 import ToothSelector from "./ToothSelector";
 import MultiFileForm from "./MultiFileForm";
-const OrderForm = ({ initialData, mode="create", onSubmit, onCancel }) => {
-    const { register, handleSubmit, setValue, control } = useForm({
-        defaultValues: initialData,
+import useDentalOrderStore from "../../stores/dentalOrderStore";
+
+import useGarnitureStore from "../../stores/garnitureStore";
+import useColorStore from "../../stores/colorStore";
+import useTechnicianStore from "../../stores/technicianStore";
+import usePatientStore from "../../stores/patiendStore";
+import useCalendarStore from "../../stores/calendarStore";
+import useCeramicsStore from "../../stores/ceramicStore";
+import useMetalStore from "../../stores/metalsStore";
+import "../assets/style/form.css";
+
+// Fallback data
+const fallbackColors = [
+  { value: 1, label: "A1" },
+  { value: 2, label: "A2" },
+  { value: 3, label: "A3" },
+  { value: 4, label: "A3.5" },
+  { value: 5, label: "A4" },
+];
+const fallbackMetals = [
+  { value: 1, label: "Nikel-Krom" },
+  { value: 2, label: "Kobalt-Krom" },
+  { value: 3, label: "Titanyum" },
+  { value: 4, label: "Altın Alaşım" },
+];
+const fallbackGarnitures = [
+  { value: 1, label: "Standard" },
+  { value: 2, label: "Premium" },
+  { value: 3, label: "Lüks" },
+];
+
+// Helper function to format date strings to YYYY-MM-DD
+const formatDate = (dateString) => {
+  if (!dateString) return "";
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return "";
+    }
+    return date.toISOString().split("T")[0];
+  } catch (e) {
+    console.error("Invalid date string:", dateString);
+    return "";
+  }
+};
+
+const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
+  const { register, handleSubmit, setValue, watch, reset } = useForm({
+    defaultValues: initialData || {},
+  });
+
+  // State for dropdown options
+  const [garnitures, setGarnitures] = useState([]);
+  const [colors, setColors] = useState([]);
+  const [technicians, setTechnicians] = useState([]);
+  const [patients, setPatients] = useState([]);
+  const [doctors, setDoctors] = useState([]);
+  const [ceramics, setCeramics] = useState([]);
+  const [metals, setMetals] = useState([]);
+
+  // Other component states
+  const [selectedTeeth, setSelectedTeeth] = useState(
+    initialData?.teethList || []
+  );
+  const [isChild, setIsChild] = useState(
+    initialData?.isChild !== undefined ? initialData.isChild : false
+  );
+  const [toothDetails, setToothDetails] = useState(
+    initialData?.toothDetailIds || []
+  );
+  const [files, setFiles] = useState([]);
+
+  // Initialize stores
+  const dentalOrderStore = useDentalOrderStore();
+
+  // Reset form when initialData changes
+  useEffect(() => {
+    if (initialData) {
+      const formattedData = {
+        ...initialData,
+        orderDate: formatDate(initialData.orderDate),
+        inspectionDate: formatDate(
+          initialData.inspectionDate || initialData.checkDate
+        ),
+        deliveryDate: formatDate(initialData.deliveryDate),
+        doctor: initialData.doctorId,
+        technician: initialData.technicianId,
+        patient: initialData.patientId,
+        workType: initialData.dentalWorkType,
+        notes: initialData.description || initialData.notes,
+        color: initialData.orderDentureInfo?.color,
+        garniture: initialData.orderDentureInfo?.garniture,
+      };
+      reset(formattedData);
+      setSelectedTeeth(initialData.teethList || []);
+      setToothDetails(initialData.toothDetailIds || []);
+      setIsChild(
+        initialData.isChild !== undefined ? initialData.isChild : false
+      );
+    }
+  }, [initialData, reset]);
+
+  // Fetch data only once on component mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        await Promise.allSettled([
+          useGarnitureStore.getState().fetchGarnitureList(),
+          useColorStore.getState().fetchColorList(),
+          useTechnicianStore.getState().fetchTechnicians(),
+          usePatientStore.getState().fetchPatients(),
+          useCalendarStore.getState().fetchDoctors(),
+          useCeramicsStore.getState().fetchCeramicsList(),
+          useMetalStore.getState().fetchMetals(),
+        ]);
+
+        setGarnitures(
+          useGarnitureStore.getState().garnitures?.map((item) => ({
+            value: item.id,
+            // ✅ DÜZƏLİŞ: `item.data.name` yerinə `item.name` istifadə edilir.
+            label: item.name || "N/A",
+          })) || fallbackGarnitures
+        );
+        setColors(
+          useColorStore
+            .getState()
+            .colors?.map((item) => ({
+              value: item.id,
+              label: item.name || "N/A",
+            })) || fallbackColors
+        );
+        setTechnicians(
+          useTechnicianStore
+            .getState()
+            .technicians?.map((item) => ({
+              value: item.id,
+              label: `${item.name} ${item.surname}`,
+            })) || []
+        );
+        setPatients(
+          usePatientStore
+            .getState()
+            .patients?.map((item) => ({
+              value: item.id,
+              label: `${item.name} ${item.surname}`,
+            })) || []
+        );
+        setDoctors(
+          useCalendarStore
+            .getState()
+            .doctors?.map((item) => ({
+              value: item.doctorId || item.id,
+              label: `${item.name} ${item.surname}`,
+            })) || []
+        );
+        setCeramics(
+          useCeramicsStore
+            .getState()
+            .ceramics?.map((item) => ({ value: item.id, label: item.name })) ||
+            []
+        );
+        setMetals(
+          useMetalStore
+            .getState()
+            .metals?.map((item) => ({ value: item.id, label: item.name })) ||
+            fallbackMetals
+        );
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const handleToothSelect = (tooth) => {
+    const newSelectedTeeth = selectedTeeth.includes(tooth)
+      ? selectedTeeth.filter((t) => t !== tooth)
+      : [...selectedTeeth, tooth];
+    setSelectedTeeth(newSelectedTeeth);
+
+    const newToothDetails = [...toothDetails];
+    newSelectedTeeth.forEach((toothNumber) => {
+      if (
+        !newToothDetails.find((detail) => detail.toothNumber === toothNumber)
+      ) {
+        newToothDetails.push({
+          toothNumber,
+          colorId: null,
+          metalId: null,
+          ceramicId: null,
+        });
+      }
     });
 
-    // Mock data for dropdowns - replace with actual data from your backend
-    const doctors = [
-        { value: '1', label: 'Dr. John Doe' },
-        { value: '2', label: 'Dr. Jane Smith' },
-    ];
+    const filteredDetails = newToothDetails.filter((detail) =>
+      newSelectedTeeth.includes(detail.toothNumber)
+    );
+    setToothDetails(filteredDetails);
+  };
 
-    const technicians = [
-        { value: '1', label: 'Tech 1' },
-        { value: '2', label: 'Tech 2' },
-    ];
+  const handleToothDetailChange = (toothNumber, field, value) => {
+    const updatedDetails = toothDetails.map((detail) =>
+      detail.toothNumber === toothNumber
+        ? { ...detail, [field]: value }
+        : detail
+    );
+    setToothDetails(updatedDetails);
+  };
 
-    const patients = [
-        { value: '1', label: 'Patient 1' },
-        { value: '2', label: 'Patient 2' },
-    ];
+  const handleFilesChange = (newFiles) => {
+    setFiles(newFiles);
+  };
 
-    const workTypes = [
-        { value: '1', label: 'Type 1' },
-        { value: '2', label: 'Type 2' },
-    ];
-
-    const colors = [
-        { value: '1', label: 'Red' },
-        { value: '2', label: 'Blue' },
-    ];
-
-    const furniture = [
-        { value: '1', label: 'Furniture 1' },
-        { value: '2', label: 'Furniture 2' },
-    ];
-    const [selectedTeeth, setSelectedTeeth] = useState([11]);
-    const [isChild, setIsChild] = useState(true);
-
-    const handleToothSelect = (tooth) => {
-      setSelectedTeeth((prevSelected) =>
-        prevSelected.includes(tooth)
-          ? prevSelected.filter((t) => t !== tooth)
-          : [...prevSelected, tooth]
-      );
+  const prepareSubmitData = (data) => {
+    const submitData = {
+      checkDate: data.inspectionDate,
+      deliveryDate: data.deliveryDate,
+      description: data.notes || "",
+      dentalWorkType: data.workType,
+      orderDentureInfo: {
+        color: data.color,
+        garniture: data.garniture,
+      },
+      toothDetailIds: toothDetails,
+      teethList: selectedTeeth,
+      doctorId: data.doctor,
+      technicianId: data.technician,
+      patientId: parseInt(data.patient),
     };
 
-    return (
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-2">
-               <div className="flex flex-col gap-2 border border-[#E5E7EB] rounded-lg p-6 bg-white">
-                <div className="flex justify-between items-center gap-2">
-                    <label htmlFor="doctor">Həkim <span className="text-red-500">*</span></label>
-                    <div className="w-[950px]">
-                    <CustomDropdown
-                        options={doctors}
-                        value={initialData?.doctor}
-                        onChange={(value) => setValue('doctor', value)}
-                        placeholder="Həkim seçin"
-                        name="doctor"
-                        disabled={mode === 'view'}
-                    />
-                    </div>
-                </div>
+    if (files.length > 0) {
+      submitData.files = files.map((file) => file.base64 || file);
+    }
+    return submitData;
+  };
 
-                {/* Technician Dropdown */}
-                <div className="flex justify-between items-center gap-2">
-                    <label htmlFor="technician">Texnik <span className="text-red-500">*</span></label>
-                    <div className="w-[950px]">
-                    <CustomDropdown
-                        options={technicians}
-                        value={initialData?.technician}
-                        onChange={(value) => setValue('technician', value)}
-                        placeholder="Texnik seçin"
-                        name="technician"
-                        disabled={mode === 'view'}
-                    />
-                    </div>
-                </div>
+  const handleFormSubmit = async (data) => {
+    try {
+      const submitData = prepareSubmitData(data);
+      if (mode === "create") {
+        await dentalOrderStore.addOrder(submitData);
+      } else if (mode === "edit") {
+        await dentalOrderStore.editOrder({ ...submitData, id: initialData.id });
+      }
+      if (onSubmit) {
+        onSubmit(submitData);
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+    }
+  };
 
-                {/* Patient Dropdown */}
-                <div className="flex justify-between items-center gap-2">
-                    <label htmlFor="patient">Pasiyent <span className="text-red-500">*</span></label>
-                    <div className="w-[950px]">
-                    <CustomDropdown
-                        options={patients}
-                        value={initialData?.patient}
-                        onChange={(value) => setValue('patient', value)}
-                        placeholder="Pasiyent seçin"
-                        name="patient"
-                        disabled={mode === 'view'}
-                    />
-                    </div>
-                </div>
+  const workTypes = [
+    { value: "PROTEZ", label: "Protez" },
+    { value: "KORONKA", label: "Koronka" },
+    { value: "IMPLANT", label: "İmplant" },
+  ];
+  const formValues = watch();
 
-                {/* Order Date */}
-                <div className="flex justify-between items-center gap-2">
-                    <label htmlFor="orderDate">Sifariş tarixi <span className="text-red-500">*</span></label>
-                    <div className="w-[950px]">
-                    <input
-                        id="orderDate"
-                        type="date"
-                        {...register('orderDate')}
-                        readOnly={mode === 'view'}
-                        className={`w-[950px] h-10 border border-[#D4DCE8] rounded-lg px-4 py-2 ${mode === 'view' ? 'bg-gray-200' : ''}`}
-                    />
-                    </div>
-                </div>
+  const selectedDoctor = useMemo(
+    () => doctors.find((d) => d.value === formValues.doctor) || null,
+    [doctors, formValues.doctor]
+  );
+  const selectedTechnician = useMemo(
+    () => technicians.find((t) => t.value === formValues.technician) || null,
+    [technicians, formValues.technician]
+  );
+  const selectedPatient = useMemo(
+    () => patients.find((p) => p.value === formValues.patient) || null,
+    [patients, formValues.patient]
+  );
+  const selectedWorkType = useMemo(
+    () => workTypes.find((w) => w.value === formValues.workType) || null,
+    [workTypes, formValues.workType]
+  );
+  const selectedColor = useMemo(
+    () => colors.find((c) => c.value === formValues.color) || null,
+    [colors, formValues.color]
+  );
+  const selectedGarniture = useMemo(
+    () => garnitures.find((g) => g.value === formValues.garniture) || null,
+    [garnitures, formValues.garniture]
+  );
+  const renderDentureFields = formValues.workType === "PROTEZ";
+  const renderToothFields = formValues.workType === "KORONKA";
 
-                {/* Inspection Date */}
-                <div className="flex justify-between items-center gap-2">
-                    <label htmlFor="inspectionDate">Yoxlanılma tarixi <span className="text-red-500">*</span></label>
-                    <div className="w-[950px]">
-                    <input
-                        id="inspectionDate"
-                        type="date"
-                        {...register('inspectionDate')}
-                        readOnly={mode === 'view'}
-                        className={`w-[950px] h-10 border border-[#D4DCE8] rounded-lg px-4 py-2 ${mode === 'view' ? 'bg-gray-200' : ''}`}
-                    />
-                    </div>
-                </div>
+  return (
+    <form
+      onSubmit={handleSubmit(handleFormSubmit)}
+      className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 border border-[#E5E7EB] rounded-lg p-6 bg-white">
+        {/* Doctor Dropdown */}
+        <div className="flex justify-between items-center gap-2">
+          <label htmlFor="doctor">
+            {" "}
+            Həkim <span className="text-red-500">*</span>{" "}
+          </label>
+          <div className="w-[950px]">
+            <CustomDropdown
+              options={doctors}
+              value={selectedDoctor}
+              onChange={(option) =>
+                setValue("doctor", option ? option.value : null)
+              }
+              placeholder="Həkim seçin"
+              name="doctor"
+              disabled={mode === "view"}
+            />
+          </div>
+        </div>
 
-                {/* Delivery Date */}
-                <div className="flex justify-between items-center gap-2">
-                    <label htmlFor="deliveryDate">Təhvil tarixi <span className="text-red-500">*</span></label>
-                    <div className="w-[950px]">
-                    <input
-                        id="deliveryDate"
-                        type="date"
-                        {...register('deliveryDate')}
-                        readOnly={mode === 'view'}
-                        className={`w-[950px] h-10 border border-[#D4DCE8] rounded-lg px-4 py-2 ${mode === 'view' ? 'bg-gray-200' : ''}`}
-                    />
-                    </div>
-                </div>
+        {/* Technician Dropdown */}
+        <div className="flex justify-between items-center gap-2">
+          <label htmlFor="technician">
+            {" "}
+            Texnik <span className="text-red-500">*</span>{" "}
+          </label>
+          <div className="w-[950px]">
+            <CustomDropdown
+              options={technicians}
+              value={selectedTechnician}
+              onChange={(option) =>
+                setValue("technician", option ? option.value : null)
+              }
+              placeholder="Texnik seçin"
+              name="technician"
+              disabled={mode === "view"}
+            />
+          </div>
+        </div>
 
-                {/* Work Type Dropdown */}
-                <div className="flex justify-between items-center gap-2">
-                    <label htmlFor="workType">İşin növü <span className="text-red-500">*</span></label>
-                    <div className="w-[950px]">
-                    <CustomDropdown
-                        options={workTypes}
-                        value={initialData?.workType}
-                        onChange={(value) => setValue('workType', value)}
-                        placeholder="İşin növünü seçin"
-                        name="workType"
-                        disabled={mode === 'view'}
-                    />
-                    </div>
-                </div>
+        {/* Patient Dropdown */}
+        <div className="flex justify-between items-center gap-2">
+          <label htmlFor="patient">
+            {" "}
+            Pasiyent <span className="text-red-500">*</span>{" "}
+          </label>
+          <div className="w-[950px]">
+            <CustomDropdown
+              options={patients}
+              value={selectedPatient}
+              onChange={(option) =>
+                setValue("patient", option ? option.value : null)
+              }
+              placeholder="Pasiyent seçin"
+              name="patient"
+              disabled={mode === "view"}
+            />
+          </div>
+        </div>
 
-                {/* Color Dropdown */}
-                <div className="flex justify-between items-center gap-2">
-                    <label htmlFor="color">Rəng <span className="text-red-500">*</span></label>
-                    <div className="w-[950px]">
-                    <CustomDropdown
-                        options={colors}
-                        value={initialData?.color}
-                        onChange={(value) => setValue('color', value)}
-                        placeholder="Rəng seçin"
-                        name="color"
-                        disabled={mode === 'view'}
-                    />
-                    </div>
-                </div>
+        {/* Date Inputs */}
+        <div className="flex justify-between items-center gap-2">
+          <label htmlFor="orderDate">
+            {" "}
+            Sifariş tarixi <span className="text-red-500">*</span>{" "}
+          </label>
+          <div className="w-[950px]">
+            <input
+              id="orderDate"
+              type="date"
+              {...register("orderDate", { required: true })}
+              readOnly={mode === "view"}
+              className={`w-full h-10 border border-[#D4DCE8] rounded-lg px-4 py-2 ${
+                mode === "view" ? "bg-gray-200" : ""
+              }`}
+            />
+          </div>
+        </div>
+        <div className="flex justify-between items-center gap-2">
+          <label htmlFor="inspectionDate">
+            {" "}
+            Yoxlanılma tarixi <span className="text-red-500">*</span>{" "}
+          </label>
+          <div className="w-[950px]">
+            <input
+              id="inspectionDate"
+              type="date"
+              {...register("inspectionDate", { required: true })}
+              readOnly={mode === "view"}
+              className={`w-full h-10 border border-[#D4DCE8] rounded-lg px-4 py-2 ${
+                mode === "view" ? "bg-gray-200" : ""
+              }`}
+            />
+          </div>
+        </div>
+        <div className="flex justify-between items-center gap-2">
+          <label htmlFor="deliveryDate">
+            {" "}
+            Təhvil tarixi <span className="text-red-500">*</span>{" "}
+          </label>
+          <div className="w-[950px]">
+            <input
+              id="deliveryDate"
+              type="date"
+              {...register("deliveryDate", { required: true })}
+              readOnly={mode === "view"}
+              className={`w-full h-10 border border-[#D4DCE8] rounded-lg px-4 py-2 ${
+                mode === "view" ? "bg-gray-200" : ""
+              }`}
+            />
+          </div>
+        </div>
 
-                {/* Furniture Dropdown */}
-                <div className="flex justify-between items-center gap-2">
-                    <label htmlFor="furniture">Qarnitur <span className="text-red-500">*</span></label>
-                    <div className="w-[950px]">
-                    <CustomDropdown
-                        options={furniture}
-                        value={initialData?.furniture}
-                        onChange={(value) => setValue('furniture', value)}
-                        placeholder="Qarnitur seçin"
-                        name="furniture"
-                        disabled={mode === 'view'}
-                    />
-                    </div>
-                </div>
+        {/* Work Type Dropdown */}
+        <div className="flex justify-between items-center gap-2">
+          <label htmlFor="workType">
+            {" "}
+            İşin növü <span className="text-red-500">*</span>{" "}
+          </label>
+          <div className="w-[950px]">
+            <CustomDropdown
+              options={workTypes}
+              value={selectedWorkType}
+              onChange={(option) => {
+                setValue("workType", option ? option.value : null);
+                setSelectedTeeth([]);
+                setToothDetails([]);
+              }}
+              placeholder="İşin növünü seçin"
+              name="workType"
+              disabled={mode === "view"}
+            />
+          </div>
+        </div>
 
-
-            {/* Notes - Larger Textbox */}
+        {/* Conditional Denture Fields */}
+        {renderDentureFields && (
+          <>
             <div className="flex justify-between items-center gap-2">
-                <label htmlFor="notes">Qeyd</label>
-                <div className="w-[950px]">
-                <textarea
-                    id="notes"
-                    {...register('notes')}
-                    readOnly={mode === 'view'}
-                    className={`w-full h-32 border border-[#D4DCE8] rounded-lg px-4 py-2 resize-none ${mode === 'view' ? 'bg-gray-200' : ''}`}
-                    placeholder="Qeydlər..."
+              <label>
+                {" "}
+                Rəng <span className="text-red-500">*</span>{" "}
+              </label>
+              <div className="w-[950px]">
+                <CustomDropdown
+                  options={colors}
+                  value={selectedColor}
+                  onChange={(option) =>
+                    setValue("color", option ? option.value : null)
+                  }
+                  placeholder="Rəng seçin"
+                  disabled={mode === "view"}
                 />
-                </div>
-            </div>
-
-            <div className="flex justify-between items-center gap-2">
-                    <label htmlFor="furniture">Qarnitur <span className="text-red-500">*</span></label>
-                    <div className="w-[950px]">
-                 <MultiFileForm />
-                    </div>
-                </div>
-            </div>
-
-            <div className="flex flex-col border border-[#E5E7EB] bg-white rounded-lg w-full p-4 gap-2">
-              <h1 className="text-lg font-bold">Diş qrafiki</h1>
-              <h2>Təsirə məruz qalan dişlər və müalicə sahələri</h2>
-
-              <div className="flex items-center justify-around border border-[#E5E7EB] rounded-lg w-[198px] h-[40px]">
-                <button 
-                    className={`w-[90px] h-[32px] rounded-lg ${!isChild ? 'bg-[#155EEF] text-white' : ''}`}
-                    onClick={() => {setIsChild(false); setSelectedTeeth([]);}}
-                >
-                    Yetkin
-                </button>
-                <button 
-                    className={`w-[90px] h-[32px] rounded-lg ${isChild ? 'bg-[#155EEF] text-white' : ''}`}
-                    onClick={() => {setIsChild(true); setSelectedTeeth([]);}}
-                >
-                    Uşaq
-                </button>
               </div>
-            <div>
-              <ToothSelector showImage={false} selectedTeeth={selectedTeeth} onSelect={handleToothSelect} isChild={isChild}/>
             </div>
+            <div className="flex justify-between items-center gap-2">
+              <label htmlFor="garniture">
+                {" "}
+                Qarnitur <span className="text-red-500">*</span>{" "}
+              </label>
+              <div className="w-[950px]">
+                <CustomDropdown
+                  options={garnitures}
+                  value={selectedGarniture}
+                  onChange={(option) =>
+                    setValue("garniture", option ? option.value : null)
+                  }
+                  placeholder="Qarnitur seçin"
+                  name="garniture"
+                  disabled={mode === "view"}
+                />
+              </div>
             </div>
+          </>
+        )}
 
-          <div className="self-end flex gap-4 m-4">
-            <button className="flex items-center justify-center px-4 py-2 border text-[#155EEF] border-[#155EEF] rounded-lg hover:bg-gray-100 w-[184px] h-[44px] gap-2">
-                <FontAwesomeIcon icon={faXmark} />
-                Ləğv et
+        {/* Notes */}
+        <div className="flex justify-between items-center gap-2">
+          <label htmlFor="notes">Qeyd</label>
+          <div className="w-[950px]">
+            <textarea
+              id="notes"
+              {...register("notes")}
+              readOnly={mode === "view"}
+              className={`w-full h-32 border border-[#D4DCE8] rounded-lg px-4 py-2 resize-none ${
+                mode === "view" ? "bg-gray-200" : ""
+              }`}
+              placeholder="Qeydlər..."
+            />
+          </div>
+        </div>
+
+        {/* File Upload */}
+        <div className="flex justify-between items-center gap-2">
+          <label htmlFor="files">Fayllar</label>
+          <div className="w-[950px]">
+            <MultiFileForm
+              onFilesChange={handleFilesChange}
+              disabled={mode === "view"}
+              initialFiles={initialData?.files || []}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Conditional Tooth Selection */}
+      {renderToothFields && (
+        <div className="flex flex-col border border-[#E5E7EB] bg-white rounded-lg w-full p-4 gap-2">
+          <h1 className="text-lg font-bold">Diş qrafiki</h1>
+          <h2>Təsirə məruz qalan dişlər və müalicə sahələri</h2>
+          <div className="flex items-center justify-around border border-[#E5E7EB] rounded-lg w-[198px] h-[40px]">
+            <button
+              type="button"
+              className={`w-[90px] h-[32px] rounded-lg ${
+                !isChild ? "bg-[#155EEF] text-white" : ""
+              }`}
+              onClick={() => {
+                setIsChild(false);
+                setSelectedTeeth([]);
+                setToothDetails([]);
+              }}>
+              {" "}
+              Yetkin{" "}
             </button>
-            <button className="flex items-center justify-center px-4 py-2 bg-[#155EEF] text-white rounded-lg hover:bg-[#155EEF] w-[184px] h-[44px] gap-2">
-                <FontAwesomeIcon icon={faCheck} />
-                Yadda saxla
+            <button
+              type="button"
+              className={`w-[90px] h-[32px] rounded-lg ${
+                isChild ? "bg-[#155EEF] text-white" : ""
+              }`}
+              onClick={() => {
+                setIsChild(true);
+                setSelectedTeeth([]);
+                setToothDetails([]);
+              }}>
+              {" "}
+              Uşaq{" "}
             </button>
           </div>
-        </form>
-    );
+          <div>
+            <ToothSelector
+              showImage={true}
+              selectedTeeth={selectedTeeth}
+              onSelect={handleToothSelect}
+              isChild={isChild}
+              disabled={mode === "view"}
+            />
+          </div>
+          {selectedTeeth.length > 0 && (
+            <div className="mt-4">
+              <h3 className="font-bold mb-2">Diş detalları:</h3>
+              {selectedTeeth.map((toothNumber) => {
+                const toothDetail =
+                  toothDetails.find((d) => d.toothNumber === toothNumber) || {};
+                return (
+                  <div key={toothNumber} className="mb-4 p-2 border rounded">
+                    <h4 className="font-semibold">Diş #{toothNumber}</h4>
+                    <div className="grid grid-cols-3 gap-2 mt-2">
+                      <div>
+                        <label>Rəng:</label>
+                        <CustomDropdown
+                          options={colors}
+                          value={
+                            colors.find(
+                              (c) => c.value === toothDetail.colorId
+                            ) || null
+                          }
+                          onChange={(option) =>
+                            handleToothDetailChange(
+                              toothNumber,
+                              "colorId",
+                              option ? option.value : null
+                            )
+                          }
+                          placeholder="Rəng seçin"
+                          disabled={mode === "view"}
+                        />
+                      </div>
+                      <div>
+                        <label>Keramika:</label>
+                        <CustomDropdown
+                          options={ceramics}
+                          value={
+                            ceramics.find(
+                              (c) => c.value === toothDetail.ceramicId
+                            ) || null
+                          }
+                          onChange={(option) =>
+                            handleToothDetailChange(
+                              toothNumber,
+                              "ceramicId",
+                              option ? option.value : null
+                            )
+                          }
+                          placeholder="Keramika seçin"
+                          disabled={mode === "view"}
+                        />
+                      </div>
+                      <div>
+                        <label>Metal:</label>
+                        <CustomDropdown
+                          options={metals}
+                          value={
+                            metals.find(
+                              (m) => m.value === toothDetail.metalId
+                            ) || null
+                          }
+                          onChange={(option) =>
+                            handleToothDetailChange(
+                              toothNumber,
+                              "metalId",
+                              option ? option.value : null
+                            )
+                          }
+                          placeholder="Metal seçin"
+                          disabled={mode === "view"}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Form Actions */}
+      <div className="self-end flex gap-4 m-4">
+        <button
+          type="button"
+          className="flex items-center justify-center px-4 py-2 border text-[#155EEF] border-[#155EEF] rounded-lg hover:bg-gray-100 w-[184px] h-[44px] gap-2"
+          onClick={onCancel}>
+          <FontAwesomeIcon icon={faXmark} /> Ləğv et
+        </button>
+        {mode !== "view" && (
+          <button
+            type="submit"
+            className="flex items-center justify-center px-4 py-2 bg-[#155EEF] text-white rounded-lg hover:bg-[#155EEF] w-[184px] h-[44px] gap-2"
+            disabled={dentalOrderStore.loading}>
+            <FontAwesomeIcon icon={faCheck} />{" "}
+            {dentalOrderStore.loading ? "Yüklənir..." : "Yadda saxla"}
+          </button>
+        )}
+      </div>
+    </form>
+  );
 };
 
 export default OrderForm;

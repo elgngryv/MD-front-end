@@ -1,0 +1,253 @@
+const allPaths = [
+  // Auth Routes
+  "/",
+  "/login",
+  "/change-password",
+
+  // Patient Routes
+  "/patients",
+  "/patients/add-patient",
+  "/patients/patient/:id",
+  "/patients/patient/:id/general",
+  "/patients/patient/:id/edit",
+  "/patients/patient/:id/report",
+  "/patients/patient/:id/plans",
+  "/patients/patient/:id/plan/edit",
+  "/patients/patient/:id/plan/create",
+  "/patients/patient/:id/compare-plans",
+  "/patients/patient/:id/history",
+  "/patients/patient/:id/history/edit",
+  "/patients/patient/:id/insurance",
+  "/patients/patient/:id/insurance/:id",
+  "/patients/patient/:id/insurance/:id/edit",
+  "/patients/patient/:id/insurance/create",
+  "/patients/patient/:id/treatment",
+  "/patients/patient/:id/xray",
+  "/patients/patient/:id/prescription",
+  "/patients/patient/:id/prescription/:id",
+  "/patients/patient/:id/prescription/:id/edit",
+
+  // Employee Routes
+  "/employees",
+  "/employees/employee-add",
+  "/employees/employee/:id",
+  "/employees/edit-employee/:id",
+  "/employees/employee-schedule",
+  "/employees/work-schedule/:id",
+  "/employees/work-schedule/:id/add",
+  "/employees/work-schedule/:id/edit",
+
+  // Appointment Routes
+  "/appointments",
+  "/appointments/add",
+  "/appointment/card",
+
+  // Stock Management Routes
+  "/stock/clinic",
+  "/stock/cabinet",
+  "/stock/export",
+
+  // Stock Import Routes
+  "/stock/import",
+  "/stock/import/add",
+  "/stock/import/edit/:id",
+  "/stock/import/:id",
+
+  // Stock Order Routes
+  "/stock/order",
+  "/stock/order/detail/:id",
+  "/stock/order/add",
+  "/stock/order/edit/:id",
+
+  // Stock Delete Routes
+  "/stock/delete",
+  "/stock/delete/:id",
+  "/stock/delete/add",
+  "/stock/delete/:id/edit",
+
+  // Stock Entry Routes
+  "/stock/entry",
+  "/stock/entry/:id",
+
+  // Stock Export Routes
+  "/stock/export",
+  "/stock/export/:date",
+  "/stock/export/:date/add",
+  "/stock/export/:date/detail",
+  "/stock/export/:date/detail/edit",
+  "/stock/export/:date/edit",
+
+  // Product Usage Routes
+  "/stock/usage",
+  "/stock/usage/:id",
+
+  // Product Category Routes
+  "/product-categories",
+  "/product-categories/add-new",
+  "/product-categories/edit-category/:id",
+  "/product-categories/:name",
+  "/product-categories/:name/add-new",
+  "/product-categories/:name/edit-product/:id",
+
+  // Laboratory Routes
+  "/lab/order/add",
+  "/sent-orders",
+  "/received-orders",
+  "/technicals-report",
+
+  // Settings Routes
+  "/settings/color",
+  "/settings/color/add",
+  "/settings/color/:id",
+  "/settings/insurance",
+  "/settings/insurance/add",
+  "/settings/insurance/:id",
+
+  // Admin Users Routes
+  "/admin-users",
+  "/admin-users/add",
+  "/admin-users/:id/edit",
+  "/admin-users/:id/info",
+
+  // Specialities Routes
+  "/specialities",
+  "/edit-speciality/:id",
+  "/add-speciality",
+
+  // Academic Degrees Routes
+  "/academic-degrees",
+  "/edit-degree/:id",
+  "/add-degree",
+
+  // Metals Routes
+  "/metals",
+  "/edit-metal/:id",
+  "/add-metal",
+
+  // Ceramics Routes
+  "/ceramics",
+  "/edit-ceramic/:id",
+  "/add-ceramic",
+
+  // Order Status Routes
+  "/order-status",
+  "/add-order-status",
+  "/edit-order-status",
+
+  // Permissions Routes
+  "/permissions",
+  "/add-permission",
+  "/edit-permission/:id",
+  "/permission-info/:id",
+
+  // Blacklist Routes
+  "/blacklist",
+  "/blacklist-reasons",
+  "/add-reason",
+  "/edit-reason/:id",
+
+  // Technicians Routes
+  "/technicians",
+  "/technicians/prices/:id",
+  "/technicians/add",
+  "/technicians/edit/:id",
+  "/technicians/:id",
+
+  // Queue Management Routes
+  "/queue",
+  "/queue/add-new",
+  "/queue/edit-queue/:id",
+
+  // Appointment Types Routes
+  "/appointment-types",
+  "/appointment-types/add",
+  "/appointment-types/:id/edit",
+
+  // Anamnesis Routes
+  "/anamnesis",
+  "/anamnesis/add",
+  "/anamnesis/edit/:name",
+  "/anamnesis/anamnesis-details/:name",
+  "/anamnesis/anamnesis-details/:id/add",
+  "/anamnesis/anamnesis-details/:name/edit/:id",
+
+  // Checklist Routes
+  "/checklist",
+  "/checklist/add",
+  "/checklist/:id/edit",
+
+  // Colors Routes
+  "/colors",
+  "/colors/add",
+  "/colors/:id/edit",
+
+  // Price Category Routes
+  "/price-category",
+  "/price-category/add",
+  "/price-category/:id/edit",
+
+  // Cabinets Routes
+  "/cabinets",
+  "/cabinets/add",
+  "/cabinets/:id/edit",
+
+  // Recepts Routes
+  "/recepts",
+  "/recepts/add",
+  "/recepts/edit/:id",
+  "/recepts/:id",
+  "/recepts/:id/add",
+  "/recepts/:id/edit/:id",
+
+  // Insurance Routes
+  "/insurance",
+  "/insurance/add",
+  "/insurance/edit/:id",
+
+  // Dental Set Routes
+  "/dental-set",
+  "/dental-set/add",
+  "/dental-set/edit/:id",
+
+  // Recommendations Routes
+  "/recommendations",
+  "/recommendations/add",
+  "/recommendations/:id/edit",
+
+  // Implants Routes
+  "/implants",
+  "/implants/edit/:id",
+  "/implants/add",
+  "/implants/sizes/:name",
+  "/implants/sizes/:name/edit/:id",
+  "/implants/sizes/:name/add",
+
+  // Operations Routes
+  "/operations",
+  "/operations/add",
+  "/operations/edit/:id",
+  "/operations/:id",
+  "/operations/:name/edit/:id",
+  "/operations/:id/add",
+
+  // Teeth Routes
+  "/teeth",
+  "/teeth/add",
+  "/teeth/edit/:id",
+  "/teeth/:id/operation-pictures",
+  "/teeth/:id/operation-pictures/add",
+  "/teeth/:id/examination-pictures",
+  "/teeth/:id/examination-pictures/add",
+
+  // General Settings Routes
+  "/general-settings",
+  "/general-settings/edit",
+
+  // Other Objects Routes
+  "/other-objects",
+  "/other-objects/add",
+  "/other-objects/:id/edit",
+
+  // Reports Route
+  "/reports"
+];

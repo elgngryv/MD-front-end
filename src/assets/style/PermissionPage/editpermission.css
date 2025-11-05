@@ -1,0 +1,99 @@
+.editPermissionContainer{
+    min-height: 100vh;
+    background-color: #f8fafc;
+    width: 100%;
+}
+
+.permissionTableWrapper {
+    overflow-y: auto;
+    overflow-x: auto;
+    background: #f8f9fa;
+    border-radius: 10px;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.permissionTable{
+    width: 100%;
+    border-collapse: collapse;
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+.permissionTable > thead{
+    background-color: #E3E8EF;
+}
+.permissionTable > thead > tr > th{
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    padding: 8px;
+    border: 1px solid #E3E8EF;
+}
+
+.editPermissionWrapper {
+    padding: 30px;
+    border-radius: 10px;
+    width: 100%;
+    margin: 0 auto;
+    background: #f8fafc;
+}
+.topPartForm{
+    display: flex;
+    align-items: center;
+    gap: 50px;
+}
+.topPartForm > label{
+    width: 120px;
+    display: flex;
+}
+.editPermissionForm {
+    display: flex;
+    flex-direction: column;
+    gap: 60px;
+}
+
+.editPermissionForm label {
+    font-weight: 500;
+    font-size: 15px;
+}
+
+.editPermissionForm input {
+    padding: 10px;
+    font-size: 15px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    width: 100%;
+    background-color: #f1f5f9;
+}
+
+.editPermissionActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.cancelBtn,
+.saveBtn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.cancelBtn {
+    background-color: white;
+    color: #2563eb;
+    border: 1px solid #2563eb;
+}
+
+.saveBtn {
+    background-color: #2563eb;
+    color: white;
+    border: none;
+}
+  
