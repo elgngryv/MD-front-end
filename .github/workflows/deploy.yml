@@ -18,11 +18,11 @@ jobs:
         run: |
           set -o allexport
 
-          # 1 Öncelik: .env
+          # 1️⃣ Öncelik: .env
           if [ -f .env ]; then
             source .env
             echo ".env yüklendi"
-          # 2 .env yoksa .env.example
+          # 2️⃣ .env yoksa .env.example
           elif [ -f .env.example ]; then
             source .env.example
             echo ".env.example yüklendi"
@@ -39,7 +39,6 @@ jobs:
           else
             echo "DEPLOY_PATH set edildi: $DEPLOY_PATH"
             echo "DEPLOY_PATH=$DEPLOY_PATH" >> $GITHUB_ENV
-          fi
 
       - name: Deploy to server
         uses: appleboy/ssh-action@v1.2.0
@@ -53,31 +52,31 @@ jobs:
             echo "Deploy başlıyır..."
             echo "Hedef dizin: $DEPLOY_PATH"
 
-            # 1 Papka yoxsa yaradılır
+            # 1️⃣ Papka yoxsa yaradılır
             echo "Papka yoxlanılır..."
-            sudo mkdir -p $DEPLOY_PATH
+            sudo mkdir -p "$DEPLOY_PATH"
 
-            # 2 Papkanın içinə keçir
-            cd $DEPLOY_PATH || exit 1
+            # 2️⃣ Papkanın içine geç
+            cd "$DEPLOY_PATH" || exit 1
 
-            # 3 Köhnə fayıl və papkaları təmizləyir
+            # 3️⃣ Köhnə fayıl və papkaları temizle
             echo "Köhnə fayıl və papkalar silinir..."
-            sudo find $DEPLOY_PATH -mindepth 1 -exec rm -rf {} +
+            sudo find "$DEPLOY_PATH" -mindepth 1 -exec rm -rf {} +
 
-            # 4 Yeni kodları klonla
+            # 4️⃣ Yeni kodları klonla
             echo "Yeni lahiyeni klonlanıyor..."
             git clone https://github.com/Modern-Dentistry/MD-front-end.git .
 
-            # 5 Paketleri yükləyir
+            # 5️⃣ Paketleri yükle
             echo "Pakətlər yüklənir..."
             npm install
 
-            # 6 Build al
+            # 6️⃣ Build al
             echo "Build alınır..."
             npm run build
 
-            # 7 distdən başqa hər şeyi silir
+            # 7️⃣ dist dışındaki her şeyi sil
             echo "dist qalır hər şey silinir..."
-            sudo find $DEPLOY_PATH -mindepth 1 ! -name 'dist' -exec rm -rf {} +
+            sudo find "$DEPLOY_PATH" -mindepth 1 ! -name 'dist' -exec rm -rf {} +
 
             echo "Deploy uğurlu!!!!!"
