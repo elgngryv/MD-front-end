@@ -1,4 +1,4 @@
-name: CI | CD Auto Deploy
+name: CI | CD Auto Deploy (Main & Test)
 
 on:
   push:
@@ -14,20 +14,32 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Determine deploy path
-        id: setpath
+      - name: Set deploy path
         run: |
-          BRANCH="${GITHUB_REF##*/}"
-          echo "Branch: $BRANCH"
+          set -o allexport
 
-          if [[ "$BRANCH" == "main" ]]; then
-            echo "DEPLOY_PATH=/var/www/teths" >> $GITHUB_ENV
-          elif [[ "$BRANCH" == "test" ]]; then
+          # 1 Öncelik: .env
+          if [ -f .env ]; then
+            source .env
+            echo ".env yüklendi"
+          # 2 .env yoksa .env.example
+          elif [ -f .env.example ]; then
+            source .env.example
+            echo ".env.example yüklendi"
+          else
+            echo "Ne .env ne .env.example bulunamadı"
+          fi
+
+          set +o allexport
+
+          # DEPLOY_PATH yoksa default
+          if [ -z "$DEPLOY_PATH" ]; then
+            echo "DEPLOY_PATH yok, default olarak /var/www/teths-test kullanılacak"
             echo "DEPLOY_PATH=/var/www/teths-test" >> $GITHUB_ENV
           else
-            echo "DEPLOY_PATH=/var/www/teths-test" >> $GITHUB_ENV  # default path
+            echo "DEPLOY_PATH set edildi: $DEPLOY_PATH"
+            echo "DEPLOY_PATH=$DEPLOY_PATH" >> $GITHUB_ENV
           fi
-          echo "DEPLOY_PATH set to $DEPLOY_PATH"
 
       - name: Deploy to server
         uses: appleboy/ssh-action@v1.2.0
@@ -35,6 +47,8 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
+          env:
+            DEPLOY_PATH: ${{ env.DEPLOY_PATH }}
           script: |
             echo "Deploy başlıyır..."
             echo "Hedef dizin: $DEPLOY_PATH"
