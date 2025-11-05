@@ -1,4 +1,4 @@
-name: Auto Deploy to Server (Main & Test)
+name: CI | CD Avto Deploy (Main & Test)
 
 on:
   push:
