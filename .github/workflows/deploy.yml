@@ -1,4 +1,4 @@
-name: CI | CD Auto Deploy (Main & Test)
+name: CI | CD Auto Deploy
 
 on:
   push:
