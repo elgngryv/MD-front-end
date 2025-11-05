@@ -1,0 +1,63 @@
+name: Auto Deploy to Server (Main & Test)
+
+on:
+  push:
+    branches:
+      - main
+      - test
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Determine deploy path
+        id: setpath
+        run: |
+          if [[ "${GITHUB_REF##*/}" == "main" ]]; then
+            echo "DEPLOY_PATH=/var/www/teths" >> $GITHUB_ENV
+          elif [[ "${GITHUB_REF##*/}" == "test" ]]; then
+            echo "DEPLOY_PATH=/var/www/teths-test" >> $GITHUB_ENV
+          fi
+
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            echo "Deploy başlıyır..."
+            echo "Hedef dizin: $DEPLOY_PATH"
+
+            # 1 Papka yoxsa yaradılır
+            echo "Papka yoxlanılır..."
+            sudo mkdir -p $DEPLOY_PATH
+
+            # 2 Papkanın içinə keçir
+            cd $DEPLOY_PATH || exit 1
+
+            # 3 Köhnə fayıl və papkaları təmizləyir
+            echo "Köhnə fayıl və papkalar silinir..."
+            sudo find $DEPLOY_PATH -mindepth 1 -exec rm -rf {} +
+
+            # 4 Yeni kodları klonla
+            echo "Yeni lahiyeni klonlanıyor..."
+            git clone https://github.com/Modern-Dentistry/MD-front-end.git .
+
+            # 5 Paketleri yükləyir
+            echo "Pakətlər yüklənir..."
+            npm install
+
+            # 6 Build al
+            echo "Build alınır..."
+            npm run build
+
+            # 7 distdən başqa hər şeyi silir
+            echo "dist qalır hər şey silinir..."
+            sudo find $DEPLOY_PATH -mindepth 1 ! -name 'dist' -exec rm -rf {} +
+
+            echo "Deploy uğurlu!!!!!"
