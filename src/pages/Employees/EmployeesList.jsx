@@ -179,7 +179,7 @@ const EmployeesList = () => {
   return (
     <div className="employeesListWrapper">
       <OrdinaryListHeader
-        title="İşçilər"
+        title="İşçilərin Siyahısı"
         addText="Yenisini əlavə et"
         addLink="/employees/employee-add"
         exportLink="/employees/export"
@@ -192,6 +192,7 @@ const EmployeesList = () => {
             placeholder="İstifadəçi adı"
             value={searchParams.username}
             onChange={handleInputChange}
+            className="ml-3 w-40 border-1 border-gray-400 rounded-md pl-3 h-8"
             onKeyPress={(e) => e.key === "Enter" && handleSearch(searchParams)}
           />
           <input
@@ -199,6 +200,7 @@ const EmployeesList = () => {
             placeholder="Ad"
             value={searchParams.name}
             onChange={handleInputChange}
+            className="ml-2 w-40 border-1 border-gray-400 rounded-md pl-3 h-8"
             onKeyPress={(e) => e.key === "Enter" && handleSearch(searchParams)}
           />
           <input
@@ -206,6 +208,7 @@ const EmployeesList = () => {
             placeholder="Soyad"
             value={searchParams.surname}
             onChange={handleInputChange}
+            className="ml-2 w-40 border-1 border-gray-400 rounded-md pl-3 h-8"
             onKeyPress={(e) => e.key === "Enter" && handleSearch(searchParams)}
           />
           <input
@@ -213,6 +216,7 @@ const EmployeesList = () => {
             placeholder="Ata adı"
             value={searchParams.patronymic}
             onChange={handleInputChange}
+            className="ml-2 w-40 border-1 border-gray-400 rounded-md pl-3 h-8"
             onKeyPress={(e) => e.key === "Enter" && handleSearch(searchParams)}
           />
           <input
@@ -220,25 +224,25 @@ const EmployeesList = () => {
             placeholder="Telefon"
             value={searchParams.phone}
             onChange={handleInputChange}
+            className="ml-2 w-40 border-1 border-gray-400 rounded-md pl-3 h-8"
             onKeyPress={(e) => e.key === "Enter" && handleSearch(searchParams)}
           />
           <button className="cursor-pointer" onClick={() => handleSearch(searchParams)}>
-            <CiSearch className="searchBTN" />
+            <CiSearch className="searchBTN ml-10 font-semibold" />
           </button>
-        </div>
 
-        <div className="rightPart">
-          <select value={selectedPermission} onChange={handlePermissionChange}>
+          {/* <div className="rightPart"> */}
+          {/* <select value={selectedPermission} onChange={handlePermissionChange} >
             <option value="">Hamısı</option>
             {permissions.map((perm) => (
               <option key={perm.id} value={perm.permissionName}>
                 {perm.permissionName}
               </option>
             ))}
-          </select>
+          </select> */}
 
           <select
-            className="workersStatusChecker"
+            className="workersStatusChecker ml-20 w-40 border-1 border-gray-400 h-8 rounded-md pl-2 text-gray-400"
             name="enabled"
             value={searchParams.enabled}
             onChange={handleInputChange}>
@@ -246,7 +250,10 @@ const EmployeesList = () => {
             <option value="true">Aktiv</option>
             <option value="false">Passiv</option>
           </select>
+        {/* </div> */}
+          
         </div>
+
       </div>
 
       <div className="employeesTableWrapper">
@@ -261,76 +268,76 @@ const EmployeesList = () => {
             <table className="employeesTable">
               <thead>
                 <tr>
-                  <th>
+                  <th className="w-37">
                     <div className="th-content">
                       <span>
-                        <HiArrowsUpDown className="tableArrowIcon" /> İstifadəçi adı
+                        <HiArrowsUpDown className="tableArrowIcon ml-7 !text-sm"/> İstifadəçi adı
                       </span>
                     </div>
                   </th>
                   <th>
                     <div className="th-content">
                       <span>
-                        <HiArrowsUpDown className="tableArrowIcon" /> Ad
+                        <HiArrowsUpDown className="tableArrowIcon !text-sm" /> Ad
                       </span>
                     </div>
                   </th>
                   <th>
                     <div className="th-content">
                       <span>
-                        <HiArrowsUpDown className="tableArrowIcon" /> Soyad
+                        <HiArrowsUpDown className="tableArrowIcon -ml-6 !text-sm" /> Soyad
                       </span>
                     </div>
                   </th>
                   <th>
                     <div className="th-content">
                       <span>
-                        <HiArrowsUpDown className="tableArrowIcon" /> Ata adı
+                        <HiArrowsUpDown className="tableArrowIcon -ml-10 !text-sm"/> Ata adı
                       </span>
                     </div>
                   </th>
                   <th>
                     <div className="th-content">
                       <span>
-                        <HiArrowsUpDown className="tableArrowIcon" /> Telefon
+                        <HiArrowsUpDown className="tableArrowIcon !text-sm -ml-14"/> Telefon
                       </span>
                     </div>
                   </th>
                   <th>
                     <div className="th-content">
                       <span>
-                        <HiArrowsUpDown className="tableArrowIcon" /> Rollar
+                        <HiArrowsUpDown className="tableArrowIcon !text-sm -ml-1 "/> İcazələr
                       </span>
                     </div>
                   </th>
                   <th>
                     <div className="th-content">
                       <span>
-                        <CiCalendar className="tableArrowIcon" /> İş qrafiki
+                        <CiCalendar className="tableArrowIcon !text-sm"/> İş qrafiki
                       </span>
                     </div>
                   </th>
                   <th>
                     <div className="th-content">
-                      <span>Status</span>
+                      <span className="-ml-1">Status</span>
                     </div>
                   </th>
                   <th>
                     <div className="th-content">
-                      <span>Düzəliş</span>
+                      <span className="-ml-12">Düzəliş</span>
                     </div>
                   </th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="!text-left">
                 {currentEmployees.map((emp) => (
                   <tr key={emp.id}>
-                    <td>{emp.username}</td>
-                    <td>{emp.name}</td>
-                    <td>{emp.surname}</td>
-                    <td>{emp.patronymic}</td>
-                    <td>{emp.phone}</td>
-                    <td>{emp.permissions?.join(", ")}</td>
+                    <td className="!text-left !pl-7">{emp.username}</td>
+                    <td className="!text-left !pl-12">{emp.name}</td>
+                    <td className="!text-left !pl-6">{emp.surname}</td>
+                    <td className="!text-left !pl-3">{emp.patronymic}</td>
+                    <td className="!text-left !pl-1">{emp.phone}</td>
+                    <td className="!text-left !pl-7">{emp.permissions?.join(", ")}</td>
                     <td>
                       <Link
                         className="employeeScheduleTableData"
