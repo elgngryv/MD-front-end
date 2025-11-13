@@ -96,22 +96,32 @@ function EmployeeWorkScheduleAdd() {
               name="weekDay"
               value={formData.weekDay}
               onChange={dəyişiklikləriİdarəEt}
-              className={errors.weekDay ? "error" : ""}>
-              <option value="">Seçin</option>
+              className={`${
+                errors.weekDay
+                  ? "border-2 border-red-500 !bg-red-50 text-red-500"
+                  : "border border-gray-300 bg-white text-gray-900"
+              } w-full px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500`}
+            >
+              <option
+                value=""
+                disabled
+                hidden
+                className={errors.weekDay ? "text-red-500" : "text-gray-500"}
+              >
+                {errors.weekDay ? "Bu sahə mütləq doldurulmalıdır" : "Seçin"}
+              </option>
               {həftəninGünləri.map((gün) => (
-                <option key={gün.value} value={gün.value}>
+                <option
+                  key={gün.value}
+                  value={gün.value}
+                  className="text-gray-900 bg-white"
+                >
                   {gün.label}
                 </option>
               ))}
             </select>
-            {errors.weekDay && (
-              <span className="error-message">
-                Bu sahə mütləq doldurulmalıdır
-              </span>
-            )}
           </div>
 
-          {/* Kabinet */}
           <div className="employeeWorkScheduleAddRow">
             <p className="employeeWorkScheduleAddRowTitle">
               Kabinet <span className="requiredStarForEmployeeAdd">*</span>
@@ -120,21 +130,34 @@ function EmployeeWorkScheduleAdd() {
               name="cabinetName"
               value={formData.cabinetName}
               onChange={dəyişiklikləriİdarəEt}
-              className={errors.cabinetName ? "error" : ""}>
-              <option value="">Seçin</option>
+              className={`${
+                errors.cabinetName
+                  ? "border-2 border-red-500 !bg-red-50 text-red-500"
+                  : "border border-gray-300 bg-white text-gray-900"
+              } w-full px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500`}
+            >
+              <option
+                value=""
+                disabled
+                hidden
+                className={
+                  errors.cabinetName ? "text-red-500" : "text-gray-500"
+                }
+              >
+                {errors.cabinetName
+                  ? "Bu sahə mütləq doldurulmalıdır"
+                  : "Seçin"}
+              </option>
               {cabinets.map((k) => (
                 <option
                   key={k.id || k.value}
-                  value={k.name || k.cabinetName || k.value}>
+                  value={k.name || k.cabinetName || k.value}
+                  className="text-gray-900 bg-white"
+                >
                   {k.name || k.cabinetName || k.value}
                 </option>
               ))}
             </select>
-            {errors.cabinetName && (
-              <span className="error-message">
-                Bu sahə mütləq doldurulmalıdır
-              </span>
-            )}
           </div>
 
           {/* Başlama və bitmə saatı */}
@@ -163,13 +186,15 @@ function EmployeeWorkScheduleAdd() {
           <button
             type="button"
             className="employeeAddCancelProcess"
-            onClick={ləğvEt}>
+            onClick={ləğvEt}
+          >
             <img src={cancelProcess} alt="Ləğv et" /> İmtina et
           </button>
           <button
             type="button"
             className="employeeAddAcceptProcess"
-            onClick={göndər}>
+            onClick={göndər}
+          >
             <img src={acceptProcess} alt="Yadda saxla" /> Yadda saxla
           </button>
         </div>

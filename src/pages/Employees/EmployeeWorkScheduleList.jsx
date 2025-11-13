@@ -3,9 +3,11 @@ import { useNavigate, useParams, Link } from "react-router-dom";
 import { FiEdit3 } from "react-icons/fi";
 import { GoTrash } from "react-icons/go";
 import { HiOutlineArrowsUpDown } from "react-icons/hi2";
+import { HiChevronDown } from "react-icons/hi";
 import useWorkersScheduleStore from "../../../stores/workersScheduleStore";
 
 import "../../assets/style/EmployeesPage/employeeworkschedulelist.css";
+import OrdinaryScheduleList from "../../components/OrdinaryList/OrdinaryScheduleList";
 
 const weekDays = [
   { key: "MONDAY", label: "Bazar ertəsi" },
@@ -23,7 +25,7 @@ function EmployeeWorkScheduleList() {
   const { schedules, loading, error, fetchSchedules, removeSchedule } = useWorkersScheduleStore();
 
   const [selectedDay, setSelectedDay] = useState("");
-
+  const [isOpen, setIsOpen] = useState(false); 
   useEffect(() => {
     fetchSchedules(); 
   }, [fetchSchedules]);
@@ -47,53 +49,70 @@ function EmployeeWorkScheduleList() {
 
   return (
     <div className="employeeWorkScheduleList">
+      <OrdinaryScheduleList
+        title="İş qrafiki"
+        addText="Yenisini əlavə et"
+        addLink="./add"
+        // exportLink="/employees/export"
+      />
       <div
         className="ews-table-controls-bar"
         style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "24px 24px 0 24px" }}
       >
-        <select
-          className="ews-filter-select"
-          value={selectedDay}
-          onChange={(e) => setSelectedDay(e.target.value)}
-        >
-          <option value="">Həftənin Günü</option>
-          {weekDays.map((d) => (
-            <option key={d.key} value={d.key}>
-              {d.label}
+       <div className="relative inline-block">
+          <select
+            className="ews-filter-select appearance-none pr-8"
+            value={selectedDay}
+            onChange={(e) => setSelectedDay(e.target.value)}
+            onFocus={() => setIsOpen(true)}
+            onBlur={() => setIsOpen(false)}
+          >
+            <option value="" disabled hidden>
+              Həftənin Günü
             </option>
-          ))}
-        </select>
-        <Link to={"./add"} className="anamnesisList-add-new-button">
+            {weekDays.map((d) => (
+              <option key={d.key} value={d.key}>
+                {d.label}
+              </option>
+            ))}
+          </select>
+          <HiChevronDown
+            className={`absolute right-2 top-1/2 transform -translate-y-1/2 transition-transform duration-200 ${
+              isOpen ? "rotate-180" : "rotate-0"
+            }`}
+          />
+        </div>
+        {/* <Link to={"./add"} className="anamnesisList-add-new-button">
           <span>+</span> Yenisini əlavə et
-        </Link>
+        </Link> */}
       </div>
       <div className="ews-table-wrapper">
         <table className="ews-table">
           <thead>
             <tr>
-              <th>
-                <span className="firstElementOfTHS">
-                  <HiOutlineArrowsUpDown />
-                  {filteredSchedules.length ? `1-${filteredSchedules.length}` : "0"}
+              <th className="border-r-1 border-gray-400 w-20">
+                <span className="firstElementOfTHS items-center flex text-center ml-5">
+                  {/* <HiOutlineArrowsUpDown /> */}
+                  {filteredSchedules.length ? `1-${filteredSchedules.length}` : "1-8"}
                 </span>
               </th>
-              <th>
-                <span>
+              <th className="w-50">
+                <span className="items-center flex gap-1 ml-5">
                   <HiOutlineArrowsUpDown /> Həftənin Günü
                 </span>
               </th>
-              <th>
-                <span>
+              <th className="w-50">
+                <span className="items-center flex gap-1 ml-15">
                   <HiOutlineArrowsUpDown /> Kabinet
                 </span>
               </th>
-              <th>
-                <span>
+              <th className="w-55">
+                <span className="items-center flex gap-1 ml-18">
                   <HiOutlineArrowsUpDown /> Başlama saatı
                 </span>
               </th>
-              <th>
-                <span>
+              <th className="w-55">
+                <span className="items-center flex gap-1 ml-20">
                   <HiOutlineArrowsUpDown /> Bitiş saatı
                 </span>
               </th>

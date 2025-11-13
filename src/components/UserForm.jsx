@@ -307,14 +307,12 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                 id="username"
                 type="text"
                 {...register("username")}
+                placeholder={errors.username ? errors.username.message : "İstifadəçi adını daxil edin"}
                 readOnly={mode === "view"}
                 className={`${mode === "view" ? "readonly" : ""} ${
-                  errors.username ? "error" : ""
+                  errors.username && !watch("username") ? "border-2 text-sm border-red-500 bg-red-50 placeholder-red-500" : ""
                 }`}
               />
-              {errors.username && (
-                <p className="error-message">{errors.username.message}</p>
-              )}
             </div>
 
             {mode === "create" && (
@@ -327,21 +325,19 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                     id="password"
                     type={showPassword ? "text" : "password"}
                     {...register("password")}
-                    className={errors.password ? "error" : ""}
+                    placeholder={errors.password ? errors.password.message : "Şifrəni daxil edin"}
+                    className={errors.password && !watch("password") ? "border-2 text-sm border-red-500 bg-red-50 placeholder-red-500" : ""}
                   />
                   <span
                     className="password-toggle-icon"
                     onClick={togglePasswordVisibility}>
-                    {showPassword ? <FaRegEyeSlash /> : <FaRegEye />}
+                    {showPassword ? <FaRegEye /> :<FaRegEyeSlash /> }
                   </span>
                 </div>
-                {errors.password && (
-                  <p className="error-message">{errors.password.message}</p>
-                )}
               </div>
             )}
 
-            <div className="main-form-group">
+             <div className="main-form-group">
               <label htmlFor="name">
                 Ad <span className="text-red-500">*</span>
               </label>
@@ -349,14 +345,12 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                 id="name"
                 type="text"
                 {...register("name")}
+                placeholder={errors.name ? errors.name.message : "Adı daxil edin"}
                 readOnly={mode === "view"}
                 className={`${mode === "view" ? "readonly" : ""} ${
-                  errors.name ? "error" : ""
+                  errors.name && !watch("name") ? "border-2 text-sm border-red-500 bg-red-50 placeholder-red-500" : ""
                 }`}
               />
-              {errors.name && (
-                <p className="error-message">{errors.name.message}</p>
-              )}
             </div>
 
             <div className="main-form-group">
@@ -367,14 +361,12 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                 id="surname"
                 type="text"
                 {...register("surname")}
+                placeholder={errors.surname ? errors.surname.message : "Soyadı daxil edin"}
                 readOnly={mode === "view"}
                 className={`${mode === "view" ? "readonly" : ""} ${
-                  errors.surname ? "error" : ""
+                  errors.surname && !watch("surname") ? "border-2 text-sm border-red-500 bg-red-50 placeholder-red-500" : ""
                 }`}
               />
-              {errors.surname && (
-                <p className="error-message">{errors.surname.message}</p>
-              )}
             </div>
 
             <div className="main-form-group">
@@ -385,40 +377,47 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                 id="patronymic"
                 type="text"
                 {...register("patronymic")}
+                placeholder={errors.patronymic ? errors.patronymic.message : "Ata adını daxil edin"}
                 readOnly={mode === "view"}
                 className={`${mode === "view" ? "readonly" : ""} ${
-                  errors.patronymic ? "error" : ""
+                  errors.patronymic && !watch("patronymic") ? "border-2 text-sm border-red-500 bg-red-50 placeholder-red-500" : ""
                 }`}
               />
-              {errors.patronymic && (
-                <p className="error-message">{errors.patronymic.message}</p>
-              )}
             </div>
 
-            <div className="main-form-group">
+            <div className="main-form-group items-center flex">
               <label htmlFor="genderStatus">
                 Cinsiyyət <span className="text-red-500">*</span>
               </label>
-              <CustomDropdown
-                name="genderStatus"
-                value={watch("genderStatus")}
-                onChange={(option) => setValue("genderStatus", option.value)}
-                placeholder="Cins seçin"
-                options={[
-                  {
-                    value: "MAN",
-                    label: "Kişi",
-                  },
-                  {
-                    value: "WOMAN",
-                    label: "Qadın",
-                  },
-                ]}
-                isDisabled={mode === "view"}
-              />
-              {errors.genderStatus && (
-                <p className="error-message">{errors.genderStatus.message}</p>
-              )}
+              <div className={`flex gap-4 rounded-lg -ml-10 ${errors.genderStatus && !watch("genderStatus") ? "" : ""}`}>
+                <label className="flex items-center gap-1 cursor-pointer">
+                  <input
+                    type="radio"
+                    value="MAN"
+                    {...register("genderStatus")}
+                    disabled={mode === "view"}
+                    className={` ${errors.genderStatus && !watch("genderStatus") ? "accent-red-500" : "accent-blue-600"}`}
+                  />
+                  <span className={errors.genderStatus && !watch("genderStatus") ? "text-red-500" : "text-gray-900"}>
+                    Kişi
+                  </span>
+                </label>
+                <label className="flex items-center gap-1 cursor-pointer">
+                  <input
+                    type="radio"
+                    value="WOMAN"
+                    {...register("genderStatus")}
+                    disabled={mode === "view"}
+                    className={` ${errors.genderStatus && !watch("genderStatus") ? "accent-red-500" : "accent-blue-600"}`}
+                  />
+                  <span className={errors.genderStatus && !watch("genderStatus") ? "text-red-500" : "text-gray-900"}>
+                    Qadın
+                  </span>
+                </label>
+              </div>
+              {/* {errors.genderStatus && !watch("genderStatus") && (
+                <p className="text-red-500 text-sm mt-1">{errors.genderStatus.message}</p>
+              )} */}
             </div>
 
             <div className="main-form-group">
@@ -467,12 +466,9 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                 min="1800-01-01"
                 max="3000-12-31"
                 className={`${mode === "view" ? "readonly" : ""} ${
-                  errors.dateOfBirth ? "error" : ""
+                  errors.dateOfBirth && !watch("dateOfBirth") ? "border-2 border-red-500 bg-red-50" : ""
                 }`}
               />
-              {errors.dateOfBirth && (
-                <p className="error-message">{errors.dateOfBirth.message}</p>
-              )}
             </div>
           </div>
 
@@ -491,17 +487,15 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                     setValue("phone", formattedValue);
                   },
                 })}
+                placeholder={errors.phone ? errors.phone.message : "(000)-000-00-00"}
                 readOnly={mode === "view"}
                 className={`${mode === "view" ? "readonly" : ""} ${
-                  errors.phone ? "error" : ""
+                  errors.phone && !watch("phone") ? "border-2 text-sm border-red-500 bg-red-50 placeholder-red-500" : ""
                 }`}
               />
-              {errors.phone && (
-                <p className="error-message">{errors.phone.message}</p>
-              )}
             </div>
 
-            <div className="main-form-group">
+             <div className="main-form-group">
               <label htmlFor="phone2">
                 Mobil nömrə 2
                 {mode === "create" && <span className="text-red-500">*</span>}
@@ -516,14 +510,12 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                     setValue("phone2", formattedValue);
                   },
                 })}
+                placeholder={errors.phone2 ? errors.phone2.message : "(000)-000-00-00"}
                 readOnly={mode === "view"}
                 className={`${mode === "view" ? "readonly" : ""} ${
-                  errors.phone2 ? "error" : ""
+                  errors.phone2 && !watch("phone2") ? "border-2 text-sm border-red-500 bg-red-50 placeholder-red-500" : ""
                 }`}
               />
-              {errors.phone2 && (
-                <p className="error-message">{errors.phone2.message}</p>
-              )}
             </div>
 
             <div className="main-form-group">
@@ -673,7 +665,7 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
           </div>
         </div>
 
-        {Object.keys(errors).length > 0 && (
+        {/* {Object.keys(errors).length > 0 && (
           <div className="error-summary">
             <ul>
               {Object.values(errors).map((error, index) => (
@@ -683,7 +675,7 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
               ))}
             </ul>
           </div>
-        )}
+        )} */}
 
         {mode !== "view" && (
           <div className="main-form-actions">

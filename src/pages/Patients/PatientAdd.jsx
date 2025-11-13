@@ -199,9 +199,10 @@ const PatientAdd = () => {
 
     console.log("Göndərilən formData:", formData);
 
-    if (!validateForm()) {
+    if (!validateForm()){
       toast.error(
-        "Zəhmət olmasa, tələb olunan sahələri doldurun və formatları düzəldin."
+        "Zəhmət olmasa, tələb olunan sahələri doldurun və formatları düzəldin.",
+        { toastId: 'validation-error' }
       );
       return;
     }
@@ -209,7 +210,7 @@ const PatientAdd = () => {
     const dataToSend = {
       ...formData,
       specializationName: formData.specializationName,
-       doctorId: formData.doctorId ? formData.doctorId.toString() : "",
+      doctorId: formData.doctorId ? formData.doctorId.toString() : "",
       priceCategoryName: formData.priceCategoryName,
       blacklistCategory:
         formData.isBlacklisted && formData.blacklistCategory
@@ -262,11 +263,15 @@ const PatientAdd = () => {
               name="name"
               value={formData.name}
               onChange={handleChange}
-              className="patientsGroupInputText"
+              placeholder={errors.name || "Ad daxil edin"}
+              className={`patientsGroupInputText placeholder:text-xs ${
+                errors.name ? "border-red-500 border-2" : ""
+              } ${
+                errors.name && !formData.name.trim()
+                  ? "bg-red-50 placeholder-red-500"
+                  : ""
+              }`}
             />
-            {errors.name && (
-              <span className="error-message">{errors.name}</span>
-            )}
           </div>
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">
@@ -277,12 +282,17 @@ const PatientAdd = () => {
               name="surname"
               value={formData.surname}
               onChange={handleChange}
-              className="patientsGroupInputText"
+              placeholder={errors.surname || "Soyad daxil edin"}
+              className={`patientsGroupInputText placeholder:text-xs ${
+                errors.surname ? "border-red-500 border-2" : ""
+              } ${
+                errors.surname && !formData.surname.trim()
+                  ? "bg-red-50 placeholder-red-500"
+                  : ""
+              }`}
             />
-            {errors.surname && (
-              <span className="error-message">{errors.surname}</span>
-            )}
           </div>
+
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">
               Ata adı <span className="patientsGroupRequired">*</span>
@@ -292,11 +302,15 @@ const PatientAdd = () => {
               name="patronymic"
               value={formData.patronymic}
               onChange={handleChange}
-              className="patientsGroupInputText"
+              placeholder={errors.patronymic || "Ata adı daxil edin"}
+              className={`patientsGroupInputText placeholder:text-xs ${
+                errors.patronymic ? "border-red-500 border-2" : ""
+              } ${
+                errors.patronymic && !formData.patronymic.trim()
+                  ? "bg-red-50 placeholder-red-500"
+                  : ""
+              }`}
             />
-            {errors.patronymic && (
-              <span className="error-message">{errors.patronymic}</span>
-            )}
           </div>
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">Fin kodu</label>
@@ -305,19 +319,22 @@ const PatientAdd = () => {
               name="finCode"
               value={formData.finCode}
               onChange={handleChange}
-              maxLength={7}
-              className="patientsGroupInputText"
+              placeholder="Fin kod adı daxil edin"
+              className="patientsGroupInputText placeholder:text-xs"
             />
-            {errors.finCode && (
-              <span className="error-message">{errors.finCode}</span>
-            )}
           </div>
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">
               Cinsiyyət <span className="patientsGroupRequired">*</span>
             </label>
             <div className="patientsGroupGender">
-              <label>
+              <label
+                className={`${
+                  errors.genderStatus && !formData.genderStatus
+                    ? "border-2 border-red-500 bg-red-50 px-3 py-2 rounded"
+                    : ""
+                }`}
+              >
                 <input
                   type="radio"
                   name="genderStatus"
@@ -328,7 +345,13 @@ const PatientAdd = () => {
                 />{" "}
                 Kişi
               </label>
-              <label>
+              <label
+                className={`${
+                  errors.genderStatus && !formData.genderStatus
+                    ? "border-2 border-red-500 bg-red-50 px-3 py-2 rounded"
+                    : ""
+                }`}
+              >
                 <input
                   type="radio"
                   name="genderStatus"
@@ -340,9 +363,6 @@ const PatientAdd = () => {
                 Qadın
               </label>
             </div>
-            {errors.genderStatus && (
-              <span className="error-message">{errors.genderStatus}</span>
-            )}
           </div>
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">Doğum tarixi</label>
@@ -351,14 +371,17 @@ const PatientAdd = () => {
               name="dateOfBirth"
               value={formData.dateOfBirth}
               onChange={handleChange}
-              className="patientsGroupInputText"
+              className={`patientsGroupInputText text-xs ${
+                errors.dateOfBirth ? "border-red-500 border-2 bg-red-50" : ""
+              }`}
               placeholder="YYYY-MM-DD"
             />
             {errors.dateOfBirth && (
-              <span className="error-message">{errors.dateOfBirth}</span>
+              <span className="text-red-600 text-xs mt-1 block">
+                {errors.dateOfBirth}
+              </span>
             )}
           </div>
-
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">
               Qiymət kateqoriyası{" "}
@@ -368,17 +391,40 @@ const PatientAdd = () => {
               name="priceCategoryName"
               value={formData.priceCategoryName}
               onChange={handleChange}
-              className="patientsGroupSelect">
-              <option value="">seçin</option>
+              className={`patientsGroupSelect text-xs ${
+                errors.priceCategoryName ? "border-red-500 border-2" : ""
+              } ${
+                errors.priceCategoryName && !formData.priceCategoryName
+                  ? "bg-red-50"
+                  : ""
+              }`}
+              style={
+                errors.priceCategoryName && !formData.priceCategoryName
+                  ? { color: "#ef4444" }
+                  : { color: "#000" }
+              }
+            >
+              <option
+                value=""
+                style={{
+                  color:
+                    errors.priceCategoryName && !formData.priceCategoryName
+                      ? "#ef4444"
+                      : "#9ca3af",
+                }}
+              >
+                {errors.priceCategoryName || "seçin"}
+              </option>
               {priceCategories.map((category) => (
-                <option key={category.id} value={category.name}>
+                <option
+                  key={category.id}
+                  value={category.name}
+                  style={{ color: "#000" }}
+                >
                   {category.name}
                 </option>
               ))}
             </select>
-            {errors.priceCategoryName && (
-              <span className="error-message">{errors.priceCategoryName}</span>
-            )}
           </div>
 
           <div className="patientsGroupField">
@@ -389,17 +435,40 @@ const PatientAdd = () => {
               name="specializationName"
               value={formData.specializationName}
               onChange={handleChange}
-              className="patientsGroupSelect">
-              <option value="">seçin</option>
+              className={`patientsGroupSelect text-xs ${
+                errors.specializationName ? "border-red-500 border-2" : ""
+              } ${
+                errors.specializationName && !formData.specializationName
+                  ? "bg-red-50"
+                  : ""
+              }`}
+              style={
+                errors.specializationName && !formData.specializationName
+                  ? { color: "#ef4444" }
+                  : { color: "#000" }
+              }
+            >
+              <option
+                value=""
+                style={{
+                  color:
+                    errors.specializationName && !formData.specializationName
+                      ? "#ef4444"
+                      : "#9ca3af",
+                }}
+              >
+                {errors.specializationName || "seçin"}
+              </option>
               {specializations.map((spec) => (
-                <option key={spec.id} value={spec.name}>
+                <option
+                  key={spec.id}
+                  value={spec.name}
+                  style={{ color: "#000" }}
+                >
                   {spec.name}
                 </option>
               ))}
             </select>
-            {errors.specializationName && (
-              <span className="error-message">{errors.specializationName}</span>
-            )}
           </div>
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">
@@ -409,17 +478,36 @@ const PatientAdd = () => {
               name="doctorId"
               value={formData.doctorId || ""}
               onChange={handleChange}
-              className="patientsGroupSelect">
-              <option value="">Həkim seçin</option>
+              className={`patientsGroupSelect text-xs ${
+                errors.doctorId ? "border-red-500 border-2" : ""
+              } ${errors.doctorId && !formData.doctorId ? "bg-red-50" : ""}`}
+              style={
+                errors.doctorId && !formData.doctorId
+                  ? { color: "#ef4444" }
+                  : { color: "#000" }
+              }
+            >
+              <option
+                value=""
+                style={{
+                  color:
+                    errors.doctorId && !formData.doctorId
+                      ? "#ef4444"
+                      : "#9ca3af",
+                }}
+              >
+                {errors.doctorId || "Həkim seçin"}
+              </option>
               {doctors.map((doctor) => (
-                <option key={doctor.doctorId} value={doctor.doctorId}>
+                <option
+                  key={doctor.doctorId}
+                  value={doctor.doctorId}
+                  style={{ color: "#000" }}
+                >
                   {doctor.name} {doctor.surname}
                 </option>
               ))}
             </select>
-            {errors.doctorId && (
-              <span className="error-message">{errors.doctorId}</span>
-            )}
           </div>
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">Qara siyahı</label>
@@ -435,8 +523,13 @@ const PatientAdd = () => {
                 name="blacklistCategory"
                 value={formData.blacklistCategory}
                 onChange={handleChange}
-                className="patientsGroupBlacklistSelect"
-                disabled={!formData.isBlacklisted}>
+                className={`patientsGroupBlacklistSelect text-xs ${
+                  errors.blacklistCategory
+                    ? "border-red-500 border-2 bg-red-50 text-xs"
+                    : ""
+                }`}
+                disabled={!formData.isBlacklisted}
+              >
                 <option value="">seçin</option>
                 {blacklistOptions.data &&
                   blacklistOptions.data.map((option) => (
@@ -447,11 +540,12 @@ const PatientAdd = () => {
               </select>
             </div>
             {errors.blacklistCategory && (
-              <span className="error-message">{errors.blacklistCategory}</span>
+              <span className="text-red-600 text-xs mt-1 block">
+                {errors.blacklistCategory}
+              </span>
             )}
           </div>
         </div>
-
         <div className="patientsGroupRight">
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">
@@ -462,12 +556,15 @@ const PatientAdd = () => {
               name="phone"
               value={formData.phone}
               onChange={handleChange}
-              className="patientsGroupInputText"
-              placeholder="(XXX)-XXX-XXXX"
+              placeholder={errors.phone || "(XXX)-XXX-XXXX"}
+              className={`patientsGroupInputText placeholder:text-xs ${
+                errors.phone ? "border-red-500 border-2" : ""
+              } ${
+                errors.phone && !formData.phone.trim()
+                  ? "bg-red-50 placeholder-red-500"
+                  : "placeholder-gray-400"
+              }`}
             />
-            {errors.phone && (
-              <span className="error-message">{errors.phone}</span>
-            )}
           </div>
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">Whatsapp</label>
@@ -476,11 +573,15 @@ const PatientAdd = () => {
               name="whatsapp"
               value={formData.whatsapp}
               onChange={handleChange}
-              className="patientsGroupInputText"
+              className={`patientsGroupInputText text-xs ${
+                errors.whatsapp ? "border-red-500 border-2 bg-red-50" : ""
+              }`}
               placeholder="(XXX)-XXX-XXXX"
             />
             {errors.whatsapp && (
-              <span className="error-message">{errors.whatsapp}</span>
+              <span className="text-red-600 text-xs mt-1 block">
+                {errors.whatsapp}
+              </span>
             )}
           </div>
           <div className="patientsGroupField">
@@ -490,11 +591,15 @@ const PatientAdd = () => {
               name="workPhone"
               value={formData.workPhone}
               onChange={handleChange}
-              className="patientsGroupInputText"
+              className={`patientsGroupInputText text-xs ${
+                errors.workPhone ? "border-red-500 border-2 bg-red-50" : ""
+              }`}
               placeholder="(XXX)-XXX-XXXX"
             />
             {errors.workPhone && (
-              <span className="error-message">{errors.workPhone}</span>
+              <span className="text-red-600 text-xs mt-1 block">
+                {errors.workPhone}
+              </span>
             )}
           </div>
           <div className="patientsGroupField">
@@ -504,11 +609,15 @@ const PatientAdd = () => {
               name="homePhone"
               value={formData.homePhone}
               onChange={handleChange}
-              className="patientsGroupInputText"
+              className={`patientsGroupInputText text-xs ${
+                errors.homePhone ? "border-red-500 border-2 bg-red-50" : ""
+              }`}
               placeholder="(XXX)-XXX-XXXX"
             />
             {errors.homePhone && (
-              <span className="error-message">{errors.homePhone}</span>
+              <span className="text-red-600 text-xs mt-1 block">
+                {errors.homePhone}
+              </span>
             )}
           </div>
           <div className="patientsGroupField">
@@ -518,7 +627,7 @@ const PatientAdd = () => {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="patientsGroupInputText"
+              className="patientsGroupInputText text-xs"
             />
           </div>
           <div className="patientsGroupField">
@@ -528,7 +637,7 @@ const PatientAdd = () => {
               name="homeAddress"
               value={formData.homeAddress}
               onChange={handleChange}
-              className="patientsGroupInputText"
+              className="patientsGroupInputText text-xs"
             />
           </div>
           <div className="patientsGroupField">
@@ -538,7 +647,7 @@ const PatientAdd = () => {
               name="workAddress"
               value={formData.workAddress}
               onChange={handleChange}
-              className="patientsGroupInputText"
+              className="patientsGroupInputText text-xs"
             />
           </div>
           <div className="patientsGroupField">
@@ -548,7 +657,7 @@ const PatientAdd = () => {
               name="recommender"
               value={formData.recommender}
               onChange={handleChange}
-              className="patientsGroupInputText"
+              className="patientsGroupInputText text-xs"
             />
           </div>
         </div>
@@ -559,6 +668,7 @@ const PatientAdd = () => {
           type="button"
           className="addPatientCancelButton"
           onClick={() => {
+            setErrors({});
             setFormData({
               name: "",
               surname: "",
@@ -581,9 +691,9 @@ const PatientAdd = () => {
               workAddress: "",
               recommender: "",
             });
-            setErrors({});
             navigate(-1);
-          }}>
+          }}
+        >
           <img
             src={cancelButton}
             className="addPatientCancelBTN"
@@ -595,7 +705,8 @@ const PatientAdd = () => {
           type="submit"
           onClick={handleSubmit}
           className="addPatientVerifyButton"
-          disabled={loading}>
+          disabled={loading}
+        >
           <img src={verifyButton} className="addPatientVerifyBTN" alt="Save" />
           {loading ? (
             <>
