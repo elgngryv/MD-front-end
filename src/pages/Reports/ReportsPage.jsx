@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { HiArrowsUpDown } from "react-icons/hi2";
 
 // Style
 import "../../assets/style/ReportsPage/reports.css";
@@ -98,7 +99,7 @@ function ReportsPage() {
  ];
 
  return (
-  <div className="reportsPageWrapper">
+  <div className="reportsPageWrapper p-3">
    <div className="reportsPageTopPart">
     <p className='reportsPageTitle'>Hesabat</p>
     <Link className='reportsDownload' to={"/"}>
@@ -106,7 +107,7 @@ function ReportsPage() {
     </Link>
    </div>
    <div className="reportsPageQuickSearch">
-    <div className="quickSearchLeftPart">
+    <div className="quickSearchLeftPart -ml-5">
      <CustomDropdown
       value={plannerDoctor}
       onChange={(option) => setPlannerDoctor(option.value)}
@@ -131,23 +132,23 @@ function ReportsPage() {
       options={formattedOperations} // Updated
       placeholder="Əməliyyat"
      />
-     <input
-        value={startDate}
-        type='date'
-        onChange={(option) => setStartDate(option.value)}
-        options={dates}
-        placeholder="Tarix baş."
-        className='border-1 border-[#D4DCE8] rounded-md p-2'
-      />
+<input
+  value={startDate}
+  type={startDate ? 'date' : 'text'}
+  onFocus={(e) => (e.target.type = 'date')}
+  onChange={(e) => setStartDate(e.target.value)}
+  placeholder="Tarix baş."
+  className='border-1 border-[#D4DCE8] rounded-md p-2'
+/>
 
-      <input
-        type='date'
-        value={endDate}
-        onChange={(option) => setEndDate(option.value)}
-        options={dates}
-        placeholder="Tarix bit."
-        className='border-1 border-[#D4DCE8] rounded-md p-2'
-      />
+<input
+  value={endDate}
+  type={endDate ? 'date' : 'text'}
+  onFocus={(e) => (e.target.type = 'date')}
+  onChange={(e) => setEndDate(e.target.value)}
+  placeholder="Tarix bit."
+  className='border-1 border-[#D4DCE8] rounded-md p-2'
+/>
     </div>
     <div className="quickSearchRightPart">
      <IoIosSearch
@@ -162,16 +163,76 @@ function ReportsPage() {
       <thead>
        <tr>
         <th>1-{reportData.length}</th>
-        <th>Plan tarixi</th>
-        <th>Pasiyent</th>
-        <th>Diş No</th>
-        <th>Əməliyyat</th>
-        <th>Planlayan həkim</th>
-        <th>Qiyməti</th>
-        <th>Endirim</th>
-        <th>Yekun</th>
-        <th>İcra tarixi</th>
-        <th>İcraçı həkim</th>
+        <th>
+           <div className="th-content">
+              <span className="!flex !items-center gap-1">
+                  <HiArrowsUpDown className="tableArrowIcon !text-sm" /> Plan tarixi
+              </span>
+            </div>
+         </th>
+        <th>
+          <div className="th-content">
+              <span className="!flex !items-center gap-1">
+                  <HiArrowsUpDown className="tableArrowIcon !text- ml-6" />  Pasiyent
+              </span>
+          </div>
+         </th>
+        <th>
+           <div className="th-content">
+              <span className="!flex !items-center gap-1">
+                  <HiArrowsUpDown className="tableArrowIcon !text-sm" />  Diş No
+              </span>
+          </div>
+        </th>
+        <th>
+           <div className="th-content">
+              <span className="!flex !items-center gap-1">
+                  <HiArrowsUpDown className="tableArrowIcon !text-sm" />   Əməliyyat
+              </span>
+          </div>
+         </th>
+        <th>
+           <div className="th-content">
+              <span className="!flex !items-center gap-1">
+                  <HiArrowsUpDown className="tableArrowIcon !text-sm" />  Planlayan həkim
+              </span>
+          </div>
+        </th>
+        <th>
+           <div className="th-content">
+              <span className="!flex !items-center gap-1">
+                  <HiArrowsUpDown className="tableArrowIcon !text-sm" />   Qiyməti
+              </span>
+          </div>
+         </th>
+        <th>
+            <div className="th-content">
+              <span className="!flex !items-center gap-1">
+                  <HiArrowsUpDown className="tableArrowIcon !text-sm" />    Endirim
+              </span>
+          </div>
+        </th>
+        <th>
+            <div className="th-content">
+              <span className="!flex !items-center gap-1">
+                  <HiArrowsUpDown className="tableArrowIcon !text-sm" />   Yekun  
+              </span>
+           </div>
+        </th>
+        <th>
+            <div className="th-content">
+              <span className="!flex !items-center gap-1">
+                  <HiArrowsUpDown className="tableArrowIcon !text-sm" />  İcra tarixi  
+              </span>
+           </div>
+        </th>
+        <th>
+           <div className="th-content">
+              <span className="!flex !items-center gap-1">
+                  <HiArrowsUpDown className="tableArrowIcon !text-sm" />  İcraçı həkim      
+              </span>
+           </div>
+            </th>
        </tr>
       </thead>
       <tbody>

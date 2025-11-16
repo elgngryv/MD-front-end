@@ -284,14 +284,14 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                 type="button"
                 className="color-success"
                 onClick={handleEditButton}>
-                <LuPenLine className="color-success" />
+                <LuPenLine className="color-success"/>
                 Redaktə et
               </button>
               <button
                 type="button"
                 className="color-danger"
                 onClick={() => setShowModal(true)}>
-                <FaRegTrashAlt className="color-danger" />
+                <FaRegTrashAlt className="color-danger"/>
                 Sil
               </button>
             </div>
@@ -551,6 +551,7 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                     setValue("homePhone", formattedValue);
                   },
                 })}
+                placeholder=""
                 readOnly={mode === "view"}
                 className={`${mode === "view" ? "readonly" : ""} ${
                   errors.homePhone ? "error" : ""
@@ -593,15 +594,13 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
               <input
                 id="experience"
                 type="number"
-                {...register("experience")}
+                {...register("experience")} 
                 readOnly={mode === "view"}
+                placeholder={errors.experience ? errors.experience.message : "Təcrübə rəqəm olmalıdır"}
                 className={`${mode === "view" ? "readonly" : ""} ${
-                  errors.experience ? "error" : ""
+                  errors.experience && !watch("phone2") ? "border-2 text-sm border-red-500 bg-red-50 placeholder-red-500" : ""
                 }`}
               />
-              {errors.experience && (
-                <p className="error-message">{errors.experience.message}</p>
-              )}
             </div>
 
             <div className="main-form-group">
@@ -620,7 +619,7 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                     name="permissions"
                     control={control}
                     render={({ field }) => (
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className=" ml-1 grid grid-row-2 gap-2">
                         {permissionList.map((permission) => (
                           <label
                             key={permission.value}
@@ -646,8 +645,11 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                                 }
                               }}
                               disabled={mode === "view"}
-                              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                            />
+                              className={`rounded focus:ring-blue-500 ${
+                              errors.permissions
+                                ? "border-2 !border-red-500 !text-red-600"
+                                : "border-gray-300 text-blue-600"
+                              }`} />
                             <span>{permission.label}</span>
                           </label>
                         ))}
@@ -656,11 +658,11 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                   />
                 )}
               </div>
-              {errors.permissions && (
+              {/* {errors.permissions && (
                 <p className="mt-1 text-sm text-red-600">
                   {errors.permissions.message}
                 </p>
-              )}
+              )} */}
             </div>
           </div>
         </div>

@@ -263,7 +263,7 @@ const Appointments = () => {
           </div>
         </div>
 
-        <div className="debug-info">
+        <div className="debug-info mt-4">
           {debugInfo}
           {selectedDoctorId && ` | Seçilmiş həkim ID: ${selectedDoctorId}`}
           {selectedRoom && ` | Seçilmiş otaq: ${selectedRoom.value}`}

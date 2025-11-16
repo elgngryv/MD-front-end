@@ -11,7 +11,7 @@ import { Link } from 'react-router-dom';
 
 function OrdinaryListHeader({ title, addText, addLink, exportLink, onAddClick }) {
   return (
-    <div className="listHeader">
+    <div className="listHeader -ml-4">
       <p className='titleOrdinaryList'>{title}</p>
       <div className="ordinaryListButtons">
         <Link onClick={onAddClick} to={addLink} className='addTextBTN'>

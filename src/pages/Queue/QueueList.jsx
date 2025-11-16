@@ -3,15 +3,17 @@ import { useNavigate } from "react-router-dom";
 import { CiSearch } from "react-icons/ci";
 import { GoTrash } from "react-icons/go";
 import { FiEdit3 } from "react-icons/fi";
+import { HiArrowsUpDown } from "react-icons/hi2";
 import OrdinaryListHeader from "../../components/OrdinaryList/OrdinaryListHeader";
 import "../../assets/style/QueuePage/queuelist.css";
 import useReservationStore from "../../../stores/reservationStore";
 
 function QueueList() {
   const [searchName, setSearchName] = useState("");
+  const [searchUserName,setSearchUserName] = useState("")
   const [searchSurname, setSearchSurname] = useState("");
   const [searchPhone, setSearchPhone] = useState("");
-  const [searchDoctor, setSearchDoctor] = useState("");
+  const [searchPatronymic, setSearchPatronymic] = useState("");
   const [searchStatus, setSearchStatus] = useState("");
 
   const {
@@ -32,6 +34,7 @@ function QueueList() {
 
   const handleSearch = async () => {
     const filters = {
+      userName: searchUserName,
       patientName: searchName,
       patientSurname: searchSurname,
       mobilePhone: searchPhone,
@@ -85,7 +88,7 @@ function QueueList() {
   });
 
   return (
-    <div className="queuePageContainer">
+    <div className="queuePageContainer p-4">
       <OrdinaryListHeader
         title="Növbə gözləyənlər"
         addText="Yenisini əlavə et"
@@ -94,13 +97,20 @@ function QueueList() {
       />
 
       <div className="queueSearchInputs">
-        <div className="leftPart">
+        <div className="leftPart -ml-5">
+          <input
+            type="text"
+            placeholder="İstifadəçi adı"
+            value={searchUserName}
+            onChange={(e) => setSearchUserName(e.target.value)}
+          />
           <input
             type="text"
             placeholder="Ad"
             value={searchName}
             onChange={(e) => setSearchName(e.target.value)}
           />
+          
           <input
             type="text"
             placeholder="Soyad"
@@ -109,15 +119,15 @@ function QueueList() {
           />
           <input
             type="text"
-            placeholder="Mobil nömrə"
-            value={searchPhone}
-            onChange={(e) => setSearchPhone(e.target.value)}
+            placeholder="Ata adı"
+            value={searchPatronymic}
+            onChange={(e) => setSearchPatronymic(e.target.value)}
           />
           <input
             type="text"
-            placeholder="Həkim adı"
-            value={searchDoctor}
-            onChange={(e) => setSearchDoctor(e.target.value)}
+            placeholder="Mobil nömrə"
+            value={searchPhone}
+            onChange={(e) => setSearchPhone(e.target.value)}
           />
           <CiSearch className="searchBTN" onClick={handleSearch} />
         </div>
@@ -136,21 +146,71 @@ function QueueList() {
 
       <div className="queueListWrapper">
         {loading && <div className="loading-message">Yüklənir...</div>}
-        {error && <div className="error-message">{error}</div>}
-
+        {error && <div className="error-message text-red-500"> Heç bir nəticə tapılmadı</div>}
+        
         <div className="queueListTableWrapper">
           <table className="queueListTable">
             <thead>
               <tr>
-                <th>Pasiyent</th>
-                <th>Mobil nömrə</th>
-                <th>Həkim</th>
-                <th>Başlama tarixi</th>
-                <th>Bitiş tarixi</th>
-                <th>Başlama saatı</th>
-                <th>Bitiş saatı</th>
-                <th>Status</th>
-                <th>Əməliyyatlar</th>
+                <th>
+                   <div className="th-content">
+                      <span className="flex items-center gap-1">
+                          <HiArrowsUpDown className="tableArrowIcon !text-sm" /> Pasiyent
+                      </span>
+                    </div>
+                </th>
+                <th>
+                   <div className="th-content">
+                      <span className="flex items-center gap-1">
+                          <HiArrowsUpDown className="tableArrowIcon !text-sm" />Mobil nömrə
+                      </span>
+                    </div>
+                </th>
+                <th>
+                   <div className="th-content">
+                      <span className="flex items-center gap-1">
+                          <HiArrowsUpDown className="tableArrowIcon !text-sm" /> Həkim
+                      </span>
+                    </div>
+                </th>
+                <th>
+                  <div className="th-content">
+                      <span className="flex items-center gap-1">
+                          <HiArrowsUpDown className="tableArrowIcon !text-sm" /> Başlama tarixi
+                      </span>
+                  </div>
+                </th>
+                <th>
+                  <div className="th-content">
+                      <span className="flex items-center gap-1">
+                          <HiArrowsUpDown className="tableArrowIcon !text-sm" /> Bitmə tarixi
+                      </span>
+                  </div>
+                </th>
+                <th>
+                  <div className="th-content">
+                      <span className="flex items-center gap-1">
+                          <HiArrowsUpDown className="tableArrowIcon !text-sm" /> Başlama saatı
+                      </span>
+                  </div>
+                </th>
+                <th>
+                  <div className="th-content">
+                      <span className="flex items-center gap-1">
+                          <HiArrowsUpDown className="tableArrowIcon !text-sm" /> Bitmə saatı
+                      </span>
+                  </div>
+                </th>
+                <th>
+                  <div className="th-content">
+                      <span className="-ml-1">Status</span>
+                    </div>
+                </th>
+                 <th>
+                  <div className="th-content">
+                      <span className="-ml-1">Düzəliş</span>
+                    </div>
+                </th>
               </tr>
             </thead>
             <tbody>
