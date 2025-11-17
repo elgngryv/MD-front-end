@@ -10,7 +10,7 @@ const InteractiveSVG = ({
   activeColor = "#1E3A8A",
 }) => {
   const [hoveredPathId, setHoveredPathId] = useState(null);
-  const [selectedToaths, setSelectedToaths] = useState([]); // [{ toathNumber, pathIds: [] }]
+  const [selectedToaths, setSelectedToaths] = useState([]); 
 
   const handlePathClick = (toath, path) => {
     if (!path.isClickable) return;

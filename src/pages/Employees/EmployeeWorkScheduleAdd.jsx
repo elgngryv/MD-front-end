@@ -96,11 +96,10 @@ function EmployeeWorkScheduleAdd() {
               name="weekDay"
               value={formData.weekDay}
               onChange={dəyişiklikləriİdarəEt}
-              className={`${
-                errors.weekDay
+              className={`${errors.weekDay
                   ? "border-2 border-red-500 !bg-red-50 text-red-500"
                   : "border border-gray-300 bg-white text-gray-900"
-              } w-full px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                } w-full px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500`}
             >
               <option
                 value=""
@@ -130,11 +129,10 @@ function EmployeeWorkScheduleAdd() {
               name="cabinetName"
               value={formData.cabinetName}
               onChange={dəyişiklikləriİdarəEt}
-              className={`${
-                errors.cabinetName
+              className={`${errors.cabinetName
                   ? "border-2 border-red-500 !bg-red-50 text-red-500"
                   : "border border-gray-300 bg-white text-gray-900"
-              } w-full px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                } w-full px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500`}
             >
               <option
                 value=""
