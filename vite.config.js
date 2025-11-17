@@ -12,7 +12,7 @@ export default defineConfig({
     port: 5173, // Geliştirme portu
     open: true, // Otomatik tarayıcı açma
   },
-  base: '/*',
+  base: '/',
   build: {
     outDir: "dist", // Derlenen dosyaların çıkış klasörü
     sourcemap: true, // Debug için kaynak haritası
