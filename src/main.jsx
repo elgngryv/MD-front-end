@@ -866,9 +866,9 @@ const AnimatedRoutes = () => {
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <HashRouter>
+      <BrowserRouter>
         <AnimatedRoutes />
-      </HashRouter>
+      </BrowserRouter>
       <ToastContainer position="top-right" autoClose={3000} />
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>

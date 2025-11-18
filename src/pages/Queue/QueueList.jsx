@@ -10,11 +10,12 @@ import useReservationStore from "../../../stores/reservationStore";
 
 function QueueList() {
   const [searchName, setSearchName] = useState("");
-  const [searchUserName,setSearchUserName] = useState("")
+  const [searchUserName, setSearchUserName] = useState("");
   const [searchSurname, setSearchSurname] = useState("");
   const [searchPhone, setSearchPhone] = useState("");
   const [searchPatronymic, setSearchPatronymic] = useState("");
   const [searchStatus, setSearchStatus] = useState("");
+  const [searchDoctor, setSearchDoctor] = useState("");
 
   const {
     reservations,
@@ -56,7 +57,7 @@ function QueueList() {
 
   const formatTime = (timeString) => {
     if (!timeString) return "";
-    return timeString.substring(0, 5); // HH:MM
+    return timeString.substring(0, 5);
   };
 
   const changeStatusHandler = async (id, newStatus) => {
@@ -110,7 +111,6 @@ function QueueList() {
             value={searchName}
             onChange={(e) => setSearchName(e.target.value)}
           />
-          
           <input
             type="text"
             placeholder="Soyad"
@@ -129,14 +129,23 @@ function QueueList() {
             value={searchPhone}
             onChange={(e) => setSearchPhone(e.target.value)}
           />
+
+          {/* NEW: Doctor Search Input */}
+          <input
+            type="text"
+            placeholder="Həkim"
+            value={searchDoctor}
+            onChange={(e) => setSearchDoctor(e.target.value)}
+          />
+
           <CiSearch className="searchBTN" onClick={handleSearch} />
         </div>
+
         <div className="rightPart">
           <select
             className="workersStatusChecker"
             value={searchStatus}
-            onChange={(e) => setSearchStatus(e.target.value)}
-          >
+            onChange={(e) => setSearchStatus(e.target.value)}>
             <option value="">Status</option>
             <option value="ACTIVE">Aktiv</option>
             <option value="PASSIVE">Passiv</option>
@@ -146,73 +155,86 @@ function QueueList() {
 
       <div className="queueListWrapper">
         {loading && <div className="loading-message">Yüklənir...</div>}
-        {error && <div className="error-message text-red-500"> Heç bir nəticə tapılmadı</div>}
-        
+        {error && (
+          <div className="error-message text-red-500">
+            {" "}
+            Heç bir nəticə tapılmadı
+          </div>
+        )}
+
         <div className="queueListTableWrapper">
           <table className="queueListTable">
             <thead>
               <tr>
                 <th>
-                   <div className="th-content">
-                      <span className="flex items-center gap-1">
-                          <HiArrowsUpDown className="tableArrowIcon !text-sm" /> Pasiyent
-                      </span>
-                    </div>
-                </th>
-                <th>
-                   <div className="th-content">
-                      <span className="flex items-center gap-1">
-                          <HiArrowsUpDown className="tableArrowIcon !text-sm" />Mobil nömrə
-                      </span>
-                    </div>
-                </th>
-                <th>
-                   <div className="th-content">
-                      <span className="flex items-center gap-1">
-                          <HiArrowsUpDown className="tableArrowIcon !text-sm" /> Həkim
-                      </span>
-                    </div>
-                </th>
-                <th>
                   <div className="th-content">
-                      <span className="flex items-center gap-1">
-                          <HiArrowsUpDown className="tableArrowIcon !text-sm" /> Başlama tarixi
-                      </span>
+                    <span className="flex items-center gap-1">
+                      <HiArrowsUpDown className="tableArrowIcon !text-sm" />{" "}
+                      Pasiyent
+                    </span>
                   </div>
                 </th>
                 <th>
                   <div className="th-content">
-                      <span className="flex items-center gap-1">
-                          <HiArrowsUpDown className="tableArrowIcon !text-sm" /> Bitmə tarixi
-                      </span>
+                    <span className="flex items-center gap-1">
+                      <HiArrowsUpDown className="tableArrowIcon !text-sm" />
+                      Mobil nömrə
+                    </span>
                   </div>
                 </th>
                 <th>
                   <div className="th-content">
-                      <span className="flex items-center gap-1">
-                          <HiArrowsUpDown className="tableArrowIcon !text-sm" /> Başlama saatı
-                      </span>
+                    <span className="flex items-center gap-1">
+                      <HiArrowsUpDown className="tableArrowIcon !text-sm" />
+                      Həkim
+                    </span>
                   </div>
                 </th>
                 <th>
                   <div className="th-content">
-                      <span className="flex items-center gap-1">
-                          <HiArrowsUpDown className="tableArrowIcon !text-sm" /> Bitmə saatı
-                      </span>
+                    <span className="flex items-center gap-1">
+                      <HiArrowsUpDown className="tableArrowIcon !text-sm" />
+                      Başlama tarixi
+                    </span>
                   </div>
                 </th>
                 <th>
                   <div className="th-content">
-                      <span className="-ml-1">Status</span>
-                    </div>
+                    <span className="flex items-center gap-1">
+                      <HiArrowsUpDown className="tableArrowIcon !text-sm" />
+                      Bitmə tarixi
+                    </span>
+                  </div>
                 </th>
-                 <th>
+                <th>
                   <div className="th-content">
-                      <span className="-ml-1">Düzəliş</span>
-                    </div>
+                    <span className="flex items-center gap-1">
+                      <HiArrowsUpDown className="tableArrowIcon !text-sm" />
+                      Başlama saatı
+                    </span>
+                  </div>
+                </th>
+                <th>
+                  <div className="th-content">
+                    <span className="flex items-center gap-1">
+                      <HiArrowsUpDown className="tableArrowIcon !text-sm" />
+                      Bitmə saatı
+                    </span>
+                  </div>
+                </th>
+                <th>
+                  <div className="th-content">
+                    <span className="-ml-1">Status</span>
+                  </div>
+                </th>
+                <th>
+                  <div className="th-content">
+                    <span className="-ml-1">Düzəliş</span>
+                  </div>
                 </th>
               </tr>
             </thead>
+
             <tbody>
               {filteredReservations.map((reservation) => (
                 <tr key={reservation.id}>
@@ -238,9 +260,7 @@ function QueueList() {
                           reservation.id,
                           reservation.status === "ACTIVE" ? "PASSIVE" : "ACTIVE"
                         )
-                      }
-                      title="Statusu dəyişmək üçün klikləyin"
-                    >
+                      }>
                       {reservation.status === "ACTIVE" ? "Aktiv" : "Passiv"}
                     </span>
                   </td>

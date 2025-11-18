@@ -124,7 +124,6 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
         setGarnitures(
           useGarnitureStore.getState().garnitures?.map((item) => ({
             value: item.id,
-            // ✅ DÜZƏLİŞ: `item.data.name` yerinə `item.name` istifadə edilir.
             label: item.name || "N/A",
           })) || fallbackGarnitures
         );
@@ -216,16 +215,20 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
       deliveryDate: data.deliveryDate,
       description: data.notes || "",
       dentalWorkType: data.workType,
-      orderDentureInfo: {
-        color: data.color,
-        garniture: data.garniture,
-      },
       toothDetailIds: toothDetails,
       teethList: selectedTeeth,
       doctorId: data.doctor,
       technicianId: data.technician,
       patientId: parseInt(data.patient),
     };
+
+    // Add denture info only for PROTEZ work type
+    if (data.workType === "PROTEZ") {
+      submitData.orderDentureInfo = {
+        color: data.color,
+        garniture: data.garniture,
+      };
+    }
 
     if (files.length > 0) {
       submitData.files = files.map((file) => file.base64 || file);
@@ -251,8 +254,7 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
 
   const workTypes = [
     { value: "PROTEZ", label: "Protez" },
-    { value: "KORONKA", label: "Koronka" },
-    { value: "IMPLANT", label: "İmplant" },
+    { value: "QAPAQ", label: "Qapaq" },
   ];
   const formValues = watch();
 
@@ -280,8 +282,11 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
     () => garnitures.find((g) => g.value === formValues.garniture) || null,
     [garnitures, formValues.garniture]
   );
+  
+  // DÜZƏLİŞ: PROTEZ iş növü üçün qarnitur və rəng sahələrini göstər
   const renderDentureFields = formValues.workType === "PROTEZ";
-  const renderToothFields = formValues.workType === "KORONKA";
+  // DÜZƏLİŞ: QAPAQ iş növü üçün diş seçim sahələrini göstər
+  const renderToothFields = formValues.workType === "QAPAQ";
 
   return (
     <form
@@ -423,7 +428,7 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
           </div>
         </div>
 
-        {/* Conditional Denture Fields */}
+        {/* Conditional Denture Fields - PROTEZ üçün */}
         {renderDentureFields && (
           <>
             <div className="flex justify-between items-center gap-2">
@@ -493,7 +498,7 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
         </div>
       </div>
 
-      {/* Conditional Tooth Selection */}
+      {/* Conditional Tooth Selection - QAPAQ üçün */}
       {renderToothFields && (
         <div className="flex flex-col border border-[#E5E7EB] bg-white rounded-lg w-full p-4 gap-2">
           <h1 className="text-lg font-bold">Diş qrafiki</h1>
