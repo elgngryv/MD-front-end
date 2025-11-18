@@ -227,6 +227,24 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
   };
 
   const handleConfirmAppointment = () => {
+    const normalizedDoctorId = selectedDoctorId
+      ? Number(selectedDoctorId)
+      : selectedPatient?.doctorId
+      ? Number(selectedPatient.doctorId)
+      : null;
+
+    if (!normalizedDoctorId) {
+      toast.error("Həkim seçilməyib");
+      setShowModal(false);
+      return;
+    }
+
+    if (!selectedRoom?.value) {
+      toast.error("Otaq seçilməyib");
+      setShowModal(false);
+      return;
+    }
+
     // Saat və müddəti string formatına çevir
     const timeString = `${formData.time.hour
       .toString()
@@ -242,6 +260,12 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
 
     // Prepare the appointment data in the required format
     const newAppointment = {
+      doctorId: normalizedDoctorId,
+      doctorName:
+        selectedDoctor?.label ||
+        formData.doctorName ||
+        selectedPatient?.doctorName ||
+        "",
       cabinetName: selectedRoom?.value || "",
       patientId: selectedPatient?.value ? parseInt(selectedPatient.value) : 0,
       appointment: selectedStatus?.value || "MEETING",

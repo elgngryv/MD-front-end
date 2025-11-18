@@ -129,36 +129,28 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
           })) || fallbackGarnitures
         );
         setColors(
-          useColorStore
-            .getState()
-            .colors?.map((item) => ({
-              value: item.id,
-              label: item.name || "N/A",
-            })) || fallbackColors
+          useColorStore.getState().colors?.map((item) => ({
+            value: item.id,
+            label: item.name || "N/A",
+          })) || fallbackColors
         );
         setTechnicians(
-          useTechnicianStore
-            .getState()
-            .technicians?.map((item) => ({
-              value: item.id,
-              label: `${item.name} ${item.surname}`,
-            })) || []
+          useTechnicianStore.getState().technicians?.map((item) => ({
+            value: item.id,
+            label: `${item.name} ${item.surname}`,
+          })) || []
         );
         setPatients(
-          usePatientStore
-            .getState()
-            .patients?.map((item) => ({
-              value: item.id,
-              label: `${item.name} ${item.surname}`,
-            })) || []
+          usePatientStore.getState().patients?.map((item) => ({
+            value: item.id,
+            label: `${item.name} ${item.surname}`,
+          })) || []
         );
         setDoctors(
-          useCalendarStore
-            .getState()
-            .doctors?.map((item) => ({
-              value: item.doctorId || item.id,
-              label: `${item.name} ${item.surname}`,
-            })) || []
+          useCalendarStore.getState().doctors?.map((item) => ({
+            value: item.doctorId || item.id,
+            label: `${item.name} ${item.surname}`,
+          })) || []
         );
         setCeramics(
           useCeramicsStore
