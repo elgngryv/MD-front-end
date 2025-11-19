@@ -6,6 +6,7 @@ const Svg = () => {
     <InteractiveSVG
       data={data}
       width={47}
+      categoryCode={1}
       height={148}
       viewBox="0 0 57 148"
       defaultColor="#D1D5DB"

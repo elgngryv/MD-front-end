@@ -2,6 +2,7 @@ import React, { useState } from "react";
 
 const InteractiveSVG = ({
   data = [],
+  categoryCode = null,   // 🔥 Yeni
   width = 110,
   height = 110,
   viewBox = "0 0 150 150",
@@ -9,8 +10,9 @@ const InteractiveSVG = ({
   hoverColor = "#2563EB",
   activeColor = "#1E3A8A",
 }) => {
+
   const [hoveredPathId, setHoveredPathId] = useState(null);
-  const [selectedToaths, setSelectedToaths] = useState([]); 
+  const [selectedToaths, setSelectedToaths] = useState([]);
 
   const handlePathClick = (toath, path) => {
     if (!path.isClickable) return;
@@ -48,66 +50,71 @@ const InteractiveSVG = ({
   return (
     <div className="flex flex-wrap gap-1">
       {data.map((section) =>
-        section.categorys?.map((cat) =>
-          sortToaths(cat.toaths)?.map((toath) => {
-            // o toath için seçilmiş path id’lerini bul
-            const selectedPathIds =
-              selectedToaths.find((t) => t.toathNumber === toath.toathNumber)
-                ?.pathIds || [];
+        section.categorys
+          ?.filter((cat) =>
+            categoryCode ? cat.categoryCode === categoryCode : true
+          )
+          .map((cat) =>
+            sortToaths(cat.toaths)?.map((toath) => {
 
-            return (
-              <div key={toath.id} className="text-center">
-                {/* SVG */}
-                <div className="relative inline-block">
-                  <svg
-                    width={width}
-                    height={height}
-                    viewBox={viewBox}
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    {toath.paths?.map((path) => {
-                      const isSelected = selectedPathIds.includes(path.id);
-                      const isHovered = hoveredPathId === path.id;
+              // o toath için seçilmiş path id’lerini tapır
+              const selectedPathIds =
+                selectedToaths.find((t) => t.toathNumber === toath.toathNumber)
+                  ?.pathIds || [];
 
-                      const fillColor = isSelected
-                        ? activeColor
-                        : isHovered
-                        ? hoverColor
-                        : path.fill || defaultColor;
+              return (
+                <div key={toath.id} className="text-center">
+                  {/* SVG */}
+                  <div className="relative inline-block">
+                    <svg
+                      width={width}
+                      height={height}
+                      viewBox={viewBox}
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      {toath.paths?.map((path) => {
+                        const isSelected = selectedPathIds.includes(path.id);
+                        const isHovered = hoveredPathId === path.id;
 
-                      return (
-                        <path
-                          key={path.id}
-                          d={path.path}
-                          fill={fillColor}
-                          stroke="#697586"
-                          strokeWidth="0.5"
-                          style={{
-                            cursor: path.isClickable ? "pointer" : "default",
-                            transition: "fill 0.25s ease",
-                          }}
-                          onClick={() => handlePathClick(toath, path)}
-                          onMouseEnter={() =>
-                            path.isClickable && setHoveredPathId(path.id)
-                          }
-                          onMouseLeave={() => setHoveredPathId(null)}
-                        />
-                      );
-                    })}
-                  </svg>
+                        const fillColor = isSelected
+                          ? activeColor
+                          : isHovered
+                            ? hoverColor
+                            : path.fill || defaultColor;
+
+                        return (
+                          <path
+                            key={path.id}
+                            d={path.path}
+                            fill={fillColor}
+                            stroke="#697586"
+                            strokeWidth="0.5"
+                            style={{
+                              cursor: path.isClickable ? "pointer" : "default",
+                              transition: "fill 0.25s ease",
+                            }}
+                            onClick={() => handlePathClick(toath, path)}
+                            onMouseEnter={() =>
+                              path.isClickable && setHoveredPathId(path.id)
+                            }
+                            onMouseLeave={() => setHoveredPathId(null)}
+                          />
+                        );
+                      })}
+                    </svg>
+                  </div>
+
+                  {/* Diş nömrəsi */}
+                  <h2 className="mt-2 text-sm font-semibold text-gray-700">
+                    {toath.toathNumber}
+                  </h2>
                 </div>
-
-                {/* Diş Numarası */}
-                <h2 className="mt-2 text-sm font-semibold text-gray-700">
-                  {toath.toathNumber}
-                </h2>
-              </div>
-            );
-          })
-        )
+              );
+            })
+          )
       )}
 
-      {/* Debug panel (isteğe bağlı) */}
+      {/* Debug panel */}
       {selectedToaths.length > 0 && (
         <pre className="mt-4 bg-gray-100 p-2 rounded text-xs text-left">
           {JSON.stringify(selectedToaths, null, 2)}
