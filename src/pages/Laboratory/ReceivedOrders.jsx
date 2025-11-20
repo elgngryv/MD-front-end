@@ -17,7 +17,13 @@ import useDentalOrderStore from "../../../stores/dentalOrderStore";
 function ReceivedOrders() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
-  const { orders, loading, error, fetchOrders } = useDentalOrderStore();
+  const { 
+    orders, 
+    loading, 
+    error, 
+    fetchOrders, 
+    changeOrderStatus  // Zustand store'dan status dəyişmə funksiyasını əlavə et
+  } = useDentalOrderStore();
 
   useEffect(() => {
     fetchOrders();
@@ -38,6 +44,40 @@ function ReceivedOrders() {
       className: "info-icon",
     },
   ];
+
+  // Status dəyişmə funksiyası
+  const handleStatusChange = async (orderId, currentStatus) => {
+    try {
+      // Növbəti statusu təyin et
+      const nextStatus = getNextStatus(currentStatus);
+      
+      // Status məlumatını hazırla
+      const statusData = {
+        id: orderId,
+        dentalWorkStatus: nextStatus
+      };
+
+      // Statusu yenilə
+      await changeOrderStatus(statusData);
+      
+    } catch (error) {
+      console.error("Status dəyişmə xətası:", error);
+    }
+  };
+
+  // Növbəti statusu təyin etmək üçün funksiya
+  const getNextStatus = (currentStatus) => {
+    const statusFlow = {
+      "PENDING": "IN_PROGRESS",
+      "IN_PROGRESS": "COMPLETED",
+      "COMPLETED": "SENT_TO_DOCTOR",
+      "SENT_TO_DOCTOR": "SENT_TO_TECHNICIAN", 
+      "SENT_TO_TECHNICIAN": "ACCEPTED_BY_TECHNICIAN",
+      "ACCEPTED_BY_TECHNICIAN": "PENDING" // Əgər dövr etmək istəyirsinizsə
+    };
+
+    return statusFlow[currentStatus] || "PENDING";
+  };
 
   // Tarix formatlama
   const formatDate = (dateString) => {
@@ -180,7 +220,15 @@ function ReceivedOrders() {
                     <td>{formatDate(row.deliveryDate)}</td>
 
                     <td>
-                      <span className={`status-badge ${statusInfo.type}`}>
+                      <span 
+                        className={`status-badge ${statusInfo.type}`}
+                        onClick={() => handleStatusChange(row.id, row.dentalWorkStatus)}
+                        style={{ 
+                          cursor: 'pointer',
+                          transition: 'all 0.3s ease'
+                        }}
+                        title="Statusu dəyişmək üçün klik edin"
+                      >
                         {statusInfo.text}
                       </span>
                     </td>

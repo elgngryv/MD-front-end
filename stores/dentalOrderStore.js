@@ -100,18 +100,31 @@ const useDentalOrderStore = create((set) => ({
     }
   },
 
-  // Status yenilə
-  changeOrderStatus: async (statusData) => {
-    set({ loading: true, error: null });
-    try {
-      const data = await updateDentalOrderStatus(statusData);
-      set({ loading: false });
-      return data;
-    } catch (error) {
-      set({ error, loading: false });
-    }
-  },
+  // STATUS YENİLƏ
+// stores/dentalOrderStore.js
+changeOrderStatus: async (statusData) => {
+  set({ loading: true, error: null });
+  try {
+    const updatedOrder = await updateDentalOrderStatus(statusData);
 
+    // UI-də dərhal əks etsin
+    set((state) => ({
+      orders: state.orders.map((order) =>
+        order.id === updatedOrder.id ? updatedOrder : order
+      ),
+      loading: false,
+      error: null // Error'u təmizlə
+    }));
+
+    return updatedOrder;
+  } catch (error) {
+    set({ 
+      error: error.message || "Xəta baş verdi", // Error mesajını string kimi saxla
+      loading: false 
+    });
+    throw error; // Error'u yenidən throw et ki, komponentdə tuta bilək
+  }
+},
   // Sifarişi sil
   removeOrder: async (id) => {
     set({ loading: true, error: null });
