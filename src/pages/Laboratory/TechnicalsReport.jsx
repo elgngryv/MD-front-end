@@ -107,7 +107,7 @@ return (
     {filteredData.length === 0 ? "0" : `1-${filteredData.length}`}
    </th>
    {tableHead.map((title, idx) => (
-    <th key={idx} style={{ textAlign: "center" }}>
+    <th key={idx} style={{ textAlign: "center" }} className=" !bg-amber-400">
     <div className="th-content">
      <HiArrowsUpDown className="arrowsIcon" />
      <span>{title}</span>
@@ -116,13 +116,13 @@ return (
    ))}
    {icons.length > 0 && (
     <th style={{ textAlign: "center" }}>
-    <div className="th-content">
+    <div className="th-content ml-11">
      <HiArrowsUpDown className="arrowsIcon" />
      <span>Ətraflı</span>
     </div>
     </th>
    )}
-   </tr>
+    </tr>
   </thead>
   <tbody>
    {/* Məlumat yoxdursa */}
@@ -144,11 +144,11 @@ return (
     return (
     <tr key={row.technicianId || rowIndex}>
      <td style={{ textAlign: "center" }}>{rowIndex + 1}</td>
-     <td style={{ textAlign: "center" }}>{firstName}</td>
-     <td style={{ textAlign: "center" }}>{lastName}</td>
-     <td style={{ textAlign: "center" }}>{row.totalDebt} AZN</td>
-     <td style={{ textAlign: "center" }}>{row.totalPaid} AZN</td>
-     <td style={{ textAlign: "center" }}>{row.totalRemaining} AZN</td>
+     <td style={{ textAlign: "!left" }}>{firstName}</td>
+     <td style={{ textAlign: "!left " }}>{lastName}</td>
+     <td style={{ textAlign: "!left " }}>{row.totalDebt} AZN</td>
+     <td style={{ textAlign: "!left " }}>{row.totalPaid} AZN</td>
+     <td style={{ textAlign: "!left " }}>{row.totalRemaining} AZN</td>
      {icons.length > 0 && (
      <td className="actions" style={{ textAlign: "center" }}>
       <div className="actionsWrapper">
