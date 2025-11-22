@@ -5,8 +5,8 @@
 
 .login-container {
   position: relative;
-  height: 100vh;
-  width: 100vw;
+  min-height: 100vh;
+  min-width: 100vw;
   display: flex;
   justify-content: flex-end;
   align-items: center;
@@ -28,53 +28,55 @@
   position: relative;
   z-index: 1;
   background: var(--login-form-container-bg-color);
-  margin-right: 20px;
-  height: 622px;
-  width: 650px;
-  border-radius: 8px;
+  margin-right: 7vh;
+  width: 45vw;
+  height: 96vh;
+  border-radius: 2vh;
   > .topPart {
-    padding-top: 50px;
+    padding-top: 7vh;
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 0px;
     > img {
-      height: 127px;
+      height: 20vh;
+      width:10vw;
     }
     > .logo-title {
-      font-size: 64px;
+      font-size: 4vw;
       font-weight: 500;
       text-align: left;
-      line-height: 70px;
+      line-height: 9vh;
       color: var(--login-form-logo-title-color);
     }
   }
   > .logo-motto {
-    padding-top: 25px;
+    padding-top: 2vh;
     text-align: center;
     color: #002266;
     font-weight: 600;
-    font-size: 19px;
+    font-size: 3vh;
   }
   > .inputs-container {
-    padding-top: 60px;
+    padding-top: 7vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 20px;
+    gap: 2vh;
     > .username-part,
     .password-part {
       > input {
-        width: 546px;
-        height: 56px;
-        padding: 20px;
-        padding-right: 50px;
-        border: 1px solid #697586;
-        border-radius: 8px;
+        width: 35vw;
+        height: 8vh;
+        padding: 3vh;
+        padding-right: 10vh;
+        border: 0.1vh solid #697586;
+        border-radius: 2vh;
+        font-size:3vh;
         &:focus {
           outline: none;
-          border: 1px solid #0d121c;
+          border: 0.2vh solid #0d121c;
         }
       }
     }
@@ -82,9 +84,9 @@
       position: relative;
       > .eye-btn {
         position: absolute;
-        right: 15px;
-        top: 20px;
-        font-size: 20px;
+        right: 2vh;
+        top: 2.9vh;
+        font-size: 3vh;
       }
       > .closed {
         display: none;
@@ -95,29 +97,29 @@
     }
   }
   > .remember-me {
-    padding-top: 20px;
+    padding-top: 2vh;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 2vh;
     .custom-checkbox {
-      width: 20px;
-      height: 20px;
+      width: 1vw;
+      height: 2.3vh;
       border: 1px solid #1a73e8;
-      border-radius: 4px;
+      border-radius: 0.5vh;
       display: flex;
       align-items: center;
       justify-content: center;
       transition: 0.3s ease;
-      margin-left: 54px;
+      margin-left: 12vh;
 
       .check-icon {
         color: #1a73e8;
-        font-size: 14px;
+        font-size: 3vh;
       }
     }
 
     label {
-      font-size: 17px;
+      font-size: 3vh;
       color: #002266;
       cursor: pointer;
     }
@@ -125,15 +127,15 @@
   > .login-btn {
     display: flex;
     justify-content: center;
-    padding-top: 50px;
+    padding-top: 5vh;
     > button {
-      padding: 16px 237px;
+      padding: 3vh 16vw;
       border: none;
       background: #155eef;
       color: white;
       font-weight: 500;
-      border-radius: 8px;
-      font-size: 18px;
+      border-radius: 2vh;
+      font-size: 3vh;
       font-weight: 400;
       transition: 0.6s ease;
       &:hover {

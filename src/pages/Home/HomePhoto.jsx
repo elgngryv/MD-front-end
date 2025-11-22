@@ -1,5 +1,6 @@
 // src/Home.jsx
 import React from "react";
+import SmileImg from "../../assets/images/smile.png";
 
 // Style
 import "../../assets/style/home.css";
@@ -15,17 +16,9 @@ function Home() {
     <>
       <div className="HomeWrapper">
         <main className="MainContent">
-          <section className="HeroSection">
-            <h1>Stomatoloji Klinik CRM-ə Xoş Gəldiniz</h1>
-            <p>İşlərinizi asanlaşdıran modern və rahat platforma.</p>
-            <p>1.24v</p>
-            {/* "Sürətli Əməliyyatlar" düyməsinə klikləyəndə sidebar-ı açmaq/bağlamaq üçün */}
-            <button
-              className="PrimaryButton"
-              onClick={toggleSidebar} // Buraya Zustand store-dan gələn `toggleSidebar` funksiyasını bağlayırıq
-            >
-              Başlayaq!
-            </button>
+          <section className="HeroSection flex w-[80%] justify-center items-center mb-17">
+            <h1 className="!text-[85px] ">Xoş gəlmisiniz!</h1>
+            <img className="w-20 h-20 ml-4" src={SmileImg} alt="photo"/>
           </section>
 
           {/* Burada əlavə bölmələr yarada bilərsiniz, məsələn: */}

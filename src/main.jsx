@@ -14,7 +14,7 @@ import {
   QueryClientProvider,
   useQuery,
 } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+// import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { AnimatePresence, motion } from "framer-motion";
 
 // stores
@@ -870,7 +870,7 @@ createRoot(document.getElementById("root")).render(
         <AnimatedRoutes />
       </BrowserRouter>
       <ToastContainer position="top-right" autoClose={3000} />
-      <ReactQueryDevtools initialIsOpen={false} />
+      {/* <ReactQueryDevtools initialIsOpen={false} /> */}
     </QueryClientProvider>
   </StrictMode>
 );

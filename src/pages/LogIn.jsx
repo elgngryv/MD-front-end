@@ -59,6 +59,8 @@ function LogIn() {
   };
 
   return (
+    <div className="login-wrapper">
+
     <div className="login-container">
       <img src={loginBg} alt="login background" className="login-bg-img" />
       <TitleUpdater title={"LogIn"} />
@@ -125,6 +127,7 @@ function LogIn() {
           </button>
         </div>
       </form>
+    </div>
     </div>
   );
 }

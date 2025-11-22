@@ -102,31 +102,31 @@ const OperationCategoryList = () => {
           <table className="operationsList-table">
             <thead>
               <tr>
-                <th>
-                  <span className="firstElementOfTHS">
-                    <HiOutlineArrowsUpDown className="operationsList-sort-icon" />
+                <th className="!text-center">
+                  <span className="firstElementOfTHS !flex !items-center gap-1">
+                    <HiOutlineArrowsUpDown className="operationsList-sort-icon !-ml-2" />
                     {`1-${operationTypes.length}`}
                   </span>
                 </th>
-                <th>
-                  <span>
+                <th >
+                  <span className="!flex !items-center gap-1 justify-center">
                     <HiOutlineArrowsUpDown className="operationsList-sort-icon" />{" "}
                     İcazənin adı
                   </span>
                 </th>
-                <th>
-                  <span>
-                    <HiOutlineArrowsUpDown className="operationsList-sort-icon" />{" "}
+                <th >
+                  <span className="!flex !items-center gap-1 justify-center">
+                    <HiOutlineArrowsUpDown className="operationsList-sort-icon mt-1" />{" "}
                     Əməliyyatların sayı
                   </span>
                 </th>
                 <th>
-                  <span>
-                    <HiOutlineArrowsUpDown className="operationsList-sort-icon" />{" "}
+                  <span className="!flex !items-center gap-1 justify-center"> 
+                    <HiOutlineArrowsUpDown className="operationsList-sort-icon mt-1" />{" "}
                     Status
                   </span>
                 </th>
-                <th>
+                <th className="!flex !justify-center">
                   <span>Düzəliş</span>
                 </th>
               </tr>
@@ -135,8 +135,8 @@ const OperationCategoryList = () => {
               {operationTypes.map((row, index) => (
                 <tr key={row.id}>
                   <td>{index + 1}</td>
-                  <td>{row.categoryName}</td>
-                  <td>
+                  <td className="!text-center">{row.categoryName}</td>
+                  <td className="!text-center">
                     <Link to={`/operations/${row.id}`}>
                       Əməliyyatların sayı ({row.opTypeItemCount || 0})
                     </Link>
@@ -144,6 +144,7 @@ const OperationCategoryList = () => {
                   <td
                     onClick={() => handleStatusToggle(row)}
                     style={{ cursor: "pointer" }}
+                    className="!text-center"
                   >
                     <span
                       className={`operationsList-status-badge ${
@@ -154,7 +155,7 @@ const OperationCategoryList = () => {
                     </span>
                   </td>
                   <td>
-                    <div className="operationsList-action-icons">
+                    <div className="operationsList-action-icons !flex !justify-center">
                       <FiEdit3
                         className="operationsList-edit-button"
                         onClick={() => handleEdit(row.id)}

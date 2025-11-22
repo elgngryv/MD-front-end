@@ -15,6 +15,7 @@ function AddTechnician({ onClose }) {
   const [files, setFiles] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
   const fileInputRef = useRef(null);
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [permissionsLoading, setPermissionsLoading] = useState(true);
 

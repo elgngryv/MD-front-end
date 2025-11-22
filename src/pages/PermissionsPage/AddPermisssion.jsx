@@ -170,14 +170,13 @@ function AddPermission() {
               required
             />
           </div>
-
-          <label style={{ marginTop: 20, fontWeight: 'bold' }}>İcazələr</label>
-
-          <div className="permissionTableWrapper">
-            <table className='permissionTable'>
+           <div>
+              <label style={{ fontWeight: 'bold' }} className=''>İcazələr</label>
+              <div className="permissionTableWrapper">
+            <table className='permissionTable border-1  border-gray-400'>
               <thead>
-                <tr>
-                  <th>İcazələr</th>
+                <tr className='border-b-2 border-gray-400'>
+                  <th className='!ml-10'>İcazələr</th>
                   {actions.map(action => (
                     <th key={action} style={{ textAlign: 'center' }}>
                       <input
@@ -190,27 +189,28 @@ function AddPermission() {
                   ))}
                 </tr>
               </thead>
-              <tbody>
+              <tbody className='!py-10'>
                 {permissions.map(group => (
                   <React.Fragment key={group.group || "main"}>
                     {group.group && (
-                      <tr>
-                        <td colSpan={actions.length + 1} className="groupHeader">{group.group}</td>
+                      <tr className='border-b-1 border-gray-400'>
+                        <td colSpan={actions.length + 1} className="groupHeader py-4 text-blue-500 px-2 ">{group.group}</td>
                       </tr>
                     )}
                     {group.items.map(item => (
-                      <tr key={item}>
-                        <td>
+                      <tr key={item} className='border-b-1 border-gray-400'>
+                        <td className='justify-center py-5'>
                           <input
                             type="checkbox"
                             checked={isRowAllChecked(item)}
                             onChange={() => handleCheckRow(item)}
-                            style={{ marginRight: 8 }}
+                            style={{ marginRight: 20 }}
+                            className=' !w-[32%] !bg-amber-600'
                           />
                           {item}
                         </td>
                         {actions.map(action => (
-                          <td key={action} style={{ textAlign: 'center' }}>
+                          <td key={action} style={{ textAlign: 'center' }} className='items-center justify-center py-2' >
                             <input
                               type="checkbox"
                               checked={checked[item][action]}
@@ -224,6 +224,7 @@ function AddPermission() {
                 ))}
               </tbody>
             </table>
+          </div>
           </div>
 
           <div className="addPermissionActions">
