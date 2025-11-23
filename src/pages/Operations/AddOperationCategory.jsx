@@ -18,6 +18,12 @@ function AddOperationCategory() {
   const [isColorSelection, setIsColorSelection] = useState(false);
   const [isImplantSelection, setIsImplantSelection] = useState(false);
   const [insurancePercentages, setInsurancePercentages] = useState({});
+  
+  // Error states
+  const [errors, setErrors] = useState({
+    categoryName: false,
+    insurances: {}
+  });
 
   useEffect(() => {
     fetchList();
@@ -28,13 +34,58 @@ function AddOperationCategory() {
       ...prev,
       [id]: value,
     }));
+    
+    // Clear error when user starts typing
+    if (errors.insurances[id]) {
+      setErrors((prev) => ({
+        ...prev,
+        insurances: {
+          ...prev.insurances,
+          [id]: false
+        }
+      }));
+    }
+  };
+
+  const handleCategoryNameChange = (value) => {
+    setOperationCategoryName(value);
+    
+    // Clear error when user starts typing
+    if (errors.categoryName) {
+      setErrors((prev) => ({
+        ...prev,
+        categoryName: false
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    let hasError = false;
+    const newErrors = {
+      categoryName: false,
+      insurances: {}
+    };
+
+    // Check category name
     if (!operationCategoryName.trim()) {
-      toast.error("Əməliyyat kateqoriyasının adı boş ola bilməz!");
+      newErrors.categoryName = true;
+      hasError = true;
+    }
+
+    // Check all insurance percentages - they are all required
+    insuranceCompanyList.forEach((company) => {
+      const value = insurancePercentages[company.id];
+      if (!value || value.trim() === "") {
+        newErrors.insurances[company.id] = true;
+        hasError = true;
+      }
+    });
+
+    if (hasError) {
+      setErrors(newErrors);
+      toast.error("Bütün tələb olunan xanaları doldurun!");
       return;
     }
 
@@ -72,28 +123,34 @@ function AddOperationCategory() {
           </p>
           <input
             type="text"
-            placeholder="Əməliyyat kateqoriyasının adı"
+            placeholder={errors.categoryName ? "Bu xana tələb olunur!" : "Əməliyyat kateqoriyasının adı"}
             value={operationCategoryName}
-            onChange={(e) => setOperationCategoryName(e.target.value)}
+            onChange={(e) => handleCategoryNameChange(e.target.value)}
+            style={{
+              borderColor: errors.categoryName ? "red" : "",
+              backgroundColor: errors.categoryName ? "#ffe6e6" : ""
+            }}
           />
         </div>
 
-        <div className="addOperationCheckboxGroup">
-          <label className="addOperationCheckboxLabel">
+        <div className="addOperationCheckboxGroup ">
+          <label className="addOperationCheckboxLabel -ml-55">
+            Rəng seçimi
             <input
               type="checkbox"
               checked={isColorSelection}
               onChange={(e) => setIsColorSelection(e.target.checked)}
+              className="ml-38"
             />
-            Rəng seçimi
           </label>
-          <label className="addOperationCheckboxLabel">
+          <label className="addOperationCheckboxLabel -ml-55">
+            İmplant seçimi
             <input
               type="checkbox"
               checked={isImplantSelection}
               onChange={(e) => setIsImplantSelection(e.target.checked)}
+              className="ml-33"
             />
-            İmplant seçimi
           </label>
         </div>
 
@@ -109,14 +166,23 @@ function AddOperationCategory() {
           {!loading && !error && insuranceCompanyList.length > 0 && insuranceCompanyList.map((company) => (
             <div className="addOperationInsuranceItem" key={company.id}>
               <p>{company.companyName}</p>
-              <div className="addOperationPercentageInput">
+              <div 
+                className="addOperationPercentageInput ml-7"
+                style={{
+                  borderColor: errors.insurances[company.id] ? "red" : "",
+                }}
+              >
                 <input
                   type="text"
-                  placeholder="Azadolma faizi"
+                  placeholder={errors.insurances[company.id] ? "Bu xana tələb olunur!" : "Azadolma faizi"}
                   value={insurancePercentages[company.id] || ""}
                   onChange={(e) =>
                     handlePercentageChange(company.id, e.target.value)
                   }
+                  style={{
+                    backgroundColor: errors.insurances[company.id] ? "#ffe6e6" : "",
+                    border: "none"
+                  }}
                 />
                 <span>
                   <FaPercentage />

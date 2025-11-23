@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "../../assets/style/ChecklistPage/addchecklist.css";
 import { FaTimes, FaCheck } from "react-icons/fa";
-import useExaminationStore from "../../../stores/examinationStore"; // Store path-ı özündə uyğun dəyiş
+import useExaminationStore from "../../../stores/examinationStore";
 
 function AddCheckList() {
   const navigate = useNavigate();
@@ -13,13 +13,42 @@ function AddCheckList() {
     examinationTypeName: "",
   });
 
+  const [errors, setErrors] = useState({
+    examinationTypeName: "",
+  });
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!formData.examinationTypeName.trim()) {
+      newErrors.examinationTypeName = "Növün adı mütləq doldurulmalıdır";
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate form
+    if (!validateForm()) {
+      toast.warn("Zəhmət olmasa bütün mütləq sahələri doldurun");
+      return;
+    }
 
     try {
       await createExamination(formData);
@@ -40,11 +69,12 @@ function AddCheckList() {
             </label>
             <input
               type="text"
-              className="addCheckListField"
+              className={`addCheckListField ${errors.examinationTypeName ? 'placeholder:!text-red-500' : ''}`}
               name="examinationTypeName"
               value={formData.examinationTypeName}
               onChange={handleInputChange}
-              required
+              placeholder={errors.examinationTypeName || "Növün adı"}
+              style={{ borderColor: errors.examinationTypeName ? '#ef4444' : '' }}
             />
           </div>
 

@@ -107,7 +107,7 @@ return (
     {filteredData.length === 0 ? "0" : `1-${filteredData.length}`}
    </th>
    {tableHead.map((title, idx) => (
-    <th key={idx} style={{ textAlign: "center" }} className=" !bg-amber-400">
+    <th key={idx} style={{ textAlign: "center" }}>
     <div className="th-content">
      <HiArrowsUpDown className="arrowsIcon" />
      <span>{title}</span>

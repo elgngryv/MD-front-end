@@ -91,33 +91,33 @@ function EmployeeWorkScheduleList() {
           <thead>
             <tr>
               <th className="border-r-1 border-gray-400 w-20">
-                <span className="firstElementOfTHS items-center flex text-center ml-5">
+                <span className="firstElementOfTHS items-center flex ">
                   {/* <HiOutlineArrowsUpDown /> */}
                   {filteredSchedules.length ? `1-${filteredSchedules.length}` : "1-8"}
                 </span>
               </th>
               <th className="w-50">
-                <span className="items-center flex gap-1 ml-5">
+                <span className="items-center flex gap-1 justify-center">
                   <HiOutlineArrowsUpDown /> Həftənin Günü
                 </span>
               </th>
               <th className="w-50">
-                <span className="items-center flex gap-1 ml-15">
+                <span className="items-center flex gap-1 justify-center">
                   <HiOutlineArrowsUpDown /> Kabinet
                 </span>
               </th>
               <th className="w-55">
-                <span className="items-center flex gap-1 ml-18">
+                <span className="items-center flex gap-1 justify-center">
                   <HiOutlineArrowsUpDown /> Başlama saatı
                 </span>
               </th>
               <th className="w-55">
-                <span className="items-center flex gap-1 ml-20">
+                <span className="items-center flex gap-1 justify-center">
                   <HiOutlineArrowsUpDown /> Bitiş saatı
                 </span>
               </th>
               <th>
-                <span>Düzəliş</span>
+                <span className="flex justify-center">Düzəliş</span>
               </th>
             </tr>
           </thead>
@@ -136,18 +136,18 @@ function EmployeeWorkScheduleList() {
                 (
                 <tr key={row.id}>
                   <td className="testTD" style={{ textAlign: 'center' }}>{index + 1}</td>
-                  <td style={{ textAlign: 'left' }}>{weekDays.find((d) => d.key === row.weekDay)?.label || row.weekDay}</td>
-                  <td style={{ textAlign: 'left' }}>{row.cabinetName}</td>
-                  <td style={{ textAlign: 'left' }}>{formatTime(row.startTime)}</td>
-                  <td style={{ textAlign: 'left' }}>{formatTime(row.finishTime)}</td>
-                  <td style={{ textAlign: 'left' }}>
-                    <div className="anamnesisList-action-icons">
+                  <td className="!text-center" style={{ textAlign: 'left' }}>{weekDays.find((d) => d.key === row.weekDay)?.label || row.weekDay}</td>
+                  <td className="!text-center" style={{ textAlign: 'left' }}>{row.cabinetName}</td>
+                  <td className="!text-center" style={{ textAlign: 'left' }}>{formatTime(row.startTime)}</td>
+                  <td className="!text-center" style={{ textAlign: 'left' }}>{formatTime(row.finishTime)}</td>
+                  <td className="!text-center" style={{ textAlign: 'left' }}>
+                    <div className="anamnesisList-action-icons !flex !justify-center gap-1">
                       <FiEdit3
-                        className="anamnesisList-edit-button"
+                        className="anamnesisList-edit-button text-blue-400"
                         onClick={() => handleEdit(row)}
                       />
                       <GoTrash
-                        className="anamnesisList-delete-button"
+                        className="anamnesisList-delete-button text-red-500"
                         onClick={() => handleDelete(row)}
                       />
                     </div>

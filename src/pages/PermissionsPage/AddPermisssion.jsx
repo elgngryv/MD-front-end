@@ -58,6 +58,7 @@ function AddPermission() {
   const { createPermission } = usePermissionStore();
 
   const [name, setName] = useState("");
+  const [error, setError] = useState("");
 
   const [checked, setChecked] = useState(() => {
     const obj = {};
@@ -114,9 +115,17 @@ function AddPermission() {
 
   const handleNameChange = (e) => {
     setName(capitalizeWords(e.target.value));
+    if (e.target.value.trim()) {
+      setError("");
+    }
   };
 
   const handleSave = async () => {
+    if (!name.trim()) {
+      setError("İcazənin adı mütləq doldurulmalıdır");
+      return;
+    }
+
     const transformedPermissions = Object.keys(checked).reduce((acc, item) => {
       const selectedActions = Object.keys(checked[item]).filter(
         (action) => checked[item][action]
@@ -165,9 +174,11 @@ function AddPermission() {
               type="text"
               id="name"
               value={name}
-              placeholder="İcazənin adı"
+              placeholder={error || "İcazənin adı"}
               onChange={handleNameChange}
               required
+              style={{ borderColor: error ? 'red' : '' }}
+              className={error ? 'placeholder:text-red-500' : ''}
             />
           </div>
            <div>
