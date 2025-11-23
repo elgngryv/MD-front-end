@@ -51,13 +51,15 @@ export const updateTechnicOrderPrice = async (id, data) => {
 };
 
 /**
- * Sifarişin statusunu yeniləyir.
+ * Sifarişin statusunu yeniləyir - QUERY PARAMETRLƏRİ İLƏ
  */
 export const updateDentalOrderStatus = async (data) => {
   try {
+    console.log("Sending status update:", data);
+
     const response = await axiosInstance.patch(
       `${API_BASE_URL}/laboratory/order/status`,
-      data
+      data // Request body kimi göndəririk
     );
     return response.data;
   } catch (error) {

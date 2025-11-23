@@ -17,17 +17,29 @@ import useDentalOrderStore from "../../../stores/dentalOrderStore";
 function ReceivedOrders() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const { 
     orders, 
     loading, 
     error, 
     fetchOrders, 
-    changeOrderStatus  // Zustand store'dan status dəyişmə funksiyasını əlavə et
+    changeOrderStatus
   } = useDentalOrderStore();
 
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
+
+  // Success mesajını 3 saniyədən sonra yox et
+  useEffect(() => {
+    if (successMessage) {
+      const timer = setTimeout(() => {
+        setSuccessMessage("");
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [successMessage]);
 
   const tableHead = [
     "Göndərən",
@@ -45,38 +57,91 @@ function ReceivedOrders() {
     },
   ];
 
+  // BÜTÜN STATUS SİYAHISI
+  const ALL_STATUSES = {
+    PENDING: "Gözləyir",
+    SENT_TO_TECHNICIAN: "Texnikaya göndərilib", 
+    RECEIVED_FROM_TECHNICIAN: "Texnikadan alındı",
+    SENT_TO_DOCTOR: "Həkimə göndərilib",
+    DOCTOR_RETURNED_TO_TECHNICIAN: "Həkim texnikaya qaytardı"
+  };
+
   // Status dəyişmə funksiyası
-  const handleStatusChange = async (orderId, currentStatus) => {
+  const handleStatusChange = async (orderId, currentStatus, patientName) => {
     try {
       // Növbəti statusu təyin et
       const nextStatus = getNextStatus(currentStatus);
       
       // Status məlumatını hazırla
       const statusData = {
-        id: orderId,
+        id: Number(orderId),
         dentalWorkStatus: nextStatus
       };
+
+      console.log("Changing status from", currentStatus, "to", nextStatus);
 
       // Statusu yenilə
       await changeOrderStatus(statusData);
       
+      // Uğur mesajını göstər
+      const statusText = getStatusInfo(nextStatus).text;
+      setSuccessMessage(`${patientName} üçün status "${statusText}" olaraq yeniləndi`);
+      
+      // Siyahını yenilə
+      await fetchOrders();
+      
     } catch (error) {
       console.error("Status dəyişmə xətası:", error);
+      alert(`Status dəyişmə xətası: ${error.message}`);
     }
   };
 
-  // Növbəti statusu təyin etmək üçün funksiya
+  // Növbəti statusu təyin etmək üçün funksiya - DÜZGÜN AXIN
   const getNextStatus = (currentStatus) => {
     const statusFlow = {
-      "PENDING": "IN_PROGRESS",
-      "IN_PROGRESS": "COMPLETED",
-      "COMPLETED": "SENT_TO_DOCTOR",
-      "SENT_TO_DOCTOR": "SENT_TO_TECHNICIAN", 
-      "SENT_TO_TECHNICIAN": "ACCEPTED_BY_TECHNICIAN",
-      "ACCEPTED_BY_TECHNICIAN": "PENDING" // Əgər dövr etmək istəyirsinizsə
+      "PENDING": "SENT_TO_TECHNICIAN",
+      "SENT_TO_TECHNICIAN": "RECEIVED_FROM_TECHNICIAN",
+      "RECEIVED_FROM_TECHNICIAN": "SENT_TO_DOCTOR",
+      "SENT_TO_DOCTOR": "DOCTOR_RETURNED_TO_TECHNICIAN",
+      "DOCTOR_RETURNED_TO_TECHNICIAN": "PENDING", // Gözləyirə qayıdır
     };
 
     return statusFlow[currentStatus] || "PENDING";
+  };
+
+  // Status badge məlumatı - BÜTÜN STATUSLAR ÜÇÜN
+  const getStatusInfo = (status) => {
+    switch (status) {
+      case "PENDING":
+        return { text: "Gözləyir", type: "pending" };
+      case "SENT_TO_TECHNICIAN":
+        return { text: "Texnikaya göndərilib", type: "texnika" };
+      case "RECEIVED_FROM_TECHNICIAN":
+        return { text: "Texnikadan alındı", type: "qebul" };
+      case "SENT_TO_DOCTOR":
+        return { text: "Həkimə göndərilib", type: "hakim" };
+      case "DOCTOR_RETURNED_TO_TECHNICIAN":
+        return { text: "Həkim texnikaya qaytardı", type: "returned" };
+      
+      default:
+        // Əgər status string formatındadırsa
+        if (status?.includes("Həkim") || status?.includes("DOCTOR") || status === "SENT_TO_DOCTOR") {
+          return { text: "Həkimə göndərilib", type: "hakim" };
+        } else if (status?.includes("Texnik") || status?.includes("TECHNIC") || status === "SENT_TO_TECHNICIAN") {
+          return { text: "Texnikaya göndərilib", type: "texnika" };
+        } else if (status?.includes("qəbul") || status?.includes("ACCEPT") || status?.includes("RECEIVED") || status === "RECEIVED_FROM_TECHNICIAN") {
+          return { text: "Texnikadan alındı", type: "qebul" };
+        } else if (status?.includes("qaytar") || status?.includes("RETURN") || status === "DOCTOR_RETURNED_TO_TECHNICIAN") {
+          return { text: "Həkim texnikaya qaytardı", type: "returned" };
+        }
+        return { text: "Gözləyir", type: "pending" };
+    }
+  };
+
+  // Cari statusun növbəti statusunu göstərən funksiya (tooltip üçün)
+  const getNextStatusText = (currentStatus) => {
+    const nextStatus = getNextStatus(currentStatus);
+    return getStatusInfo(nextStatus).text;
   };
 
   // Tarix formatlama
@@ -90,42 +155,26 @@ function ReceivedOrders() {
     }
   };
 
-  // Status badge məlumatı
-  const getStatusInfo = (status) => {
-    switch (status) {
-      case "PENDING":
-        return { text: "Gözləyir", type: "pending" };
-      case "IN_PROGRESS":
-        return { text: "İşlənir", type: "progress" };
-      case "COMPLETED":
-        return { text: "Tamamlandı", type: "completed" };
-      case "SENT_TO_DOCTOR":
-        return { text: "Həkimə göndərilib", type: "hakim" };
-      case "SENT_TO_TECHNICIAN":
-        return { text: "Texnika göndərilib", type: "texnika" };
-      case "ACCEPTED_BY_TECHNICIAN":
-        return { text: "Texnik qəbul edib", type: "qebul" };
-
-      default:
-        if (status?.includes("Həkim") || status?.includes("DOCTOR")) {
-          return { text: "Həkimə göndərilib", type: "hakim" };
-        } else if (status?.includes("Texnik") || status?.includes("TECHNIC")) {
-          return { text: "Texnika göndərilib", type: "texnika" };
-        } else if (status?.includes("qəbul") || status?.includes("ACCEPT")) {
-          return { text: "Texnik qəbul edib", type: "qebul" };
-        }
-        return { text: status || "Gözləyir", type: "pending" };
-    }
-  };
-
-  // Axtarış filtri
-  const filteredData = orders.filter(
-    (row) =>
+  // Axtarış və status filtri
+  const filteredData = orders.filter((row) => {
+    const matchesSearch = 
       row.patient?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       row.doctor?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       row.dentalWorkStatus?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      row.description?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+      row.description?.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesStatus = statusFilter ? 
+      row.dentalWorkStatus === statusFilter : true;
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  // Hər statusun sayını hesabla (statistika üçün)
+  const statusCounts = orders.reduce((acc, order) => {
+    const status = order.dentalWorkStatus || "PENDING";
+    acc[status] = (acc[status] || 0) + 1;
+    return acc;
+  }, {});
 
   if (loading) {
     return (
@@ -145,13 +194,35 @@ function ReceivedOrders() {
 
   return (
     <div className="sentOrdersContainer">
+      {/* Success Message */}
+      {successMessage && (
+        <div className="success-message">
+          {successMessage}
+        </div>
+      )}
+
+      {/* Status Statistika */}
+      {/* <div className="status-stats">
+        {Object.entries(ALL_STATUSES).map(([statusKey, statusText]) => (
+          <div key={statusKey} className="status-stat-item">
+            <span className="status-stat-text">{statusText}:</span>
+            <span className="status-stat-count">{statusCounts[statusKey] || 0}</span>
+          </div>
+        ))}
+      </div> */}
+
       <div className="sentOrdersHeader">
         <div className="leftPartHeader">
-          <select>
-            <option value="">Bütün statuslar</option>
-            <option value="Həkimə göndərilib">Həkimə göndərilib</option>
-            <option value="Texnika göndərilib">Texnika göndərilib</option>
-            <option value="Texnik qəbul edib">Texnik qəbul edib</option>
+          <select 
+            value={statusFilter} 
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="">Bütün statuslar ({orders.length})</option>
+            {Object.entries(ALL_STATUSES).map(([statusKey, statusText]) => (
+              <option key={statusKey} value={statusKey}>
+                {statusText} ({statusCounts[statusKey] || 0})
+              </option>
+            ))}
           </select>
 
           <div className="searchOrderNow">
@@ -170,7 +241,7 @@ function ReceivedOrders() {
         <table className="labTable">
           <thead>
             <tr>
-              <th>{orders.length === 0 ? "0" : `1-${orders.length}`}</th>
+              <th>{filteredData.length === 0 ? "0" : `1-${filteredData.length}`}</th>
               {tableHead.map((title, idx) => (
                 <th key={idx}>
                   <div className="th-content">
@@ -202,6 +273,7 @@ function ReceivedOrders() {
             ) : (
               filteredData.map((row, rowIndex) => {
                 const statusInfo = getStatusInfo(row.dentalWorkStatus);
+                const nextStatusText = getNextStatusText(row.dentalWorkStatus);
 
                 return (
                   <tr key={row.id}>
@@ -222,12 +294,21 @@ function ReceivedOrders() {
                     <td>
                       <span 
                         className={`status-badge ${statusInfo.type}`}
-                        onClick={() => handleStatusChange(row.id, row.dentalWorkStatus)}
+                        onClick={() => handleStatusChange(
+                          row.id, 
+                          row.dentalWorkStatus, 
+                          row.patient || "Sifariş"
+                        )}
                         style={{ 
                           cursor: 'pointer',
-                          transition: 'all 0.3s ease'
+                          transition: 'all 0.3s ease',
+                          display: 'inline-block',
+                          padding: '4px 12px',
+                          borderRadius: '20px',
+                          fontSize: '14px',
+                          fontWeight: '500'
                         }}
-                        title="Statusu dəyişmək üçün klik edin"
+                        title={`Cari: ${statusInfo.text}\nNövbəti: ${nextStatusText}\n(Dəyişdirmək üçün klik edin)`}
                       >
                         {statusInfo.text}
                       </span>
