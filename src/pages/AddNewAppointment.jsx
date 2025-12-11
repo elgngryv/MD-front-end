@@ -227,6 +227,24 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
   };
 
   const handleConfirmAppointment = () => {
+    const normalizedDoctorId = selectedDoctorId
+      ? Number(selectedDoctorId)
+      : selectedPatient?.doctorId
+      ? Number(selectedPatient.doctorId)
+      : null;
+
+    if (!normalizedDoctorId) {
+      toast.error("Həkim seçilməyib");
+      setShowModal(false);
+      return;
+    }
+
+    if (!selectedRoom?.value) {
+      toast.error("Otaq seçilməyib");
+      setShowModal(false);
+      return;
+    }
+
     // Saat və müddəti string formatına çevir
     const timeString = `${formData.time.hour
       .toString()
@@ -242,6 +260,12 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
 
     // Prepare the appointment data in the required format
     const newAppointment = {
+      doctorId: normalizedDoctorId,
+      doctorName:
+        selectedDoctor?.label ||
+        formData.doctorName ||
+        selectedPatient?.doctorName ||
+        "",
       cabinetName: selectedRoom?.value || "",
       patientId: selectedPatient?.value ? parseInt(selectedPatient.value) : 0,
       appointment: selectedStatus?.value || "MEETING",
@@ -318,19 +342,17 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
       className="appointments-container"
       style={{
         display: "flex",
-        gap: "20px",
-        width: "1%",
-        margin: "20px auto",
+        gap: "10px",
       }}>
       <BlurLoader isLoading={isPending}>
         {/* RIGHT SİDE */}
-        <div className="right-side" style={{ width: "120%" }}>
+        <div className="right-side !w-290">
           <div className="form-container">
             <h2>Yeni Randevu</h2>
             <form onSubmit={handleSubmit}>
               {/* Həkim & Pasiyent */}
               <div className="first-row">
-                <div className="form-group">
+                <div className="form-group border-0">
                   <label className="required-label">Pasiyent</label>
                   <CustomDropdown
                     options={patientOptions}
@@ -340,7 +362,7 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
                     value={selectedPatient}
                     isClearable={true}
                     isSearchable={true}
-                    className="patient-select"
+                    className="patient-select !p-0 -ml-1  !border-none"
                   />
                 </div>
                 <div className="form-group">

@@ -15,7 +15,7 @@ const Layout = () => {
 
   // Main content üçün dinamik Tailwind sinifləri
   const mainContentClasses = `flex flex-col flex-1 ${
-    isCollapsed ? 'ml-[84px]' : 'ml-[254px]'
+    isCollapsed ? "ml-[84px]" : "ml-[254px]"
   } transition-all duration-300`;
 
   return (

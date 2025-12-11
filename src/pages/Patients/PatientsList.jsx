@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { HiArrowsUpDown } from "react-icons/hi2";
 import axios from "axios";
 
 // Icons
@@ -126,7 +127,7 @@ function PatientsList() {
           addLink="/patients/add-patient"
           exportLink="/patients/export"
         />
-        <div className="patientsListSearch">
+        <div className="patientsListSearch ml-1">
           <div className="leftPart">
             <input
               type="text"
@@ -134,22 +135,7 @@ function PatientsList() {
               value={search.name}
               onChange={(e) => setSearch({ ...search, name: e.target.value })}
             />
-            <input
-              type="text"
-              placeholder="Soyad"
-              value={search.surname}
-              onChange={(e) =>
-                setSearch({ ...search, surname: e.target.value })
-              }
-            />
-            <input
-              type="text"
-              placeholder="Ata adı"
-              value={search.patronymic}
-              onChange={(e) =>
-                setSearch({ ...search, patronymic: e.target.value })
-              }
-            />
+            
             <input
               type="text"
               placeholder="Fin kodu"
@@ -191,14 +177,50 @@ function PatientsList() {
           <table className="employeeTable">
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Ad</th>
-                <th>Soyad</th>
-                <th>Ata adı</th>
-                <th>Fin kodu</th>
-                <th>Cinsiyyət</th>
-                <th>Mobil nömrə</th>
-                <th>Doğum Tarixi</th>
+               <th>1-8</th>
+                <th>
+                  <div className="th-content">
+                    <span className="!flex !items-center gap-1">
+                        <HiArrowsUpDown className="tableArrowIcon !text-sm" /> ID
+                    </span>
+                  </div>
+                </th>
+                <th>
+                  <div className="th-content">
+                    <span className="!flex !items-center gap-1">
+                        <HiArrowsUpDown className="tableArrowIcon !text-sm" /> Pasiyent
+                    </span>
+                  </div>
+                 </th>
+                <th>
+                  <div className="th-content">
+                    <span className="!flex !items-center gap-1">
+                        <HiArrowsUpDown className="tableArrowIcon !text-sm" /> Fin Kodu
+                    </span>
+                  </div>
+                  </th>
+                <th>
+                   <div className="th-content">
+                    <span className="!flex !items-center gap-1">
+                        <HiArrowsUpDown className="tableArrowIcon !text-sm" />  Cinsiyyət
+                    </span>
+                  </div>
+                 </th>
+                <th>
+                   <div className="th-content">
+                    <span className="!flex !items-center gap-1">
+                        <HiArrowsUpDown className="tableArrowIcon !text-sm" />  Mobil nömrə
+                    </span>
+                  </div>
+                  </th>
+                <th>
+                   <div className="th-content">
+                    <span className="!flex !items-center gap-1">
+                        <HiArrowsUpDown className="tableArrowIcon !text-sm" />  Qeydiyyat
+                    </span>
+                  </div>
+                </th>
+                <th>Status</th>
                 <th>Qara siyahı</th>
                 <th>Düzəliş</th>
               </tr>
@@ -207,14 +229,14 @@ function PatientsList() {
               {currentItems.map((item) => (
                 <tr key={item.id}>
                   <td>{item.id}</td>
+                  <td>{item.id}</td>
                   <td>{item.name}</td>
-                  <td>{item.surname}</td>
-                  <td>{item.patronymic}</td>
                   <td>{item.finCode}</td>
                   <td>{item.genderStatus === "MAN" ? "Kişi" : "Qadın"}</td>
                   <td>{item.phone}</td>
                   <td>{item.dateOfBirth}</td>
                   <td>{item.isBlocked ? "Bəli" : "Xeyr"}</td>
+                  <td>{item.phone}</td>
                   <td>
                     <div className="actionsWrapper">
                       {icons.map((iconObj, idx) => {

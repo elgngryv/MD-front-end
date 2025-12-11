@@ -47,19 +47,35 @@ const SidebarMenu = ({ isCollapsed, toggleSidebar }) => {
       id: 1,
       title: "İşçilər",
       icon: (isActive) => (
-        <DoctorIcon width={20} height={20} stroke={isActive ? "#fff" : "#155EEF"} />
+        <DoctorIcon
+          width={20}
+          height={20}
+          stroke={isActive ? "#fff" : "#155EEF"}
+        />
       ),
       children: [
         { id: 11, title: "İşçilərin siyahısı", path: "/employees" },
-        { id: 12, title: "İşçilərin iş qrafiki", path: "/employees/employee-schedule" },
-        { id: 13, title: "Yeni işçi əlavə et", path: "/employees/employee-add" },
+        {
+          id: 12,
+          title: "İşçilərin iş qrafiki",
+          path: "/employees/employee-schedule",
+        },
+        {
+          id: 13,
+          title: "Yeni işçi əlavə et",
+          path: "/employees/employee-add",
+        },
       ],
     },
     {
       id: 2,
       title: "Ümumi təqvim",
       icon: (isActive) => (
-        <CalendarIcon width={20} height={20} stroke={isActive ? "#fff" : "#155EEF"} />
+        <CalendarIcon
+          width={20}
+          height={20}
+          stroke={isActive ? "#fff" : "#155EEF"}
+        />
       ),
       children: [
         { id: 22, title: "Randevular", path: "/appointments" },
@@ -71,7 +87,11 @@ const SidebarMenu = ({ isCollapsed, toggleSidebar }) => {
       title: "Pasiyentlər",
       path: "/patients",
       icon: (isActive) => (
-        <PatientsIcon width={20} height={20} stroke={isActive ? "#fff" : "#155EEF"} />
+        <PatientsIcon
+          width={20}
+          height={20}
+          stroke={isActive ? "#fff" : "#155EEF"}
+        />
       ),
       children: [],
     },
@@ -80,7 +100,11 @@ const SidebarMenu = ({ isCollapsed, toggleSidebar }) => {
       title: "Görülmüş işlər",
       path: "reports",
       icon: (isActive) => (
-        <WorkDoneIcon width={20} height={20} stroke={isActive ? "#fff" : "#155EEF"} />
+        <WorkDoneIcon
+          width={20}
+          height={20}
+          stroke={isActive ? "#fff" : "#155EEF"}
+        />
       ),
       children: [],
     },
@@ -88,7 +112,11 @@ const SidebarMenu = ({ isCollapsed, toggleSidebar }) => {
       id: 5,
       title: "Laboratoriya",
       icon: (isActive) => (
-        <LaboratoryIcon width={20} height={20} stroke={isActive ? "#fff" : "#155EEF"} />
+        <LaboratoryIcon
+          width={20}
+          height={20}
+          stroke={isActive ? "#fff" : "#155EEF"}
+        />
       ),
       children: [
         { id: 51, title: "Göndərilən sifarişlər", path: "/sent-orders" },
@@ -100,7 +128,11 @@ const SidebarMenu = ({ isCollapsed, toggleSidebar }) => {
       id: 6,
       title: "Anbar əməliyyatları",
       icon: (isActive) => (
-        <WarehouseIcon width={20} height={20} stroke={isActive ? "#fff" : "#155EEF"} />
+        <WarehouseIcon
+          width={20}
+          height={20}
+          stroke={isActive ? "#fff" : "#155EEF"}
+        />
       ),
       children: [
         { id: 61, title: "Klinikanın stoku", path: "/stock/clinic" },
@@ -117,7 +149,11 @@ const SidebarMenu = ({ isCollapsed, toggleSidebar }) => {
       id: 7,
       title: "Tənzimləmələr",
       icon: (isActive) => (
-        <SettingsIcon width={20} height={20} stroke={isActive ? "#fff" : "#155EEF"} />
+        <SettingsIcon
+          width={20}
+          height={20}
+          stroke={isActive ? "#fff" : "#155EEF"}
+        />
       ),
       children: [
         { id: 71, title: "İcazələr", path: "/permissions" },
@@ -195,8 +231,8 @@ const SidebarMenu = ({ isCollapsed, toggleSidebar }) => {
         {menuItems.map((item) => {
           const isItemActive = expandedItems.includes(item.id);
           const isItemPathActive = isActive(item.path);
-          const hasActiveChild = item.children?.some(
-            (child) => isActive(child.path)
+          const hasActiveChild = item.children?.some((child) =>
+            isActive(child.path)
           );
           const isHighlighted = isItemPathActive || hasActiveChild;
 
@@ -213,11 +249,11 @@ const SidebarMenu = ({ isCollapsed, toggleSidebar }) => {
                       e.preventDefault();
                       toggleItem(item.id);
                     }
-                  }}
-                >
+                  }}>
                   <span
-                    className={`menu-item-icon ${isHighlighted ? "active" : ""}`}
-                  >
+                    className={`menu-item-icon ${
+                      isHighlighted ? "active" : ""
+                    }`}>
                     {typeof item.icon === "function"
                       ? item.icon(isHighlighted)
                       : item.icon}
@@ -244,11 +280,11 @@ const SidebarMenu = ({ isCollapsed, toggleSidebar }) => {
                     if (item.children && item.children.length > 0) {
                       toggleItem(item.id);
                     }
-                  }}
-                >
+                  }}>
                   <span
-                    className={`menu-item-icon ${isHighlighted ? "active" : ""}`}
-                  >
+                    className={`menu-item-icon ${
+                      isHighlighted ? "active" : ""
+                    }`}>
                     {typeof item.icon === "function"
                       ? item.icon(isHighlighted)
                       : item.icon}
@@ -281,8 +317,7 @@ const SidebarMenu = ({ isCollapsed, toggleSidebar }) => {
                           to={child.path}
                           className={`submenu-item ${
                             isChildActive ? "active-rov" : ""
-                          }`}
-                        >
+                          }`}>
                           {isChildActive && (
                             <IoIosChevronRight className="submenu-active-indicator" />
                           )}

@@ -4,7 +4,6 @@ import "../../assets/style/Operations/operationcategorylist.css";
 import { CiSearch } from "react-icons/ci";
 import { FiDownload, FiEdit3 } from "react-icons/fi";
 import { GoTrash } from "react-icons/go";
-import { HiOutlineArrowsUpDown } from "react-icons/hi2";
 import useOperationItemsTypeStore from "../../../stores/operationItemTypeStore";
 
 const OperationList = () => {

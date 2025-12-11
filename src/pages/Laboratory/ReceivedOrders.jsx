@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 // Style
@@ -6,91 +6,29 @@ import "../../assets/style/LaboratoryPage/sentorders.css";
 
 // Icons
 import { CiSearch } from "react-icons/ci";
-import { FaPlus } from "react-icons/fa6";
 import { FiDownload } from "react-icons/fi";
 import { CiCircleInfo } from "react-icons/ci";
 import { HiArrowsUpDown } from "react-icons/hi2";
+import "./sentorders.css";
+
+// Store
+import useDentalOrderStore from "../../../stores/dentalOrderStore";
 
 function ReceivedOrders() {
   const navigate = useNavigate();
-
   const [searchQuery, setSearchQuery] = useState("");
+  const { orders, loading, error, fetchOrders } = useDentalOrderStore();
 
-  const slugify = (text) =>
-    text
-      .toLowerCase()
-      .normalize("NFD") // diakritik işarələri ayır
-      .replace(/[\u0300-\u036f]/g, "") // ayırılmış işarələri sil
-      .replace(/[^a-z0-9\s-]/g, "") // xüsusi simvolları sil
-      .trim()
-      .replace(/\s+/g, "-"); // boşluqları tire ilə əvəzlə
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
 
   const tableHead = [
-    "Sifariş tarixi",
     "Göndərən",
     "Pasiyent",
     "Yoxlanılma tarixi",
     "Təhvil tarixi",
     "Status",
-  ];
-
-  const tableData = [
-    {
-      id: 1,
-      checkDate: "2025-04-02",
-      orderDate: "2025-04-01",
-      count: 0,
-      status: "Həkimə göndərilib",
-      statusType: "hakim",
-      sender: "Dr. Elşad Abbasov",
-      name: "Rüstəm Məmmədov",
-      deliveryDate: "2025-04-05",
-    },
-    {
-      id: 2,
-      name: "Leyla Qafarova",
-      count: 2,
-      status: "Texnika göndərilib",
-      statusType: "texnika",
-      orderDate: "2025-04-03",
-      sender: "Dr. Zeynəb Quliyeva",
-      checkDate: "2025-04-04",
-      deliveryDate: "2025-04-07",
-    },
-    {
-      id: 3,
-      name: "Elçin Əliyev",
-      count: 1,
-      status: "Texnik qəbul edib",
-      statusType: "qebul",
-      orderDate: "2025-04-05",
-      sender: "Dr. Kamran Hüseynov",
-      checkDate: "2025-04-06",
-      deliveryDate: "2025-04-08",
-    },
-
-    {
-      id: 5,
-      name: "Murtuz Əsgərov",
-      count: 1,
-      status: "Həkimə göndərilib",
-      statusType: "hakim",
-      orderDate: "2025-04-12",
-      sender: "Dr. Xəyalə Muradova",
-      checkDate: "2025-04-13",
-      deliveryDate: "2025-04-15",
-    },
-    {
-      id: 6,
-      name: "Fidan Məhərrəmova",
-      count: 0,
-      sender: "Dr. Aysel Məmmədova",
-      status: "Texnika göndərilib",
-      statusType: "texnika",
-      orderDate: "2025-04-14",
-      checkDate: "2025-04-15",
-      deliveryDate: "2025-04-17",
-    },
   ];
 
   const icons = [
@@ -101,28 +39,87 @@ function ReceivedOrders() {
     },
   ];
 
-  // Handle search filter
-  const filteredData = tableData.filter(
+  // Tarix formatlama
+  const formatDate = (dateString) => {
+    if (!dateString) return "-";
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("az-AZ");
+    } catch (e) {
+      return dateString;
+    }
+  };
+
+  // Status badge məlumatı
+  const getStatusInfo = (status) => {
+    switch (status) {
+      case "PENDING":
+        return { text: "Gözləyir", type: "pending" };
+      case "IN_PROGRESS":
+        return { text: "İşlənir", type: "progress" };
+      case "COMPLETED":
+        return { text: "Tamamlandı", type: "completed" };
+      case "SENT_TO_DOCTOR":
+        return { text: "Həkimə göndərilib", type: "hakim" };
+      case "SENT_TO_TECHNICIAN":
+        return { text: "Texnika göndərilib", type: "texnika" };
+      case "ACCEPTED_BY_TECHNICIAN":
+        return { text: "Texnik qəbul edib", type: "qebul" };
+
+      default:
+        if (status?.includes("Həkim") || status?.includes("DOCTOR")) {
+          return { text: "Həkimə göndərilib", type: "hakim" };
+        } else if (status?.includes("Texnik") || status?.includes("TECHNIC")) {
+          return { text: "Texnika göndərilib", type: "texnika" };
+        } else if (status?.includes("qəbul") || status?.includes("ACCEPT")) {
+          return { text: "Texnik qəbul edib", type: "qebul" };
+        }
+        return { text: status || "Gözləyir", type: "pending" };
+    }
+  };
+
+  // Axtarış filtri
+  const filteredData = orders.filter(
     (row) =>
-      row.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      row.status.toLowerCase().includes(searchQuery.toLowerCase())
+      row.patient?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      row.doctor?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      row.dentalWorkStatus?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      row.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  console.log("Filtered Data: ", filteredData); // Debugging the filtered data
+  if (loading) {
+    return (
+      <div className="sentOrdersContainer">
+        <div className="loading">Yüklənir...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="sentOrdersContainer">
+        <div className="error">Xəta: {error}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="sentOrdersContainer">
       <div className="sentOrdersHeader">
         <div className="leftPartHeader">
           <select>
-            <option value="">Option 1</option>
+            <option value="">Bütün statuslar</option>
+            <option value="Həkimə göndərilib">Həkimə göndərilib</option>
+            <option value="Texnika göndərilib">Texnika göndərilib</option>
+            <option value="Texnik qəbul edib">Texnik qəbul edib</option>
           </select>
+
           <div className="searchOrderNow">
             <input
               type="text"
               placeholder="Axtarış"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)} // Update search query
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
             <CiSearch className="search-btn" />
           </div>
@@ -133,7 +130,7 @@ function ReceivedOrders() {
         <table className="labTable">
           <thead>
             <tr>
-              <th>{tableData.length === 0 ? "0" : `1-${tableData.length}`}</th>
+              <th>{orders.length === 0 ? "0" : `1-${orders.length}`}</th>
               {tableHead.map((title, idx) => (
                 <th key={idx}>
                   <div className="th-content">
@@ -152,57 +149,59 @@ function ReceivedOrders() {
               )}
             </tr>
           </thead>
+
           <tbody>
             {filteredData.length === 0 ? (
               <tr>
                 <td
-                  colSpan={tableHead.length + (icons.length > 0 ? 1 : 0)}
+                  colSpan={tableHead.length + 1}
                   style={{ textAlign: "center" }}>
-                  No orders found.
+                  Heç bir sifariş tapılmadı.
                 </td>
               </tr>
             ) : (
-              filteredData.map((row, rowIndex) => (
-                <tr key={rowIndex}>
-                  <td>{rowIndex + 1}</td>
+              filteredData.map((row, rowIndex) => {
+                const statusInfo = getStatusInfo(row.dentalWorkStatus);
 
-                  {/* Pasiyent adı hüceyrəsi */}
+                return (
+                  <tr key={row.id}>
+                    <td>{rowIndex + 1}</td>
 
-                  {/* Qalan sütunlar */}
-                  <td>{row.checkDate}</td>
-                  <td>{row.sender}</td>
-                  <td
-                    onClick={() => navigate(`/details/${row.id}`)} // Navigate to details page on click
-                    className="patinetTD"
-                    style={{ cursor: "pointer", color: "#155EEF" }}>
-                    {row.name}
-                  </td>
-                  <td>{row.orderDate}</td>
-                  <td>{row.deliveryDate}</td>
-                  <td>
-                    <span className={`status ${row.statusType}`}>
-                      {row.status}
-                    </span>
-                  </td>
+                    <td>{row.doctor || "-"}</td>
 
-                  {icons.length > 0 && (
+                    <td
+                      onClick={() => navigate(`/details/${row.id}`)}
+                      className="patinetTD"
+                      style={{ cursor: "pointer", color: "#155EEF" }}>
+                      {row.patient || "-"}
+                    </td>
+
+                    <td>{formatDate(row.checkDate)}</td>
+                    <td>{formatDate(row.deliveryDate)}</td>
+
+                    <td>
+                      <span className={`status-badge ${statusInfo.type}`}>
+                        {statusInfo.text}
+                      </span>
+                    </td>
+
                     <td className="actions">
                       <div className="actionsWrapper">
-                        {icons.map((iconObj, iconIdx) => (
+                        {icons.map((iconObj, i) => (
                           <span
-                            key={iconIdx}
+                            key={i}
                             onClick={() => iconObj.action(row)}
                             style={{ cursor: "pointer" }}>
                             {React.createElement(iconObj.icon, {
-                              className: `icon ${iconObj.className || ""}`,
+                              className: `icon ${iconObj.className}`,
                             })}
                           </span>
                         ))}
                       </div>
                     </td>
-                  )}
-                </tr>
-              ))
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>

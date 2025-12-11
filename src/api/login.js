@@ -14,3 +14,15 @@ export const login = async ({ username, password }) => {
     throw error;
   }
 };
+
+export const refreshToken = async (refreshTokenValue) => {
+  try {
+    const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+      refreshToken: refreshTokenValue,
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Refresh token error:", error.response || error.message);
+    throw error;
+  }
+};
