@@ -1,84 +1,164 @@
 import React, { useState, useEffect } from "react";
-import { Checkbox } from "antd";
+import { Checkbox, Card, Divider, Spin, message } from "antd";
+import { useParams } from 'react-router-dom';
+import usePatientPlansControllerStore from '../../../../../../stores/patient-plans-controller';
 
-const DualSelectTable = () => {
-  // 🔹 Kateqoriyalar (statik — gələcəkdə API-dən gələcək)
-  const [categories] = useState([
-    { id: 1, code: "CAT001", name: "Navigation Oneee" },
-    { id: 2, code: "CAT002", name: "Navigation Two" },
-    { id: 3, code: "CAT003", name: "Navigation Three" },
-    { id: 4, code: "CAT004", name: "Navigation Four" },
-  ]);
-
-  // 🔹 Əməliyyatlar (statik — gələcəkdə API-dən gələcək)
-  const [actions] = useState([
-    { id: 11, code: "ACT001", name: "Operation One" },
-    { id: 12, code: "ACT002", name: "Operation Two" },
-    { id: 13, code: "ACT003", name: "Operation Three" },
-    { id: 14, code: "ACT004", name: "Operation Four" },
-  ]);
+const DualSelectTable = ({ onOperationSelect }) => {
+  const { id: patientId } = useParams();
+  const { 
+    selectedCategoryAndOperationItems, 
+    fetchCategoryAndOperationItems, 
+    loading 
+  } = usePatientPlansControllerStore();
 
   // 🔹 Seçilənlər
   const [selectedCategory, setSelectedCategory] = useState([]);
   const [selectedAction, setSelectedAction] = useState([]);
 
+  // 🔹 API'den verileri getir
+  useEffect(() => {
+    if (patientId) {
+      fetchCategoryAndOperationItems(Number(patientId));
+    }
+  }, [patientId, fetchCategoryAndOperationItems]);
+
   // 🔹 İlk kateqoriya default aktiv olsun
   useEffect(() => {
-    if (categories.length > 0) {
-      setSelectedCategory([categories[0].id]);
+    if (selectedCategoryAndOperationItems && selectedCategoryAndOperationItems.length > 0) {
+      setSelectedCategory([selectedCategoryAndOperationItems[0].id]);
     }
-  }, [categories]);
+  }, [selectedCategoryAndOperationItems]);
 
-  // 🔹 Stil (sadə table görünüşü üçün)
-  const containerStyle = {
-    // border: "1px solid #e5e5e5",
-    display: "flex",
-    width: 500,
+  // 🔹 Seçilen kategoriye göre işlemleri filtrele
+  const filteredOperations = selectedCategory.length > 0 && selectedCategoryAndOperationItems
+    ? selectedCategoryAndOperationItems
+        .find(cat => cat.id === selectedCategory[0])
+        ?.opTypeItemReadResponses || []
+    : [];
+
+  // 🔹 Kategori seçildiğinde işlem seçimini temizle
+  const handleCategoryChange = (categoryId) => {
+    setSelectedCategory([categoryId]);
+    setSelectedAction([]);
+    if (onOperationSelect) {
+      onOperationSelect(null);
+    }
   };
 
-  const columnHeaderStyle = {
-    padding: "8px 12px",
-    borderBottom: "1px solid #e5e5e5",
-    fontWeight: 500,
+  // 🔹 İşlem seçildiğinde operationCode'u parent'a gönder
+  const handleActionChange = (operationId) => {
+    setSelectedAction([operationId]);
+    const selectedOperation = filteredOperations.find(op => op.id === operationId);
+    if (selectedOperation && onOperationSelect) {
+      // operationCode string ise number'a çevir
+      const code = selectedOperation.operationCode;
+      onOperationSelect(code ? Number(code) : null);
+    }
   };
 
-  const columnContentStyle = {
-    padding: "8px 12px",
-  };
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-[500px]">
+        <Spin size="large" tip="Yüklənir..." />
+      </div>
+    );
+  }
+
+  if (!selectedCategoryAndOperationItems || selectedCategoryAndOperationItems.length === 0) {
+    return (
+      <div className="flex justify-center items-center h-[500px] text-gray-500">
+        <div className="text-center">
+          <p className="text-lg">Məlumat tapılmadı</p>
+          <p className="text-sm">Kateqoriya və əməliyyat məlumatı yoxdur</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div style={containerStyle}>
+    <div className="flex gap-0 h-full min-h-[500px]">
       {/* 🔸 Sol tərəf - Kateqoriyalar */}
-      <div style={{ flex: 1, borderRight: "1px solid #e5e5e5" }}>
-        <div style={columnHeaderStyle}>Kateqoriyalar</div>
-        <div style={columnContentStyle}>
-          {categories.map((item) => (
-            <div key={item.id} style={{ marginBottom: 8 }}>
-              <Checkbox
-                checked={selectedCategory.includes(item.id)}
-                onChange={() => setSelectedCategory([item.id])} // yalnız bir aktiv
+      <div className="flex-1 border-r border-gray-200 flex flex-col">
+        <div className="bg-gradient-to-r from-blue-50 to-blue-100 px-4 py-4 border-b border-gray-200">
+          <h3 className="m-0 text-base font-semibold text-gray-800 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+            Kateqoriyalar
+          </h3>
+        </div>
+        <div className="flex-1 overflow-y-auto px-4 py-4 bg-white">
+          <div className="space-y-2">
+            {selectedCategoryAndOperationItems.map((item) => (
+              <div
+                key={item.id}
+                className={`p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                  selectedCategory.includes(item.id)
+                    ? 'bg-blue-50 border-2 border-blue-400 shadow-sm'
+                    : 'hover:bg-gray-50 border-2 border-transparent hover:border-gray-200'
+                }`}
+                onClick={() => handleCategoryChange(item.id)}
               >
-                {item.name}
-              </Checkbox>
-            </div>
-          ))}
+                <Checkbox
+                  checked={selectedCategory.includes(item.id)}
+                  onChange={() => handleCategoryChange(item.id)}
+                  className="w-full"
+                >
+                  <span className={`text-sm ${selectedCategory.includes(item.id) ? 'font-semibold text-blue-700' : 'text-gray-700'}`}>
+                    {item.categoryName}
+                  </span>
+                </Checkbox>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* 🔸 Sağ tərəf - Əməliyyatlar */}
-      <div style={{ flex: 1 ,borderRight: "1px solid #e5e5e5",}}>
-        <div style={columnHeaderStyle}>Əməliyyatlar ₼</div>
-        <div style={columnContentStyle}>
-          {actions.map((item) => (
-            <div key={item.id} style={{ marginBottom: 8 }}>
-              <Checkbox
-                checked={selectedAction.includes(item.id)}
-                onChange={() => setSelectedAction([item.id])} // yalnız bir seçilə bilər
-              >
-                {item.name}
-              </Checkbox>
+      <div className="flex-1 flex flex-col">
+        <div className="bg-gradient-to-r from-green-50 to-green-100 px-4 py-4 border-b border-gray-200">
+          <h3 className="m-0 text-base font-semibold text-gray-800 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-green-500"></span>
+            Əməliyyatlar ₼
+          </h3>
+        </div>
+        <div className="flex-1 overflow-y-auto px-4 py-4 bg-white">
+          {filteredOperations.length > 0 ? (
+            <div className="space-y-2">
+              {filteredOperations
+                .filter(op => op.status === 'ACTIVE')
+                .map((item) => (
+                  <div
+                    key={item.id}
+                    className={`p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                      selectedAction.includes(item.id)
+                        ? 'bg-green-50 border-2 border-green-400 shadow-sm'
+                        : 'hover:bg-gray-50 border-2 border-transparent hover:border-gray-200'
+                    }`}
+                    onClick={() => handleActionChange(item.id)}
+                  >
+                    <Checkbox
+                      checked={selectedAction.includes(item.id)}
+                      onChange={() => handleActionChange(item.id)}
+                      className="w-full"
+                    >
+                      <div className="flex justify-between items-center w-full">
+                        <span className={`text-sm ${selectedAction.includes(item.id) ? 'font-semibold text-green-700' : 'text-gray-700'}`}>
+                          {item.operationName}
+                        </span>
+                        {item.price > 0 && (
+                          <span className="text-xs text-gray-500 ml-2">
+                            {item.price} ₼
+                          </span>
+                        )}
+                      </div>
+                    </Checkbox>
+                  </div>
+                ))}
             </div>
-          ))}
+          ) : (
+            <div className="flex justify-center items-center h-full text-gray-400">
+              <p>Kateqoriya seçin</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

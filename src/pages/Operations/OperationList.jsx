@@ -114,9 +114,8 @@ const OperationList = () => {
               <th>#</th>
               <th>Əməliyyatın adı</th>
               <th>Kod</th>
-              {allPriceCategories.map((cat) => (
-                <th key={cat}>{cat}</th>
-              ))}
+              <th>Qiymet</th>
+              
               <th>Məhsul istifadəsi</th>
               <th>Status</th>
               <th>Düzəliş</th>
@@ -129,19 +128,7 @@ const OperationList = () => {
                   <td>{index + 1}</td>
                   <td>{item.operationName}</td>
                   <td>{item.operationCode}</td>
-
-                  {allPriceCategories.map((cat) => {
-                    const matchedPrice = item.prices?.find(
-                      (p) => p.priceCategoryName === cat
-                    );
-                    return (
-                      <td key={cat}>
-                        {matchedPrice?.price != null
-                          ? matchedPrice.price.toFixed(2)
-                          : "-"}
-                      </td>
-                    );
-                  })}
+                  <td>{item.price}</td>
 
                   <td>{item.productUsage || 0}</td>
                   <td

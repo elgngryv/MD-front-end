@@ -47,13 +47,48 @@ const InteractiveSVG = ({
   const sortToaths = (toaths = []) =>
     [...toaths].sort((a, b) => a.priority - b.priority);
 
+  // categoryCode null ise hiçbir diş gösterilmesin
+  if (categoryCode === null || categoryCode === undefined) {
+    return (
+      <div className="flex justify-center items-center h-full min-h-[300px] text-gray-400">
+        <p>Əməliyyat seçin</p>
+      </div>
+    );
+  }
+
+  // categoryCode'a göre dişleri filtrele
+  const filteredCategories = data.flatMap((section) =>
+    section.categorys?.filter((cat) => cat.categoryCode === categoryCode) || []
+  );
+
+  // Eğer categoryCode var ama o koda ait diş yoksa
+  if (filteredCategories.length === 0) {
+    return (
+      <div className="flex justify-center items-center h-full min-h-[300px] text-gray-400">
+        <p>Bu əməliyyata uyğun diş tapılmadı</p>
+      </div>
+    );
+  }
+
+  // Dişlerin toplam sayısını kontrol et
+  const totalToaths = filteredCategories.reduce(
+    (sum, cat) => sum + (cat.toaths?.length || 0),
+    0
+  );
+
+  if (totalToaths === 0) {
+    return (
+      <div className="flex justify-center items-center h-full min-h-[300px] text-gray-400">
+        <p>Bu əməliyyata uyğun diş tapılmadı</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-wrap gap-1">
       {data.map((section) =>
         section.categorys
-          ?.filter((cat) =>
-            categoryCode ? cat.categoryCode === categoryCode : true
-          )
+          ?.filter((cat) => cat.categoryCode === categoryCode)
           .map((cat) =>
             sortToaths(cat.toaths)?.map((toath) => {
 

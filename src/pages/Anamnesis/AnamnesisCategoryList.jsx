@@ -1,6 +1,6 @@
 // AnamnesisList.js
 import React, { useEffect, useState } from "react";
-import "../../assets/style/Anamnesis/anamnesislist.css";
+import "../../assets/style/Anamnesis/anamnesiscategorylist.css";
 import { CiSearch } from "react-icons/ci";
 import { FiDownload, FiEdit3 } from "react-icons/fi";
 import { GoTrash } from "react-icons/go";

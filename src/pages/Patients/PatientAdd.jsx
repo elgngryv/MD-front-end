@@ -86,23 +86,16 @@ const PatientAdd = () => {
     return formattedNumber;
   };
 
-  // Tarix formatı funksiyası
   const formatDateInput = (value) => {
-    // Yalnız rəqəmləri və tire simvolunu saxlayırıq
     const cleaned = value.replace(/[^\d-]/g, "");
-
-    // Əgər dəyər boşdursa, geri qaytar
     if (!cleaned) return "";
 
-    // Tarix formatına uyğunlaşdırma
     let formattedDate = cleaned;
 
-    // İlk 4 rəqəmdən sonra tire əlavə et
     if (cleaned.length > 4 && cleaned.charAt(4) !== "-") {
       formattedDate = `${cleaned.substring(0, 4)}-${cleaned.substring(4)}`;
     }
 
-    // İlk 7 rəqəmdən sonra tire əlavə et
     if (cleaned.length > 7 && formattedDate.charAt(7) !== "-") {
       formattedDate = `${formattedDate.substring(
         0,
@@ -110,7 +103,6 @@ const PatientAdd = () => {
       )}-${formattedDate.substring(7)}`;
     }
 
-    // Maksimum uzunluğu məhdudlaşdır
     if (formattedDate.length > 10) {
       formattedDate = formattedDate.substring(0, 10);
     }
@@ -126,10 +118,13 @@ const PatientAdd = () => {
       newValue = checked;
     } else if (name === "finCode") {
       newValue = value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+      // Clear error when user types
+      if (errors.finCode) {
+        setErrors((prev) => ({ ...prev, finCode: undefined }));
+      }
     } else if (["phone", "whatsapp", "workPhone", "homePhone"].includes(name)) {
       newValue = formatPhoneNumber(value);
     } else if (name === "dateOfBirth") {
-      // Tarix formatını tətbiq et
       newValue = formatDateInput(value);
     }
 
@@ -165,13 +160,11 @@ const PatientAdd = () => {
     if (formData.whatsapp && !phoneRegex.test(formData.whatsapp))
       newErrors.whatsapp = "Nömrə formatı (XXX)-XXX-XXXX şəklində olmalıdır";
 
-    // Tarix formatını yoxla
     if (formData.dateOfBirth && formData.dateOfBirth !== "") {
       const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
       if (!dateRegex.test(formData.dateOfBirth)) {
         newErrors.dateOfBirth = "Tarix formatı YYYY-MM-DD şəklində olmalıdır";
       } else {
-        // Tarixin etibarlı olub olmadığını yoxla
         const date = new Date(formData.dateOfBirth);
         if (isNaN(date.getTime())) {
           newErrors.dateOfBirth = "Etibarlı tarix daxil edin";
@@ -199,10 +192,10 @@ const PatientAdd = () => {
 
     console.log("Göndərilən formData:", formData);
 
-    if (!validateForm()){
+    if (!validateForm()) {
       toast.error(
         "Zəhmət olmasa, tələb olunan sahələri doldurun və formatları düzəldin.",
-        { toastId: 'validation-error' }
+        { toastId: "validation-error" }
       );
       return;
     }
@@ -216,11 +209,9 @@ const PatientAdd = () => {
         formData.isBlacklisted && formData.blacklistCategory
           ? parseInt(formData.blacklistCategory, 10)
           : null,
-      // Ensure finCode is null if empty
       finCode: formData.finCode === "" ? null : formData.finCode,
     };
 
-    // Set empty values to null for backend compatibility
     dataToSend.dateOfBirth =
       formData.dateOfBirth === "" ? null : formData.dateOfBirth;
     dataToSend.email = formData.email === "" ? null : formData.email;
@@ -273,6 +264,7 @@ const PatientAdd = () => {
               }`}
             />
           </div>
+
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">
               Soyadı <span className="patientsGroupRequired">*</span>
@@ -312,17 +304,30 @@ const PatientAdd = () => {
               }`}
             />
           </div>
+
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">Fin kodu</label>
+            <div>
+               {errors.finCode && (
+              <span className="text-red-600 text-xs mt-1 block">
+                {errors.finCode}
+              </span>
+            )}
             <input
               type="text"
               name="finCode"
               value={formData.finCode}
               onChange={handleChange}
-              placeholder="Fin kod adı daxil edin"
-              className="patientsGroupInputText placeholder:text-xs"
+              maxLength={7}
+              placeholder="Fin kod daxil edin (məs: ABC1234)"
+              className={`patientsGroupInputText placeholder:text-xs ${
+                errors.finCode ? "border-red-500 border-2 bg-red-50" : ""
+              }`}
             />
+           
+            </div>
           </div>
+
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">
               Cinsiyyət <span className="patientsGroupRequired">*</span>
@@ -364,6 +369,7 @@ const PatientAdd = () => {
               </label>
             </div>
           </div>
+
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">Doğum tarixi</label>
             <input
@@ -382,6 +388,7 @@ const PatientAdd = () => {
               </span>
             )}
           </div>
+
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">
               Qiymət kateqoriyası{" "}
@@ -470,6 +477,7 @@ const PatientAdd = () => {
               ))}
             </select>
           </div>
+
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">
               Həkim <span className="patientsGroupRequired">*</span>
@@ -509,6 +517,7 @@ const PatientAdd = () => {
               ))}
             </select>
           </div>
+
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">Qara siyahı</label>
             <div className="patientsGroupBlacklist">
@@ -546,6 +555,7 @@ const PatientAdd = () => {
             )}
           </div>
         </div>
+
         <div className="patientsGroupRight">
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">
@@ -566,6 +576,7 @@ const PatientAdd = () => {
               }`}
             />
           </div>
+
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">Whatsapp</label>
             <input
@@ -584,6 +595,7 @@ const PatientAdd = () => {
               </span>
             )}
           </div>
+
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">İş nömrəsi</label>
             <input
@@ -602,6 +614,7 @@ const PatientAdd = () => {
               </span>
             )}
           </div>
+
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">Ev nömrəsi</label>
             <input
@@ -620,6 +633,7 @@ const PatientAdd = () => {
               </span>
             )}
           </div>
+
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">E-poçt</label>
             <input
@@ -630,6 +644,7 @@ const PatientAdd = () => {
               className="patientsGroupInputText text-xs"
             />
           </div>
+
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">Ev ünvanı</label>
             <input
@@ -640,6 +655,7 @@ const PatientAdd = () => {
               className="patientsGroupInputText text-xs"
             />
           </div>
+
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">İş ünvanı</label>
             <input
@@ -650,6 +666,7 @@ const PatientAdd = () => {
               className="patientsGroupInputText text-xs"
             />
           </div>
+
           <div className="patientsGroupField">
             <label className="patientsGroupLabel">Tövsiyə edən şəxs</label>
             <input

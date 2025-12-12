@@ -4,7 +4,6 @@ import "../assets/style/add-new-appointment.css";
 import "../assets/style/appointment-left-side.css";
 import CustomSelect from "../components/CustomSelect.jsx";
 import Modal from "../components/Modal.jsx";
-import SidebarMenu from "../components/SidebarMenu.jsx";
 import CustomDropdown from "../components/CustomDropdown.jsx";
 import DropdownChecklist from "../components/DropdownChecklist.jsx";
 import { useDoctors } from "../hooks/useDoctors.js";
@@ -12,157 +11,152 @@ import { useCreateAppointment } from "../hooks/useCalendar.js";
 import BlurLoader from "../components/layout/BlurLoader.jsx";
 import { toast } from "react-toastify";
 import { useRooms } from "../hooks/useRooms.js";
-// Zustand store-u import edirik
 import usePatientStore from "../../stores/patiendStore.js";
-import useAppointmentTypeStore from "../../stores/appointment-type-store.js"; // Yeni store import
+import useAppointmentTypeStore from "../../stores/appointment-type-store.js";
 
-// Status seçimləri
 const STATUS_OPTIONS = [{ value: "MEETING", label: "MEETING" }];
 
-// Props-ları əlavə edirik
 const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [selectedRoom, setSelectedRoom] = useState(null);
-  const [doctorSearchQuery, setDoctorSearchQuery] = useState("");
   const [patientSearchQuery, setPatientSearchQuery] = useState("");
   const [selectedDoctorId, setSelectedDoctorId] = useState(null);
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [selectedOperations, setSelectedOperations] = useState([]);
-  const [selectedStatus, setSelectedStatus] = useState(null);
+  const [selectedStatus, setSelectedStatus] = useState(STATUS_OPTIONS[0]);
   const [formData, setFormData] = useState({
     date: "",
-    time: {
-      hour: 7, // 0 yerinə 9 (səhər 9:00)
-      minute: 0,
-      second: 0,
-      nano: 0,
-    },
-    period: {
-      hour: 1, // 0 yerinə 1 (1 saat)
-      minute: 0,
-      second: 0,
-      nano: 0,
-    },
+    time: "09:00:00", // String format
+    period: "01:00:00", // String format
   });
   const [showModal, setShowModal] = useState(false);
 
-  // Zustand hook-unu istifadə edirik
+  // Zustand stores
   const { patients, fetchPatients, searchPatients } = usePatientStore();
-  const { appointmentTypes, fetchAppointmentTypes } = useAppointmentTypeStore(); // Yeni store
+  const { appointmentTypes, fetchAppointmentTypes } = useAppointmentTypeStore();
   const { data: doctors } = useDoctors();
   const { data: rooms } = useRooms();
   const { mutate: createAppointment, isPending } = useCreateAppointment();
 
-  // Pasiyent və randevu tipi məlumatlarını ilkin olaraq çəkmək
+  // Fetch initial data
   useEffect(() => {
     fetchPatients();
-    fetchAppointmentTypes(); // Randevu tiplərini çək
+    fetchAppointmentTypes();
   }, [fetchPatients, fetchAppointmentTypes]);
 
-  // Transform appointment types into select options format
+  // Transform data for dropdowns
   const operationOptions = useMemo(() => {
-    if (!appointmentTypes) return [];
-    return appointmentTypes.map((type) => ({
-      value: type.id.toString(),
-      label: type.appointmentTypeName,
-    }));
+    return (
+      appointmentTypes?.map((type) => ({
+        value: type.id.toString(),
+        label: type.appointmentTypeName,
+      })) || []
+    );
   }, [appointmentTypes]);
 
-  // Transform room data into select options format
   const roomOptions = useMemo(() => {
-    if (!rooms) return [];
-    return rooms.map((room) => ({
-      value: room.cabinetName,
-      label: room.cabinetName,
-    }));
+    return (
+      rooms?.map((room) => ({
+        value: room.cabinetName,
+        label: room.cabinetName,
+      })) || []
+    );
   }, [rooms]);
 
-  // Transform patient data into select options format with doctor info
   const patientOptions = useMemo(() => {
-    if (!patients) return [];
-    return patients.map((patient) => ({
-      value: patient.id.toString(),
-      label: `${patient.name} ${patient.surname} - ${patient.phone}`,
-      debt: 0, // You can add actual debt calculation here if needed
-      doctorId: patient.doctorId, // Həkim ID-sini əlavə et
-      doctorName: patient.doctorName, // Həkim adını əlavə et
-    }));
+    return (
+      patients?.map((patient) => ({
+        value: patient.id.toString(),
+        label: `${patient.name} ${patient.surname} - ${patient.phone}`,
+        debt: patient.debt || 0,
+        doctorId: patient.doctorId,
+        doctorName: patient.doctorName,
+      })) || []
+    );
   }, [patients]);
 
-  // Transform doctor data into select options format
   const doctorOptions = useMemo(() => {
-    if (!doctors) return [];
-    return doctors.map((doctor) => ({
-      value: doctor.doctorId,
-      label: `${doctor.name} ${doctor.surname}`,
-    }));
+    return (
+      doctors?.map((doctor) => ({
+        value: doctor.doctorId,
+        label: `${doctor.name} ${doctor.surname}`,
+      })) || []
+    );
   }, [doctors]);
 
-  // Seçilmiş tarix və saatı göstərmək üçün useEffect
+  // Set initial date/time from navigation
   useEffect(() => {
     if (location.state?.selectedDateTime) {
       const { date, time } = location.state.selectedDateTime;
+
+      // Convert time object to string format
+      const timeString = `${String(time.hour || 9).padStart(2, "0")}:${String(
+        time.minute || 0
+      ).padStart(2, "0")}:00`;
+
       setFormData((prev) => ({
         ...prev,
         date,
-        time: {
-          hour: time.hour,
-          minute: time.minute,
-          second: time.second,
-          nano: time.nano,
-        },
+        time: timeString,
       }));
     }
   }, [location.state]);
 
-  // Otaq seçimi funksiyası
+  // Room selection
   const handleRoomChange = (selectedOption) => {
     setSelectedRoom(selectedOption);
-    setFormData((prev) => ({
-      ...prev,
-      room: selectedOption ? selectedOption.label : "",
-    }));
   };
 
-  const handleDoctorSearchChange = (e) => {
-    setDoctorSearchQuery(e.target.value);
+  // Patient selection - Auto-select doctor
+  const handlePatientChange = (selectedOption) => {
+    setSelectedPatient(selectedOption);
+
+    if (selectedOption && selectedOption.doctorId) {
+      const patientDoctor = doctorOptions.find(
+        (doctor) => doctor.value === selectedOption.doctorId
+      );
+
+      if (patientDoctor) {
+        setSelectedDoctor(patientDoctor);
+        setSelectedDoctorId(patientDoctor.value);
+      } else {
+        const employeeDoctor = employees?.find(
+          (emp) => emp.id === selectedOption.doctorId
+        );
+        if (employeeDoctor) {
+          const doctorOption = {
+            value: employeeDoctor.id,
+            label: `${employeeDoctor.name} ${employeeDoctor.surname}`,
+          };
+          setSelectedDoctor(doctorOption);
+          setSelectedDoctorId(employeeDoctor.id);
+        }
+      }
+    } else {
+      setSelectedDoctor(null);
+      setSelectedDoctorId(null);
+    }
   };
 
-  // Pasiyent axtarışını Zustand store vasitəsilə aparırıq
-  const handlePatientSearchChange = (value) => {
-    setPatientSearchQuery(value);
-    searchPatients({ fullName: value }); // Zustand store-dakı searchPatients-i çağırır
-  };
-
-  const handleDoctorCardClick = (doctorId) => {
-    const doctor = employees.find((d) => d.id === doctorId);
-    setSelectedDoctorId(doctorId);
-    setSelectedDoctor({
-      value: doctor.id,
-      label: doctor.name,
-    });
-    setFormData((prev) => ({
-      ...prev,
-      doctorName: doctor.name,
-    }));
-  };
-
+  // Doctor selection
   const handleDoctorChange = (selectedOption) => {
     setSelectedDoctor(selectedOption);
-    setSelectedDoctorId(selectedOption ? selectedOption.value : null);
-    setFormData((prev) => ({
-      ...prev,
-      doctorName: selectedOption ? selectedOption.label : "",
-    }));
+    setSelectedDoctorId(selectedOption?.value || null);
   };
 
-  const filteredDoctors = employees.filter((doctor) =>
-    doctor.name.toLowerCase().includes(doctorSearchQuery.toLowerCase())
-  );
+  // Operations selection
+  const handleOperationsChange = (selectedOptions) => {
+    setSelectedOperations(selectedOptions || []);
+  };
 
-  // Form funksiyaları
+  // Status selection
+  const handleStatusChange = (selectedOption) => {
+    setSelectedStatus(selectedOption);
+  };
+
+  // Form input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -171,113 +165,89 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
     }));
   };
 
-  // Pasiyent seçimi funksiyası - avtomatik həkim təyini
-  const handlePatientChange = (selectedOption) => {
-    setSelectedPatient(selectedOption);
+  // Time input handling - Convert to "HH:mm:ss" format
+  const handleTimeChange = (e) => {
+    const { value } = e.target;
+    const [hours, minutes] = value.split(":").map(Number);
 
-    // Əgər pasientin həkimi varsa, onu avtomatik seç
-    if (selectedOption && selectedOption.doctorId) {
-      const doctor = doctorOptions.find(
-        (doc) => doc.value === selectedOption.doctorId
-      );
-
-      if (doctor) {
-        setSelectedDoctor(doctor);
-        setSelectedDoctorId(doctor.value);
-        setFormData((prev) => ({
-          ...prev,
-          doctorName: doctor.label,
-        }));
-      }
-    }
+    const timeString = `${String(hours || 0).padStart(2, "0")}:${String(
+      minutes || 0
+    ).padStart(2, "0")}:00`;
 
     setFormData((prev) => ({
       ...prev,
-      patientName: selectedOption ? selectedOption.label : "",
-      patientDebt: selectedOption
-        ? selectedOption.debt > 0
-          ? selectedOption.debt
-          : "Borcu yoxdur"
-        : "",
+      time: timeString,
     }));
   };
 
-  const handleOperationsChange = (selectedOptions) => {
-    setSelectedOperations(selectedOptions || []);
+  // Period input handling - Convert to "HH:mm:ss" format
+  const handlePeriodChange = (e) => {
+    const { value } = e.target;
+    const [hours, minutes] = value.split(":").map(Number);
+
+    const periodString = `${String(hours || 0).padStart(2, "0")}:${String(
+      minutes || 0
+    ).padStart(2, "0")}:00`;
+
     setFormData((prev) => ({
       ...prev,
-      operation: selectedOptions
-        ? selectedOptions.map((option) => option.label).join(", ")
-        : "",
+      period: periodString,
     }));
   };
 
-  // Status seçimi funksiyası
-  const handleStatusChange = (selectedOption) => {
-    setSelectedStatus(selectedOption);
-    setFormData((prev) => ({
-      ...prev,
-      appointment: selectedOption ? selectedOption.value : "MEETING",
-    }));
+  // Format time for display (remove seconds for input)
+  const formatTimeForInput = (timeString) => {
+    if (!timeString) return "09:00";
+    return timeString.substring(0, 5); // "HH:mm" qaytarır
   };
 
+  // Form submission
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // Validation
+    if (!selectedPatient) {
+      toast.error("Pasiyent seçilməyib");
+      return;
+    }
+
+    if (!selectedDoctorId) {
+      toast.error("Həkim seçilməyib");
+      return;
+    }
+
+    if (!selectedRoom) {
+      toast.error("Otaq seçilməyib");
+      return;
+    }
+
+    if (!formData.date) {
+      toast.error("Tarix seçilməyib");
+      return;
+    }
+
     setShowModal(true);
   };
 
+  // Confirm appointment creation
   const handleConfirmAppointment = () => {
-    const normalizedDoctorId = selectedDoctorId
-      ? Number(selectedDoctorId)
-      : selectedPatient?.doctorId
-      ? Number(selectedPatient.doctorId)
-      : null;
-
-    if (!normalizedDoctorId) {
-      toast.error("Həkim seçilməyib");
-      setShowModal(false);
-      return;
-    }
-
-    if (!selectedRoom?.value) {
-      toast.error("Otaq seçilməyib");
-      setShowModal(false);
-      return;
-    }
-
-    // Saat və müddəti string formatına çevir
-    const timeString = `${formData.time.hour
-      .toString()
-      .padStart(2, "0")}:${formData.time.minute
-      .toString()
-      .padStart(2, "0")}:${formData.time.second.toString().padStart(2, "0")}`;
-
-    const periodString = `${formData.period.hour
-      .toString()
-      .padStart(2, "0")}:${formData.period.minute
-      .toString()
-      .padStart(2, "0")}:${formData.period.second.toString().padStart(2, "0")}`;
-
-    // Prepare the appointment data in the required format
-    const newAppointment = {
-      doctorId: normalizedDoctorId,
-      doctorName:
-        selectedDoctor?.label ||
-        formData.doctorName ||
-        selectedPatient?.doctorName ||
-        "",
+    const appointmentData = {
+      doctorId: selectedDoctorId,
+      doctorName: selectedDoctor?.label || "",
       cabinetName: selectedRoom?.value || "",
-      patientId: selectedPatient?.value ? parseInt(selectedPatient.value) : 0,
+      patientId: selectedPatient ? parseInt(selectedPatient.value) : 0,
       appointment: selectedStatus?.value || "MEETING",
       appointmentTypeRequestIds: selectedOperations.map((op) => ({
         id: parseInt(op.value),
       })),
       date: formData.date,
-      time: timeString, // String formatında göndər
-      period: periodString, // String formatında göndər
+      time: formData.time, // "HH:mm:ss" formatında
+      period: formData.period, // "HH:mm:ss" formatında
     };
 
-    createAppointment(newAppointment, {
+    console.log("Sending appointment data:", appointmentData);
+
+    createAppointment(appointmentData, {
       onSuccess: () => {
         toast.success("Randevu uğurla yaradıldı");
         setShowModal(false);
@@ -289,80 +259,41 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
       onError: (error) => {
         toast.error("Randevu yaradılarkən xəta baş verdi");
         console.error("Error creating appointment:", error);
+
+        // Ətraflı error məlumatı
+        if (error.response) {
+          console.error("Error response:", error.response.data);
+          console.error("Error status:", error.response.status);
+        }
+
+        setShowModal(false);
       },
     });
-  };
-
-  // Update the time input handling
-  const handleTimeChange = (e) => {
-    const { name, value } = e.target;
-    const [hours, minutes] = value.split(":");
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: {
-        hour: parseInt(hours),
-        minute: parseInt(minutes),
-        second: 0,
-        nano: 0,
-      },
-    }));
-  };
-
-  // Update the period input handling
-  const handlePeriodChange = (e) => {
-    const { name, value } = e.target;
-    const [hours, minutes] = value.split(":");
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: {
-        hour: parseInt(hours),
-        minute: parseInt(minutes),
-        second: 0,
-        nano: 0,
-      },
-    }));
-  };
-
-  // Helper function to format time
-  const formatTime = (time) => {
-    if (!time) {
-      return "00:00";
-    }
-    const { hour, minute } = time;
-    return `${String(hour).padStart(2, "0")}:${String(minute).padStart(
-      2,
-      "0"
-    )}`;
   };
 
   return (
     <div
       className="appointments-container"
-      style={{
-        display: "flex",
-        gap: "10px",
-      }}>
+      style={{ display: "flex", gap: "10px" }}>
       <BlurLoader isLoading={isPending}>
-        {/* RIGHT SİDE */}
+        {/* RIGHT SIDE */}
         <div className="right-side !w-290">
           <div className="form-container">
             <h2>Yeni Randevu</h2>
             <form onSubmit={handleSubmit}>
-              {/* Həkim & Pasiyent */}
+              {/* Patient & Doctor */}
               <div className="first-row">
                 <div className="form-group border-0">
                   <label className="required-label">Pasiyent</label>
                   <CustomDropdown
                     options={patientOptions}
                     onChange={handlePatientChange}
-                    onSearchChange={handlePatientSearchChange}
+                    onSearchChange={setPatientSearchQuery}
                     placeholder="Pasiyent seçin və ya axtarın"
                     value={selectedPatient}
                     isClearable={true}
                     isSearchable={true}
-                    className="patient-select !p-0 -ml-1  !border-none"
+                    className="patient-select !p-0 -ml-1 !border-none"
                   />
                 </div>
                 <div className="form-group">
@@ -379,7 +310,7 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
                 </div>
               </div>
 
-              {/* Əməliyyat & Otaq */}
+              {/* Operation & Room */}
               <div className="second-row">
                 <div className="form-group">
                   <label className="required-label">Randevu Tipi</label>
@@ -408,7 +339,7 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
                 </div>
               </div>
 
-              {/* Tarix & Saat & Müddət */}
+              {/* Date & Time & Duration */}
               <div className="third-row">
                 <div className="form-group">
                   <label className="required-label">Tarix</label>
@@ -418,8 +349,6 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
                     value={formData.date}
                     onChange={handleInputChange}
                     required
-                    min="1800-01-01"
-                    max="3000-12-31"
                   />
                 </div>
 
@@ -428,7 +357,7 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
                   <input
                     type="time"
                     name="time"
-                    value={formatTime(formData.time)}
+                    value={formatTimeForInput(formData.time)}
                     onChange={handleTimeChange}
                     required
                   />
@@ -439,14 +368,14 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
                   <input
                     type="time"
                     name="period"
-                    value={formatTime(formData.period)}
+                    value={formatTimeForInput(formData.period)}
                     onChange={handlePeriodChange}
                     required
                   />
                 </div>
               </div>
 
-              {/* Status & Pasient borcu */}
+              {/* Status & Patient debt */}
               <div className="fourth-row">
                 <div className="form-group">
                   <label className="required-label">Status</label>
@@ -467,11 +396,13 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
                     name="patientDebt"
                     value={
                       selectedPatient?.debt > 0
-                        ? selectedPatient.debt
+                        ? `${selectedPatient.debt} AZN`
                         : "Borcu yoxdur"
                     }
                     readOnly
-                    className={selectedPatient?.debt > 0 ? "" : "no-debt"}
+                    className={
+                      selectedPatient?.debt > 0 ? "has-debt" : "no-debt"
+                    }
                   />
                 </div>
               </div>

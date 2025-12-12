@@ -15,16 +15,40 @@ function AddAppointmentType() {
     duration: "", // "HH:MM"
   });
 
+  const [errors, setErrors] = useState({
+    appointmentName: "",
+  });
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!formData.appointmentName.trim()) {
+      newErrors.appointmentName = "Randevu tipinin adı mütləq doldurulmalıdır";
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.appointmentName.trim()) {
-      toast.error("Randevu tipinin adı daxil edilməlidir");
+    // Validate form
+    if (!validateForm()) {
+      toast.warn("Zəhmət olmasa bütün mütləq sahələri doldurun");
       return;
     }
 
@@ -56,13 +80,13 @@ function AddAppointmentType() {
             </label>
             <input
               type="text"
-              className="addAppointmentTypeField"
+              className={`addAppointmentTypeField ${errors.appointmentName ? 'placeholder:!text-red-500' : ''}`}
               name="appointmentName"
               value={formData.appointmentName}
               onChange={handleInputChange}
-              required
               disabled={loading}
-              placeholder="Randevu tipinin adını daxil edin"
+              placeholder={errors.appointmentName || "Randevu tipinin adını daxil edin"}
+              style={{ borderColor: errors.appointmentName ? '#ef4444' : '' }}
             />
           </div>
 
@@ -78,7 +102,7 @@ function AddAppointmentType() {
                 placeholder="HH:MM"
                 disabled={loading}
               />
-              <FaRegClock className="clockIcon" />
+              {/* <FaRegClock className="clockIcon" /> */}
             </div>
           </div>
 

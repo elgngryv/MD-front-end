@@ -126,6 +126,13 @@
   margin-top: 20px;
 }
 
+.addOperation-section-label {
+  font-size: 14px;
+  color: #374151;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
 .addOperation-insurance-item {
   display: flex;
   align-items: center;
@@ -157,6 +164,11 @@
   outline: none;
   flex: 1;
   height: 100%;
+  border-right: 1px solid #CDD5DF;
+}
+
+.addOperation-insurance-input:nth-last-child(2) {
+  border-right: none;
 }
 
 .addOperation-currency-symbol {

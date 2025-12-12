@@ -14,7 +14,7 @@ import {
   QueryClientProvider,
   useQuery,
 } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+// import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { AnimatePresence, motion } from "framer-motion";
 
 // stores
@@ -126,7 +126,7 @@ const ColorList = lazy(() => import("./pages/settings/colors/ColorList"));
 const ColorDetail = lazy(() => import("./pages/settings/colors/ColorDetail"));
 const InsuranceDetail = lazy(() => import("./pages/settings/insurance/InsuranceDetail"));
 
-// ðŸ§  Other Settings
+// ðŸ§  Other Settings
 const Specialities = lazy(() => import("./pages/SpecialitiesPage/Specialities"));
 const AddSpeciality = lazy(() => import("./pages/SpecialitiesPage/AddSpeciality"));
 const EditSpeciality = lazy(() => import("./pages/SpecialitiesPage/EditSpeciality"));
@@ -262,7 +262,7 @@ const EditTeeth = lazy(() => import("./pages/Teeth/EditTeeth"));
 const AddOperationPicture = lazy(() => import("./pages/Teeth/AddOperationPicture"));
 const AddExaminationPicture = lazy(() => import("./pages/Teeth/AddExaminationPicture"));
 
-// ðŸ  Home
+// ðŸ  Home
 const Home = lazy(() => import("./pages/Home/HomePhoto"));
 
 // ðŸ”€ Other
@@ -870,7 +870,7 @@ createRoot(document.getElementById("root")).render(
         <AnimatedRoutes />
       </BrowserRouter>
       <ToastContainer position="top-right" autoClose={3000} />
-      <ReactQueryDevtools initialIsOpen={false} />
+      {/* <ReactQueryDevtools initialIsOpen={false} /> */}
     </QueryClientProvider>
   </StrictMode>
 );

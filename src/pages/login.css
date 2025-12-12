@@ -1,7 +1,17 @@
-.login-container {
+.login-wrapper {
+  min-height: 100vh; 
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   position: relative;
-  height: 100vh;
-  width: 100vw;
+  overflow: hidden;
+}
+
+.login-container {
+  /* position: relative; */
+  min-height: 100vh;
+  min-width: 100vw;
   display: flex;
   justify-content: flex-end;
   align-items: center;

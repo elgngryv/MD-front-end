@@ -420,7 +420,7 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
               )} */}
             </div>
 
-            <div className="main-form-group">
+            {/* <div className="main-form-group">
               <label htmlFor="finCode">FIN kod</label>
               <input
                 id="finCode"
@@ -434,8 +434,27 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
               {errors.finCode && (
                 <p className="error-message">{errors.finCode.message}</p>
               )}
+            </div> */}
+            <div className="main-form-group">
+                <label htmlFor="finCode">FIN kod</label>
+            <div className="-ml-11">
+            {errors.finCode && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors.finCode.message}
+              </p>
+            )}
+            <input
+              id="finCode"
+              type="text"
+              {...register("finCode")}
+              placeholder="FIN kodu daxil edin"
+              readOnly={mode === "view"}
+              className={`!w-[457px] ${mode === "view" ? "readonly" : ""} ${
+                errors.finCode ? "border-2 border-red-500 bg-red-50" : ""
+              }`}
+            />
             </div>
-
+          </div>
             <div className="main-form-group">
               <label htmlFor="colorCode">
                 Rəng kodu <span className="text-red-500">*</span>

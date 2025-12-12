@@ -15,6 +15,7 @@ function AddTechnician({ onClose }) {
   const [files, setFiles] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
   const fileInputRef = useRef(null);
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [permissionsLoading, setPermissionsLoading] = useState(true);
 
@@ -34,6 +35,16 @@ function AddTechnician({ onClose }) {
     homePhone: "(000)-000-00-00",
     address: "",
     authorities: [],
+  });
+
+  const [errors, setErrors] = useState({
+    username: "",
+    password: "",
+    name: "",
+    surname: "",
+    finCode: "",
+    phone: "",
+    patronymic: "",
   });
 
   const authorityOptions = rawPermissions
@@ -92,6 +103,14 @@ function AddTechnician({ onClose }) {
       ...prev,
       [name]: value,
     }));
+    
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
+    }
   };
 
   const handlePhoneChange = (e) => {
@@ -101,6 +120,14 @@ function AddTechnician({ onClose }) {
       ...prev,
       [name]: formattedValue,
     }));
+    
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
+    }
   };
 
   const handleGenderChange = (e) => {
@@ -127,8 +154,49 @@ function AddTechnician({ onClose }) {
     });
   };
 
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!formData.username.trim()) {
+      newErrors.username = "İstifadəçi adı mütləq doldurulmalıdır";
+    }
+    
+    if (!formData.password.trim()) {
+      newErrors.password = "Şifrə mütləq doldurulmalıdır";
+    }
+    
+    if (!formData.name.trim()) {
+      newErrors.name = "Ad mütləq doldurulmalıdır";
+    }
+    
+    if (!formData.surname.trim()) {
+      newErrors.surname = "Soyad mütləq doldurulmalıdır";
+    }
+    
+    if (!formData.patronymic.trim()) {
+      newErrors.patronymic = "Ata adı mütləq doldurulmalıdır";
+    }
+    
+    if (!formData.finCode.trim()) {
+      newErrors.finCode = "Fin kodu mütləq doldurulmalıdır";
+    }
+    
+    if (!formData.phone.trim() || formData.phone === "(000)-000-00-00") {
+      newErrors.phone = "Mobil nömrə mütləq doldurulmalıdır";
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate form
+    if (!validateForm()) {
+      toast.warn("Zəhmət olmasa bütün mütləq sahələri doldurun");
+      return;
+    }
 
     // Doğum tarixi validasiyası
     if (formData.dateOfBirth) {
@@ -136,7 +204,7 @@ function AddTechnician({ onClose }) {
       const year = date.getFullYear();
       if (year < 1800 || year > 3000) {
         toast.warn("Doğum tarixi ilini 1800 ilə 3000 arasında daxil edin.");
-        return; // Validasiya uğursuz olduqda funksiyanı dayandırırıq
+        return;
       }
     }
 
@@ -215,11 +283,12 @@ function AddTechnician({ onClose }) {
               </p>
               <input
                 type="text"
-                className="addTechnicianInput"
+                className={`addTechnicianInput ${errors.username ? 'placeholder:!text-red-400' : ''}`}
                 name="username"
                 value={formData.username}
                 onChange={handleInputChange}
-                required
+                placeholder={errors.username || "İstifadəçi adı"}
+                style={{ borderColor: errors.username ? '#ef4444' : '' }}
               />
             </div>
             <div className="leftPartInputData">
@@ -228,11 +297,12 @@ function AddTechnician({ onClose }) {
               </p>
               <input
                 type="text"
-                className="addTechnicianInput"
+                className={`addTechnicianInput ${errors.name ? 'placeholder:!text-red-500' : ''}`}
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
-                required
+                placeholder={errors.name || "Ad"}
+                style={{ borderColor: errors.name ? '#ef4444' : '' }}
               />
             </div>
             <div className="leftPartInputData">
@@ -241,11 +311,12 @@ function AddTechnician({ onClose }) {
               </p>
               <input
                 type="text"
-                className="addTechnicianInput"
+                className={`addTechnicianInput ${errors.surname ? 'placeholder:!text-red-500' : ''}`}
                 name="surname"
                 value={formData.surname}
                 onChange={handleInputChange}
-                required
+                placeholder={errors.surname || "Soyad"}
+                style={{ borderColor: errors.surname ? '#ef4444' : '' }}
               />
             </div>
             <div className="leftPartInputData">
@@ -254,11 +325,12 @@ function AddTechnician({ onClose }) {
               </p>
               <input
                 type="text"
-                className="addTechnicianInput"
+                className={`addTechnicianInput ${errors.patronymic ? 'placeholder:!text-red-500' : ''}`}
                 name="patronymic"
                 value={formData.patronymic}
                 onChange={handleInputChange}
-                required
+                placeholder={errors.patronymic || "Ata adı"}
+                style={{ borderColor: errors.patronymic ? '#ef4444' : '' }}
               />
             </div>
             <div className="leftPartInputGender">
@@ -294,11 +366,12 @@ function AddTechnician({ onClose }) {
               </p>
               <input
                 type="text"
-                className="addTechnicianInput"
+                className={`addTechnicianInput ${errors.finCode ? 'placeholder:!text-red-500' : ''}`}
                 name="finCode"
                 value={formData.finCode}
                 onChange={handleInputChange}
-                required
+                placeholder={errors.finCode || "Fin kodu"}
+                style={{ borderColor: errors.finCode ? '#ef4444' : '' }}
               />
             </div>
             <div className="leftPartInputData">
@@ -307,11 +380,12 @@ function AddTechnician({ onClose }) {
               </p>
               <input
                 type="password"
-                className="addTechnicianInput"
+                className={`addTechnicianInput ${errors.password ? 'placeholder:!text-red-500' : ''}`}
                 name="password"
                 value={formData.password}
                 onChange={handleInputChange}
-                required
+                placeholder={errors.password || "Şifrə"}
+                style={{ borderColor: errors.password ? '#ef4444' : '' }}
               />
             </div>
             <div className="leftPartInputData">
@@ -330,11 +404,12 @@ function AddTechnician({ onClose }) {
               </p>
               <input
                 type="tel"
-                className="addTechnicianInput"
+                className={`addTechnicianInput ${errors.phone ? 'placeholder:!text-red-500' : ''}`}
                 name="phone"
                 value={formData.phone}
                 onChange={handlePhoneChange}
-                required
+                placeholder={errors.phone || "(000)-000-00-00"}
+                style={{ borderColor: errors.phone ? '#ef4444' : '' }}
               />
             </div>
           </div>
@@ -348,6 +423,7 @@ function AddTechnician({ onClose }) {
                 name="phone2"
                 value={formData.phone2}
                 onChange={handlePhoneChange}
+                placeholder="(000)-000-00-00"
               />
             </div>
 
@@ -359,6 +435,7 @@ function AddTechnician({ onClose }) {
                 name="phone3"
                 value={formData.phone3}
                 onChange={handlePhoneChange}
+                placeholder="(000)-000-00-00"
               />
             </div>
 
@@ -370,6 +447,7 @@ function AddTechnician({ onClose }) {
                 name="homePhone"
                 value={formData.homePhone}
                 onChange={handlePhoneChange}
+                placeholder="(000)-000-00-00"
               />
             </div>
 
@@ -381,6 +459,7 @@ function AddTechnician({ onClose }) {
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
+                placeholder="E-poçt ünvanı"
               />
             </div>
 
@@ -392,6 +471,7 @@ function AddTechnician({ onClose }) {
                 name="address"
                 value={formData.address}
                 onChange={handleInputChange}
+                placeholder="Ünvan"
               />
             </div>
 

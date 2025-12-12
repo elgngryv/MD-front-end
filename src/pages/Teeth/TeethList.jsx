@@ -84,35 +84,35 @@ const TeethList = () => {
         <table className="teethList-table">
           <thead>
             <tr>
-              <th><span className="firstElementOfTHS"><HiOutlineArrowsUpDown /> №</span></th>
-              <th><span><HiOutlineArrowsUpDown /> Dişin nömrəsi</span></th>
-              <th><span><HiOutlineArrowsUpDown /> Dişin növü</span></th>
-              <th><span><HiOutlineArrowsUpDown /> Yeri</span></th>
-              <th><span><HiOutlineArrowsUpDown /> Müayinə şəkilləri</span></th>
-              <th><span><HiOutlineArrowsUpDown /> Əməliyyat şəkilləri</span></th>
-              <th><span>Düzəliş</span></th>
+              <th><span className="firstElementOfTHS !flex !justify-center gap-1"><HiOutlineArrowsUpDown className="mt-1"/> №</span></th>
+              <th><span className="!flex !justify-center gap-1"><HiOutlineArrowsUpDown className="mt-1"/> Dişin nömrəsi</span></th>
+              <th><span className="!flex !justify-center gap-1"><HiOutlineArrowsUpDown className="mt-1"/> Dişin növü</span></th>
+              <th><span className="!flex !justify-center gap-1"><HiOutlineArrowsUpDown className="mt-1"/> Yeri</span></th>
+              <th><span className="!flex !justify-center gap-1"><HiOutlineArrowsUpDown className="mt-1"/> Müayinə şəkilləri</span></th>
+              <th><span className="!flex !justify-center gap-1"><HiOutlineArrowsUpDown className="mt-1"/> Əməliyyat şəkilləri</span></th>
+              <th><span className="!flex !justify-center">Düzəliş</span></th>
             </tr>
           </thead>
           <tbody>
             {!loading && teeth.length > 0 ? (
               teeth.map((tooth, index) => (
                 <tr key={tooth.id}>
-                  <td>{index + 1}</td>
-                  <td>{tooth.toothNo}</td>
-                  <td>{getToothTypeLabel(tooth.toothType)}</td>
-                  <td>{getLocationLabel(tooth.toothLocation)}</td>
-                  <td>
+                  <td className="!text-center">{index + 1}</td>
+                  <td className="!text-center">{tooth.toothNo}</td>
+                  <td className="!text-center">{getToothTypeLabel(tooth.toothType)}</td>
+                  <td className="!text-center">{getLocationLabel(tooth.toothLocation)}</td>
+                  <td className="!text-center">
                     <Link to={`${tooth.id}/examination-pictures`} className="teethList-link">
                       Müayinə şəkilləri ({tooth.examinations?.length || 0})
                     </Link>
                   </td>
-                  <td>
+                  <td className="!text-center">
                     <Link to={`${tooth.id}/operation-pictures`} className="teethList-link">
                       Əməliyyat şəkilləri ({tooth.operations?.length || 0})
                     </Link>
                   </td>
-                  <td>
-                    <div className="teethList-action-icons">
+                  <td className="!text-center">
+                    <div className="teethList-action-icons !flex justify-center">
                       <FiEdit3 onClick={handleEdit(tooth.id)} className="teethList-edit-button" />
                       <GoTrash onClick={() => handleDelete(tooth.id)} className="teethList-delete-button" />
                     </div>

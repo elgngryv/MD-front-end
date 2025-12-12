@@ -90,47 +90,47 @@ function ReceptsList() {
           <thead>
             <tr>
               <th>
-                <span className="firstElementOfTHS">
-                  <HiOutlineArrowsUpDown className="receptsList-sort-icon" />
+                <span className="firstElementOfTHS !flex !justify-center gap-1">
+                  <HiOutlineArrowsUpDown className="receptsList-sort-icon mt-1" />
                   {filteredRecepts.length === 0
                     ? "0"
                     : `1-${filteredRecepts.length}`}
                 </span>
               </th>
               <th>
-                <span>
+                <span className="!flex !justify-center gap-1">
                   <HiOutlineArrowsUpDown className="receptsList-sort-icon" />{" "}
                   Reseptin adı
                 </span>
               </th>
               <th>
-                <span>
+                <span className="!flex !justify-center gap-1">
                   <HiOutlineArrowsUpDown className="receptsList-sort-icon" />{" "}
                   Dərmanları
                 </span>
               </th>
               <th>
-                <span>
+                <span className="!flex !justify-center gap-1">
                   <HiOutlineArrowsUpDown className="receptsList-sort-icon" />{" "}
                   Status
                 </span>
               </th>
               <th>
-                <span>Düzəliş</span>
+                <span className="!flex !justify-center">Düzəliş</span>
               </th>
             </tr>
           </thead>
           <tbody>
             {filteredRecepts.map((row, index) => (
               <tr key={row.id}>
-                <td>{index + 1}</td>
-                <td>{row.name}</td>
-                <td>
+                <td className="!text-center">{index + 1}</td>
+                <td className="!text-center">{row.name}</td>
+                <td className="!text-center">
                   <Link to={`/recepts/${row.id}`}>
                     Dərmanlar({getMedicineCount(row.id)})
                   </Link>
                 </td>
-                <td>
+                <td className="!text-center">
                   <span
                     onClick={() => toggleStatus(row)}
                     style={{ cursor: "pointer" }}
@@ -143,8 +143,8 @@ function ReceptsList() {
                   </span>
                 </td>
                 <td>
-                  <div className="receptsList-action-icons">
-                    <FiEdit3
+                  <div className="receptsList-action-icons !flex !justify-center">
+                    <FiEdit3  
                       className="receptsList-edit-button"
                       onClick={() => handleEdit(row.id)}
                     />

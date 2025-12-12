@@ -32,7 +32,9 @@ const AddOperation = () => {
       const data = insuranceCompanies.map((company) => ({
         name: company.companyName,
         id: company.id,
-        value: "",
+        insuranceName: "",
+        specificCode: "",
+        amount: "",
       }));
       setInsuranceData(data);
     }
@@ -54,9 +56,9 @@ const AddOperation = () => {
     navigate(-1);
   };
 
-  const handleInsuranceChange = (index, value) => {
+  const handleInsuranceChange = (index, field, value) => {
     const updated = [...insuranceData];
-    updated[index].value = value;
+    updated[index][field] = value;
     setInsuranceData(updated);
   };
 
@@ -71,15 +73,16 @@ const AddOperation = () => {
       const prices = dynamicPrices
         .filter((item) => item.value)
         .map((item) => ({
-          priceTypeId: item.id,
-          price: parseFloat(item.value),
+          priceTypeId: 0,
+          price: 0.00,
         }));
 
       const insurances = insuranceData
-        .filter((item) => item.value)
+        .filter((item) => item.insuranceName || item.specificCode || item.amount)
         .map((item) => ({
-          name: item.name,
-          amount: parseFloat(item.value),
+          name: item.insuranceName || item.name,
+          specificCode: item.specificCode || "",
+          amount: item.amount ? parseFloat(item.amount) : 0,
           insuranceCompanyId: item.id,
         }));
 
@@ -87,6 +90,7 @@ const AddOperation = () => {
         opTypeId: Number(id),
         operationName,
         operationCode,
+        amount: dynamicPrices[0]?.value ? parseFloat(dynamicPrices[0].value) : 0,
         showTechnic: visibleInTechnicians,
         status: "ACTIVE",
         prices,
@@ -99,6 +103,7 @@ const AddOperation = () => {
       console.error("Save error:", err);
     }
   };
+console.log(dynamicPrices);
 
   return (
     <div className="addOperation-container">
@@ -162,19 +167,36 @@ const AddOperation = () => {
         </div>
 
         <div className="addOperation-insurance-section">
+          <label className="addOperation-section-label">Sığorta şirkətləri</label>
           {insuranceData.map((insurance, index) => (
             <div className="addOperation-insurance-item" key={insurance.id}>
               <label className="addOperation-insurance-label">
                 {insurance.name}
               </label>
+
               <div className="addOperation-insurance-input-group">
+                <input
+                  type="text"
+                  className="addOperation-insurance-input"
+                  placeholder="Adı"
+                  value={insurance.insuranceName}
+                  onChange={(e) => handleInsuranceChange(index, "insuranceName", e.target.value)}
+                />
+                <input
+                  type="text"
+                  className="addOperation-insurance-input"
+                  placeholder="Spesifik kod"
+                  value={insurance.specificCode}
+                  onChange={(e) => handleInsuranceChange(index, "specificCode", e.target.value)}
+                />
                 <input
                   type="number"
                   className="addOperation-insurance-input"
                   placeholder="Məbləğ"
-                  value={insurance.value}
-                  onChange={(e) => handleInsuranceChange(index, e.target.value)}
+                  value={insurance.amount}
+                  onChange={(e) => handleInsuranceChange(index, "amount", e.target.value)}
                 />
+
                 <span className="addOperation-currency-symbol">
                   <FaManatSign />
                 </span>

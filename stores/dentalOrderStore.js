@@ -1,3 +1,4 @@
+// stores/dentalOrderStore.js
 import { create } from "zustand";
 import {
   createDentalOrder,
@@ -26,7 +27,7 @@ const useDentalOrderStore = create((set) => ({
       const data = await readDentalOrders();
       set({ orders: data, loading: false });
     } catch (error) {
-      set({ error, loading: false });
+      set({ error: error.message, loading: false });
     }
   },
 
@@ -37,7 +38,7 @@ const useDentalOrderStore = create((set) => ({
       const data = await readTechnicOrders();
       set({ technicOrders: data, loading: false });
     } catch (error) {
-      set({ error, loading: false });
+      set({ error: error.message, loading: false });
     }
   },
 
@@ -48,7 +49,7 @@ const useDentalOrderStore = create((set) => ({
       const data = await readDentalWorkTypes();
       set({ dentalWorkTypes: data, loading: false });
     } catch (error) {
-      set({ error, loading: false });
+      set({ error: error.message, loading: false });
     }
   },
 
@@ -59,7 +60,7 @@ const useDentalOrderStore = create((set) => ({
       const data = await readDentalOrderById(id);
       set({ currentOrder: data, loading: false });
     } catch (error) {
-      set({ error, loading: false });
+      set({ error: error.message, loading: false });
     }
   },
 
@@ -70,7 +71,7 @@ const useDentalOrderStore = create((set) => ({
       const data = await createDentalOrder(orderData);
       set((state) => ({ orders: [...state.orders, data], loading: false }));
     } catch (error) {
-      set({ error, loading: false });
+      set({ error: error.message, loading: false });
     }
   },
 
@@ -84,7 +85,7 @@ const useDentalOrderStore = create((set) => ({
         loading: false,
       }));
     } catch (error) {
-      set({ error, loading: false });
+      set({ error: error.message, loading: false });
     }
   },
 
@@ -96,19 +97,45 @@ const useDentalOrderStore = create((set) => ({
       set({ loading: false });
       return data;
     } catch (error) {
-      set({ error, loading: false });
+      set({ error: error.message, loading: false });
     }
   },
 
-  // Status yenilə
+  // STATUS YENİLƏ - Düzgün yeniləmə ilə
   changeOrderStatus: async (statusData) => {
     set({ loading: true, error: null });
     try {
-      const data = await updateDentalOrderStatus(statusData);
-      set({ loading: false });
-      return data;
+      console.log("Status update data in store:", statusData);
+
+      const updateData = {
+        id: Number(statusData.id),
+        dentalWorkStatus: statusData.dentalWorkStatus,
+      };
+
+      const updatedOrder = await updateDentalOrderStatus(updateData);
+
+      // Əmin olun ki, UI dərhal yenilənir
+      set((state) => ({
+        orders: state.orders.map((order) =>
+          order.id === updatedOrder.id
+            ? { ...order, dentalWorkStatus: updatedOrder.dentalWorkStatus }
+            : order
+        ),
+        loading: false,
+        error: null,
+      }));
+
+      console.log("Status successfully updated:", updatedOrder);
+      return updatedOrder;
     } catch (error) {
-      set({ error, loading: false });
+      const errorMessage =
+        error.response?.data?.message || error.message || "Xəta baş verdi";
+      console.error("Status update error:", errorMessage);
+      set({
+        error: errorMessage,
+        loading: false,
+      });
+      throw error;
     }
   },
 
@@ -122,7 +149,7 @@ const useDentalOrderStore = create((set) => ({
         loading: false,
       }));
     } catch (error) {
-      set({ error, loading: false });
+      set({ error: error.message, loading: false });
     }
   },
 }));

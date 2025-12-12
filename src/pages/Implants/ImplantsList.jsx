@@ -84,14 +84,20 @@ const ImplantsList = () => {
           <thead>
             <tr>
               <th>№</th>
-              <th>
-                <HiOutlineArrowsUpDown /> Marka
+              <th className=" !text-center">
+                <span className="!flex !justify-center gap-1">
+                <HiOutlineArrowsUpDown className=" mt-1" /> Marka
+                </span>
+              </th>
+              <th className=" !text-center">
+                <span className="!flex !justify-center gap-1"> 
+                <HiOutlineArrowsUpDown className=" mt-1" /> Ölçülər
+                </span>
               </th>
               <th>
-                <HiOutlineArrowsUpDown /> Ölçülər
-              </th>
-              <th>
-                <HiOutlineArrowsUpDown /> Status
+                <span className="gap-1 !flex !justify-center"> 
+                <HiOutlineArrowsUpDown className="mt-1" /> Status
+                </span>
               </th>
               <th>Düzəliş</th>
             </tr>
@@ -104,14 +110,14 @@ const ImplantsList = () => {
             ) : filteredImplants.length > 0 ? (
               filteredImplants.map((row, index) => (
                 <tr key={row.id}>
-                  <td>{index + 1}</td>
-                  <td>{row.implantBrandName}</td>
-                  <td>
+                  <td className="!text-center">{index + 1}</td>
+                  <td className="!text-center">{row.implantBrandName}</td>
+                  <td className="!text-center">
                     <Link to={`./sizes/${row.id}`}>
                       Ölçüləri ({row.implantSizesReads?.length || 0})
                     </Link>
                   </td>
-                  <td className="cursor-pointer">
+                  <td className="cursor-pointer !text-center">
                     <span
                       className={`implantsList-status-badge ${
                         row.status === "ACTIVE" ? "active" : "passive"

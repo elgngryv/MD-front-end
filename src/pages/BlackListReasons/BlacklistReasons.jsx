@@ -8,6 +8,7 @@ import { GoTrash } from "react-icons/go";
 import { HiOutlineArrowsUpDown } from "react-icons/hi2";
 
 import useBlackListResultStore from "../../../stores/blacklistReasonStore";
+import "../../assets/style/Specialities/specialities.css";
 
 function BlacklistReasons() {
   const navigate = useNavigate();
