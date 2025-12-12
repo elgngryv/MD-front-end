@@ -6,7 +6,6 @@ import { FaRegSave } from "react-icons/fa";
 import { FaManatSign } from "react-icons/fa6";
 import useInsuranceCompanyStore from "../../../stores/insuranceStore";
 import useOperationItemsTypeStore from "../../../stores/operationItemTypeStore";
-import usePriceCategoryStore from "../../../stores/priceCategoryStore";
 
 const EditOperation = () => {
   const navigate = useNavigate();
@@ -16,90 +15,77 @@ const EditOperation = () => {
     useInsuranceCompanyStore();
   const { selectedOperationItemsType, fetchById, updateOp } =
     useOperationItemsTypeStore();
-  const { categories, fetchCategories } = usePriceCategoryStore();
 
   // Local state
   const [operationName, setOperationName] = useState("");
   const [operationCode, setOperationCode] = useState("");
   const [visibleInTechnicians, setVisibleInTechnicians] = useState(false);
-  const [prices, setPrices] = useState({});
+  const [price, setPrice] = useState("");
   const [insuranceData, setInsuranceData] = useState([]);
 
-  // Məlumatları yüklə
+  // Load data
   useEffect(() => {
     if (id) {
       fetchById(Number(id));
     }
-    fetchCategories();
     fetchAllInsurance();
   }, [id]);
 
+  // Fill data
   useEffect(() => {
-    if (
-      !selectedOperationItemsType ||
-      !categories.length ||
-      !insuranceCompanies.length
-    )
-      return;
+    if (!selectedOperationItemsType || !insuranceCompanies.length) return;
 
     setOperationName(selectedOperationItemsType.operationName || "");
     setOperationCode(selectedOperationItemsType.operationCode || "");
     setVisibleInTechnicians(!!selectedOperationItemsType.showTechnic);
+    setPrice(
+      selectedOperationItemsType.price != null
+        ? selectedOperationItemsType.price.toString()
+        : ""
+    );
 
-    // Qiymətləri doldur
-    const priceMap = {};
-    categories.forEach((cat) => {
-      const priceObj = (selectedOperationItemsType.prices || []).find(
-        (p) => p.priceCategoryId === cat.id
-      );
-      priceMap[cat.id] =
-        priceObj && priceObj.price != null ? priceObj.price.toString() : "";
-    });
-    setPrices(priceMap);
-
-    // Sığorta məlumatlarını doldur
     const insurancesFromApi = selectedOperationItemsType.insurances || [];
 
-    // Bizim insuranceCompanies ilə uyğunlaşdıraraq dəyərləri hazırlayaq
     const insuranceMap = insuranceCompanies.map((company) => {
       const found = insurancesFromApi.find(
         (ins) => ins.insuranceCompanyId === company.id
       );
+
       return {
         id: company.id,
         name: company.companyName,
-        value: found && found.amount != null ? found.amount.toString() : "",
+        insuranceName: found?.name || "",
+        specificCode: found?.specificCode || "",
+        amount:
+          found?.amount != null ? found.amount.toString() : "",
       };
     });
+
     setInsuranceData(insuranceMap);
-  }, [selectedOperationItemsType, categories, insuranceCompanies]);
+  }, [selectedOperationItemsType, insuranceCompanies]);
 
-  // Qiymət inputlarını dəyiş
-  const handlePriceChange = (categoryId, value) => {
-    setPrices((prev) => ({ ...prev, [categoryId]: value }));
+  // Insurance change handler
+  const handleInsuranceChange = (index, field, value) => {
+    const updated = [...insuranceData];
+    updated[index][field] = value;
+    setInsuranceData(updated);
   };
 
-  // Sığorta inputlarını dəyiş
-  const handleInsuranceChange = (id, value) => {
-    setInsuranceData((prev) =>
-      prev.map((ins) => (ins.id === id ? { ...ins, value } : ins))
-    );
-  };
-
-  // Yadda saxla düyməsi
+  // Save
   const handleSave = async () => {
     const payload = {
       operationName,
       operationCode,
       showTechnic: visibleInTechnicians,
-      prices: Object.entries(prices).map(([categoryId, price]) => ({
-        priceCategoryId: Number(categoryId),
-        price: parseFloat(price) || 0,
-      })),
-      insurances: insuranceData.map((ins) => ({
-        insuranceCompanyId: ins.id,
-        amount: parseFloat(ins.value) || 0,
-      })),
+      price: parseFloat(price) || 0,
+      insurances: insuranceData
+        .filter((item) => item.insuranceName || item.specificCode || item.amount)
+        .map((ins) => ({
+          name: ins.insuranceName || ins.name,
+          specificCode: ins.specificCode || "",
+          amount: ins.amount ? parseFloat(ins.amount) : 0,
+          insuranceCompanyId: ins.id,
+        })),
     };
 
     try {
@@ -143,22 +129,20 @@ const EditOperation = () => {
           />
         </div>
 
-        <div className="editOperation-form-group-prices">
-          <label>Qiymətləri</label>
-          <div className="editOperation-price-inputs">
-            {categories.map((cat) => (
-              <div className="editOperation-price-input-group" key={cat.id}>
-                <label htmlFor={`price-${cat.id}`}>{cat.name}</label>
-                <input
-                  type="text"
-                  id={`price-${cat.id}`}
-                  className="editOperation-price-input"
-                  placeholder="Qiymət"
-                  value={prices[cat.id] || ""}
-                  onChange={(e) => handlePriceChange(cat.id, e.target.value)}
-                />
-              </div>
-            ))}
+        {/* Single price */}
+        <div className="editOperation-form-group">
+          <label htmlFor="operationPrice">
+            Qiymət <span>*</span>
+          </label>
+          <div className="editOperation-price-wrapper">
+            <input
+              type="number"
+              id="operationPrice"
+              className="editOperation-input"
+              placeholder="Qiymət"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+            />
           </div>
         </div>
 
@@ -176,20 +160,57 @@ const EditOperation = () => {
         </div>
 
         <div className="editOperation-insurance-section">
+          <label className="editOperation-section-label">
+            Sığorta şirkətləri
+          </label>
+
           {insuranceData.length > 0 ? (
-            insuranceData.map((insurance) => (
-              <div className="editOperation-insurance-item" key={insurance.id}>
+            insuranceData.map((insurance, index) => (
+              <div
+                className="editOperation-insurance-item"
+                key={insurance.id}
+              >
                 <label className="editOperation-insurance-label">
                   {insurance.name}
                 </label>
                 <div className="editOperation-insurance-input-group">
                   <input
+                    type="text"
+                    className="editOperation-insurance-input"
+                    placeholder="Adı"
+                    value={insurance.insuranceName}
+                    onChange={(e) =>
+                      handleInsuranceChange(
+                        index,
+                        "insuranceName",
+                        e.target.value
+                      )
+                    }
+                  />
+                  <input
+                    type="text"
+                    className="editOperation-insurance-input"
+                    placeholder="Spesifik kod"
+                    value={insurance.specificCode}
+                    onChange={(e) =>
+                      handleInsuranceChange(
+                        index,
+                        "specificCode",
+                        e.target.value
+                      )
+                    }
+                  />
+                  <input
                     type="number"
                     className="editOperation-insurance-input"
                     placeholder="Məbləğ"
-                    value={insurance.value}
+                    value={insurance.amount}
                     onChange={(e) =>
-                      handleInsuranceChange(insurance.id, e.target.value)
+                      handleInsuranceChange(
+                        index,
+                        "amount",
+                        e.target.value
+                      )
                     }
                   />
                   <span className="editOperation-currency-symbol">
@@ -206,10 +227,14 @@ const EditOperation = () => {
         <div className="editOperation-buttons">
           <button
             className="editOperation-cancel-button"
-            onClick={handleCancel}>
+            onClick={handleCancel}
+          >
             <MdClose /> İmtina et
           </button>
-          <button className="editOperation-save-button" onClick={handleSave}>
+          <button
+            className="editOperation-save-button"
+            onClick={handleSave}
+          >
             <FaRegSave /> Yadda saxla
           </button>
         </div>

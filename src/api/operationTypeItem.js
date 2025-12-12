@@ -44,7 +44,7 @@ export const searchOperationItemsType = async (params) => {
 export const readOperationItemsType = async (categoryId) => {
   if (!categoryId) throw new Error("Category ID is required");
   const response = await axiosInstance.get(
-    `${API_BASE_URL}/operation-type-items/read/${categoryId}`
+    `${API_BASE_URL}/operation-type-items/read/${categoryId}?page=0&count=100`
   );
   return response.data;
 };

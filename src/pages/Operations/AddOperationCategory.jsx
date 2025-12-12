@@ -15,13 +15,15 @@ function AddOperationCategory() {
   const { insuranceCompanyList, fetchList, loading, error } = useInsuranceCompanyStore();
 
   const [operationCategoryName, setOperationCategoryName] = useState("");
+  const [operationCategoryCode, setOperationCategoryCode] = useState("");
   const [isColorSelection, setIsColorSelection] = useState(false);
   const [isImplantSelection, setIsImplantSelection] = useState(false);
   const [insurancePercentages, setInsurancePercentages] = useState({});
-  
+
   // Error states
   const [errors, setErrors] = useState({
     categoryName: false,
+    categoryCode: false,
     insurances: {}
   });
 
@@ -34,7 +36,7 @@ function AddOperationCategory() {
       ...prev,
       [id]: value,
     }));
-    
+
     // Clear error when user starts typing
     if (errors.insurances[id]) {
       setErrors((prev) => ({
@@ -49,7 +51,7 @@ function AddOperationCategory() {
 
   const handleCategoryNameChange = (value) => {
     setOperationCategoryName(value);
-    
+
     // Clear error when user starts typing
     if (errors.categoryName) {
       setErrors((prev) => ({
@@ -58,6 +60,18 @@ function AddOperationCategory() {
       }));
     }
   };
+
+  const handleCategoryCodeChange = (value) => {
+    setOperationCategoryCode(value);
+
+    if (errors.categoryCode) {
+      setErrors((prev) => ({
+        ...prev,
+        categoryCode: false
+      }));
+    }
+  };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -73,6 +87,12 @@ function AddOperationCategory() {
       newErrors.categoryName = true;
       hasError = true;
     }
+
+    if (!operationCategoryCode.trim()) {
+      newErrors.categoryCode = true;
+      hasError = true;
+    }
+
 
     // Check all insurance percentages - they are all required
     insuranceCompanyList.forEach((company) => {
@@ -98,11 +118,13 @@ function AddOperationCategory() {
 
     const payload = {
       categoryName: operationCategoryName,
+      categoryCode: operationCategoryCode,
       status: "ACTIVE",
       colorSelection: isColorSelection,
       implantSelection: isImplantSelection,
       insurances,
     };
+
 
     try {
       await createOperation(payload);
@@ -131,6 +153,22 @@ function AddOperationCategory() {
               backgroundColor: errors.categoryName ? "#ffe6e6" : ""
             }}
           />
+        </div>
+        <div className="addOperationInputGroup">
+          <p>
+            Əməliyyat kateqoriyasının kodu<span>*</span>
+          </p>
+          <input
+            type="text"
+            placeholder={errors.categoryCode ? "Bu xana tələb olunur!" : "Əməliyyat kateqoriyasının kodu"}
+            value={operationCategoryCode}
+            onChange={(e) => handleCategoryCodeChange(e.target.value)}
+            style={{
+              borderColor: errors.categoryCode ? "red" : "",
+              backgroundColor: errors.categoryCode ? "#ffe6e6" : ""
+            }}
+          />
+
         </div>
 
         <div className="addOperationCheckboxGroup ">
@@ -166,7 +204,7 @@ function AddOperationCategory() {
           {!loading && !error && insuranceCompanyList.length > 0 && insuranceCompanyList.map((company) => (
             <div className="addOperationInsuranceItem" key={company.id}>
               <p>{company.companyName}</p>
-              <div 
+              <div
                 className="addOperationPercentageInput ml-7"
                 style={{
                   borderColor: errors.insurances[company.id] ? "red" : "",
