@@ -17,9 +17,9 @@ const AddToPlan = ({ onClose, onFinish, editingPlan, patientId }) => {
     loading: plansLoading,
   } = usePlansStore();
 
-  // patientInsurance verisini Select options formatına çevir
+  // patientInsurance məlumatını Select options formatına çevir
   const insuranceOptions = [
-    // { label: 'Yoxdur', value: 0 },
+    { label: 'Yoxdur', value: 0 },
     ...(Array.isArray(patientInsurance) 
       ? patientInsurance.map(insurance => ({
           label: insurance.insuranceCompanyName || insurance.policyNumber || `Sığorta #${insurance.id}`,
@@ -38,11 +38,11 @@ const AddToPlan = ({ onClose, onFinish, editingPlan, patientId }) => {
     
   const handleFinish = async (values) => {
     try {
-      // Gender değerini API formatına çevir (yetkin -> Yetkin, usaq -> Uşaq)
+      // Gender dəyərini API formatına çevir (yetkin -> Yetkin, usaq -> Uşaq)
       const genderValue = values['Gender'] === 'yetkin' ? 'Yetkin' : values['Gender'] === 'usaq' ? 'Uşaq' : values['Gender'];
       
       if (editingPlan) {
-        // Plan düzenleme - sadece id, planName ve key gönderilir
+        // Plan düzəltmə - yalnız id, planName və key göndərilir
         const updateData = {
           id: editingPlan.id,
           planName: values['Plan Adı'],
@@ -51,11 +51,11 @@ const AddToPlan = ({ onClose, onFinish, editingPlan, patientId }) => {
         
         const result = await updatePlans(updateData);
         
-        // Sadece başarılı olduğunda (200 status) state güncelle
+        // Yalnız uğurlu olduqda (200 status) state yenilə
         if (result.success && result.status === 200) {
           message.success('Plan uğurla yeniləndi!');
           
-          // Store'dan dönen veriyi onFinish'e gönder
+          // Store-dan gələn məlumatı onFinish-ə göndər
           if (onFinish) {
             const planData = {
               id: editingPlan.id,
@@ -71,27 +71,27 @@ const AddToPlan = ({ onClose, onFinish, editingPlan, patientId }) => {
             onClose();
           }
         } else {
-          // Hata durumunda state güncelleme
+          // Xəta olduqda state yeniləmə
           const status = result.status || result.error?.response?.status;
           const errorMessage = result.error?.response?.data?.message || 'Plan yenilənərkən xəta baş verdi';
           message.error(`Xəta (Status: ${status}): ${errorMessage}`);
         }
       } else {
-        // Yeni plan ekleme
+        // Yeni plan əlavə etmə
         const createData = {
           planName: values['Plan Adı'],
-          insuranceId: values['Sığorta Şirkəti'] === 0 ? null : values['Sığorta Şirkəti'],
+          insuranceId: values['Sığorta Şirkəti'] === 0 ? 0 : values['Sığorta Şirkəti'],
           key: genderValue,
           patientId: Number(patientId),
         };
         
         const result = await createPlans(createData);
         
-        // Sadece başarılı olduğunda (200 status) state güncelle
+        // Yalnız uğurlu olduqda (200 status) state yenilə
         if (result.success && result.status === 200 || result.status === 201) {
           message.success('Plan uğurla əlavə edildi!');
           
-          // Store'dan dönen veriyi onFinish'e gönder
+          // Store-dan gələn məlumatı onFinish-ə göndər
           if (onFinish) {
             const planData = {
               id: result.data?.id || Date.now(),
@@ -107,7 +107,7 @@ const AddToPlan = ({ onClose, onFinish, editingPlan, patientId }) => {
             onClose();
           }
         } else {
-          // Hata durumunda state güncelleme
+          // Xəta olduqda state yeniləmə
           const status = result.status || result.error?.response?.status;
           const errorMessage = result.error?.response?.data?.message || 'Plan əlavə edilərkən xəta baş verdi';
           message.error(`Xəta (Status: ${status}): ${errorMessage}`);
@@ -120,7 +120,7 @@ const AddToPlan = ({ onClose, onFinish, editingPlan, patientId }) => {
   };
   
   const onFinishFailed = () => {
-    message.error('Submit failed!');
+    message.error('Göndərmə uğursuz oldu!');
   };
     return (
         <div>
