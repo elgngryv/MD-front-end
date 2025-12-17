@@ -22,6 +22,9 @@ import useAuthStore from "../stores/authStore";
 
 // Style
 import "./assets/style/index.css";
+import Examination from "./pages/patient/Examination.jsx";
+import Images from "./pages/patient/Images.jsx";
+import Videos from "./pages/patient/Videos.jsx";
 
 // 🧱 Layouts
 const Layout = lazy(() => import("./components/layout/Layout"));
@@ -29,7 +32,9 @@ const PatientLayout = lazy(() => import("./components/layout/PatientLayout"));
 
 // 🔐 Auth Pages
 const LogIn = lazy(() => import("./pages/LogIn"));
-const ChangePassword = lazy(() => import("./pages/ChangePassword/ChangePassword"));
+const ChangePassword = lazy(() =>
+  import("./pages/ChangePassword/ChangePassword")
+);
 
 // 🧍‍♂️ Patient Pages
 const PatientsList = lazy(() => import("./pages/Patients/PatientsList"));
@@ -50,7 +55,9 @@ const XRay = lazy(() => import("./pages/patient/XRay"));
 const InfoXray = lazy(() => import("./pages/patient/InfoXray"));
 const EditXray = lazy(() => import("./pages/patient/EditXray"));
 const AddXRay = lazy(() => import("./pages/patient/AddXray"));
-const InfoInsurancePatient = lazy(() => import("./pages/patient/InfoInsurancePatient.jsx"));
+const InfoInsurancePatient = lazy(() =>
+  import("./pages/patient/InfoInsurancePatient.jsx")
+);
 const PlanCompare = lazy(() => import("./pages/patient/PlanCompare"));
 const EditPlan = lazy(() => import("./pages/patient/EditPlan"));
 const CreatePlan = lazy(() => import("./pages/patient/CreatePlan"));
@@ -61,10 +68,18 @@ const EmployeesList = lazy(() => import("./pages/Employees/EmployeesList"));
 const EmployeeAdd = lazy(() => import("./pages/Employees/EmployeeAdd"));
 const EmployeeDetails = lazy(() => import("./pages/Employees/EmployeeDetails"));
 const EmployeeEdit = lazy(() => import("./pages/Employees/EmployeeEdit"));
-const EmployeeSchedule = lazy(() => import("./pages/Employees/EmployeeSchedule"));
-const EmployeeWorkScheduleList = lazy(() => import("./pages/Employees/EmployeeWorkScheduleList"));
-const EmployeeWorkScheduleAdd = lazy(() => import("./pages/Employees/EmployeeWorkScheduleAdd"));
-const EmployeeWorkScheduleEdit = lazy(() => import("./pages/Employees/EmployeeWorkScheduleEdit"));
+const EmployeeSchedule = lazy(() =>
+  import("./pages/Employees/EmployeeSchedule")
+);
+const EmployeeWorkScheduleList = lazy(() =>
+  import("./pages/Employees/EmployeeWorkScheduleList")
+);
+const EmployeeWorkScheduleAdd = lazy(() =>
+  import("./pages/Employees/EmployeeWorkScheduleAdd")
+);
+const EmployeeWorkScheduleEdit = lazy(() =>
+  import("./pages/Employees/EmployeeWorkScheduleEdit")
+);
 
 // 📅 Appointment Pages
 const Appointments = lazy(() => import("./pages/Appointments"));
@@ -76,41 +91,69 @@ const ClinicStock = lazy(() => import("./pages/ClinicStock"));
 const CabinetStock = lazy(() => import("./pages/CabinetStock"));
 
 // 📥 Stock Import
-const StockImportList = lazy(() => import("./pages/stockImport/StockImportList"));
+const StockImportList = lazy(() =>
+  import("./pages/stockImport/StockImportList")
+);
 const AddStockImport = lazy(() => import("./pages/stockImport/AddStockImport"));
-const StockImportEdit = lazy(() => import("./pages/stockImport/StockImportEdit"));
+const StockImportEdit = lazy(() =>
+  import("./pages/stockImport/StockImportEdit")
+);
 const ImportDetail = lazy(() => import("./pages/stockImport/ImportDetail"));
 
 // 📦 Stock Order
 const StockOrderList = lazy(() => import("./pages/stockOrder/StockOrderList"));
 const AddStockOrder = lazy(() => import("./pages/stockOrder/AddStockOrder"));
 const StockOrderEdit = lazy(() => import("./pages/stockOrder/StockOrderEdit"));
-const StockOrderDetail = lazy(() => import("./pages/stockOrder/StockOrderDetail"));
+const StockOrderDetail = lazy(() =>
+  import("./pages/stockOrder/StockOrderDetail")
+);
 
 // 🗑️ Stock Delete
-const StockDeleteList = lazy(() => import("./pages/stockDelete/StockDeleteList"));
+const StockDeleteList = lazy(() =>
+  import("./pages/stockDelete/StockDeleteList")
+);
 const AddStockDelete = lazy(() => import("./pages/stockDelete/AddStockDelete"));
-const StockDeleteDetail = lazy(() => import("./pages/stockDelete/StockDeleteDetail"));
+const StockDeleteDetail = lazy(() =>
+  import("./pages/stockDelete/StockDeleteDetail")
+);
 
 // 📥 Stock Entry
 const StockEntryList = lazy(() => import("./pages/stockEntry/StockEntryList"));
-const StockEntryDetail = lazy(() => import("./pages/stockEntry/StockEntryDetail"));
+const StockEntryDetail = lazy(() =>
+  import("./pages/stockEntry/StockEntryDetail")
+);
 
 // 📤 Stock Export
-const StockExportList = lazy(() => import("./pages/stockExport/StockExportList"));
+const StockExportList = lazy(() =>
+  import("./pages/stockExport/StockExportList")
+);
 const StockExports = lazy(() => import("./pages/stockExport/StockExports"));
 const AddExportStock = lazy(() => import("./pages/stockExport/AddExportStock"));
-const InfoExportStock = lazy(() => import("./pages/stockExport/InfoExportStock"));
-const EditExportStock = lazy(() => import("./pages/stockExport/EditExportStock"));
+const InfoExportStock = lazy(() =>
+  import("./pages/stockExport/InfoExportStock")
+);
+const EditExportStock = lazy(() =>
+  import("./pages/stockExport/EditExportStock")
+);
 
 // ⚙️ Product Usage
-const ProductUsageList = lazy(() => import("./pages/productUsage/ProductUsageList"));
-const ProductUsageDetail = lazy(() => import("./pages/productUsage/ProductUsageDetail"));
+const ProductUsageList = lazy(() =>
+  import("./pages/productUsage/ProductUsageList")
+);
+const ProductUsageDetail = lazy(() =>
+  import("./pages/productUsage/ProductUsageDetail")
+);
 
 // 🏷️ Product Category
-const ProductCategory = lazy(() => import("./pages/ProductCategory/ProductCategory"));
-const AddProductCategory = lazy(() => import("./pages/ProductCategory/AddProductCategory"));
-const EditProductCategory = lazy(() => import("./pages/ProductCategory/EditProductCategory"));
+const ProductCategory = lazy(() =>
+  import("./pages/ProductCategory/ProductCategory")
+);
+const AddProductCategory = lazy(() =>
+  import("./pages/ProductCategory/AddProductCategory")
+);
+const EditProductCategory = lazy(() =>
+  import("./pages/ProductCategory/EditProductCategory")
+);
 const Products = lazy(() => import("./pages/ProductCategory/Products"));
 const AddProduct = lazy(() => import("./pages/ProductCategory/AddProduct"));
 const EditProduct = lazy(() => import("./pages/ProductCategory/EditProduct"));
@@ -119,20 +162,36 @@ const EditProduct = lazy(() => import("./pages/ProductCategory/EditProduct"));
 const AddOrder = lazy(() => import("./pages/AddOrder"));
 const ReceivedOrders = lazy(() => import("./pages/Laboratory/ReceivedOrders"));
 const SentOrders = lazy(() => import("./pages/Laboratory/SentOrders"));
-const TechnicalsReport = lazy(() => import("./pages/Laboratory/TechnicalsReport"));
+const TechnicalsReport = lazy(() =>
+  import("./pages/Laboratory/TechnicalsReport")
+);
 
 // ⚙️ Settings
 const ColorList = lazy(() => import("./pages/settings/colors/ColorList"));
 const ColorDetail = lazy(() => import("./pages/settings/colors/ColorDetail"));
-const InsuranceDetail = lazy(() => import("./pages/settings/insurance/InsuranceDetail"));
+const InsuranceDetail = lazy(() =>
+  import("./pages/settings/insurance/InsuranceDetail")
+);
 
-// �  Other Settings
-const Specialities = lazy(() => import("./pages/SpecialitiesPage/Specialities"));
-const AddSpeciality = lazy(() => import("./pages/SpecialitiesPage/AddSpeciality"));
-const EditSpeciality = lazy(() => import("./pages/SpecialitiesPage/EditSpeciality"));
-const AcademicDegrees = lazy(() => import("./pages/AcademicDegrees/AcademicDegrees"));
-const AddAcademicDegrees = lazy(() => import("./pages/AcademicDegrees/AddAcademicDegrees"));
-const EditAcademicDegrees = lazy(() => import("./pages/AcademicDegrees/EditAcademicDegrees"));
+// �  Other Settings
+const Specialities = lazy(() =>
+  import("./pages/SpecialitiesPage/Specialities")
+);
+const AddSpeciality = lazy(() =>
+  import("./pages/SpecialitiesPage/AddSpeciality")
+);
+const EditSpeciality = lazy(() =>
+  import("./pages/SpecialitiesPage/EditSpeciality")
+);
+const AcademicDegrees = lazy(() =>
+  import("./pages/AcademicDegrees/AcademicDegrees")
+);
+const AddAcademicDegrees = lazy(() =>
+  import("./pages/AcademicDegrees/AddAcademicDegrees")
+);
+const EditAcademicDegrees = lazy(() =>
+  import("./pages/AcademicDegrees/EditAcademicDegrees")
+);
 const Metals = lazy(() => import("./pages/Metals/Metals"));
 const AddMetal = lazy(() => import("./pages/Metals/AddMetal"));
 const EditMetal = lazy(() => import("./pages/Metals/EditMetal"));
@@ -141,21 +200,33 @@ const AddCeramic = lazy(() => import("./pages/Ceramics/AddCeramic"));
 const EditCeramic = lazy(() => import("./pages/Ceramics/EditCeramic"));
 const OrderStatus = lazy(() => import("./pages/OrderStatus/OrderStatus"));
 const AddOrderStatus = lazy(() => import("./pages/OrderStatus/AddOrderStatus"));
-const EditOrderStatus = lazy(() => import("./pages/OrderStatus/EditOrderStatus"));
+const EditOrderStatus = lazy(() =>
+  import("./pages/OrderStatus/EditOrderStatus")
+);
 const Permissions = lazy(() => import("./pages/PermissionsPage/Permissions"));
-const AddPermission = lazy(() => import("./pages/PermissionsPage/AddPermisssion"));
-const EditPermission = lazy(() => import("./pages/PermissionsPage/EditPermission"));
-const InfoPermission = lazy(() => import("./pages/PermissionsPage/InfoPermission"));
+const AddPermission = lazy(() =>
+  import("./pages/PermissionsPage/AddPermisssion")
+);
+const EditPermission = lazy(() =>
+  import("./pages/PermissionsPage/EditPermission")
+);
+const InfoPermission = lazy(() =>
+  import("./pages/PermissionsPage/InfoPermission")
+);
 
 // 🧾 Blacklist
 const Blacklist = lazy(() => import("./pages/Blacklist/Blacklist"));
-const BlacklistReasons = lazy(() => import("./pages/BlackListReasons/BlacklistReasons"));
+const BlacklistReasons = lazy(() =>
+  import("./pages/BlackListReasons/BlacklistReasons")
+);
 const AddReason = lazy(() => import("./pages/BlackListReasons/AddReason"));
 const EditReason = lazy(() => import("./pages/BlackListReasons/EditReason"));
 
 // 👨‍🔧 Technicians
 const Technicians = lazy(() => import("./pages/Technicians/Technicians"));
-const TechniciansPrices = lazy(() => import("./pages/Technicians/TechniciansPrices"));
+const TechniciansPrices = lazy(() =>
+  import("./pages/Technicians/TechniciansPrices")
+);
 const AddTechnician = lazy(() => import("./pages/Technicians/AddTechnician"));
 const EditTechnician = lazy(() => import("./pages/Technicians/EditTechnician"));
 const InfoTechnician = lazy(() => import("./pages/Technicians/InfoTechnician"));
@@ -175,9 +246,15 @@ const EditQueue = lazy(() => import("./pages/Queue/EditQueue"));
 const ReportsPage = lazy(() => import("./pages/Reports/ReportsPage"));
 
 // 📅 Appointment Types
-const AppointmentTypes = lazy(() => import("./pages/AppointmentTypes/AppointmentTypes"));
-const AddAppointmentType = lazy(() => import("./pages/AppointmentTypes/AddAppointmentTypes"));
-const EditAppointmentType = lazy(() => import("./pages/AppointmentTypes/EditAppointmentTypes"));
+const AppointmentTypes = lazy(() =>
+  import("./pages/AppointmentTypes/AppointmentTypes")
+);
+const AddAppointmentType = lazy(() =>
+  import("./pages/AppointmentTypes/AddAppointmentTypes")
+);
+const EditAppointmentType = lazy(() =>
+  import("./pages/AppointmentTypes/EditAppointmentTypes")
+);
 
 // ✅ Checklist
 const ChecklistPage = lazy(() => import("./pages/ChecklistPage/ChecklistPage"));
@@ -191,8 +268,12 @@ const EditColor = lazy(() => import("./pages/ColorsPage/EditColor"));
 
 // 💰 Price Category
 const PriceCategory = lazy(() => import("./pages/PriceCategory/PriceCategory"));
-const AddPriceCategory = lazy(() => import("./pages/PriceCategory/AddPriceCategory"));
-const EditPriceCategory = lazy(() => import("./pages/PriceCategory/EditPriceCategory"));
+const AddPriceCategory = lazy(() =>
+  import("./pages/PriceCategory/AddPriceCategory")
+);
+const EditPriceCategory = lazy(() =>
+  import("./pages/PriceCategory/EditPriceCategory")
+);
 
 // 🏢 Cabinets
 const CabinetsPage = lazy(() => import("./pages/CabinetsPage/CabinetsPage"));
@@ -205,21 +286,37 @@ const AddObject = lazy(() => import("./pages/OtherObjects/AddObject"));
 const EditObject = lazy(() => import("./pages/OtherObjects/EditObject"));
 
 // 💡 Recommendations
-const RecommendationsPage = lazy(() => import("./pages/RecommendationsPage/RecommendationsPage"));
-const AddRecommendation = lazy(() => import("./pages/RecommendationsPage/AddRecommendation"));
-const EditRecommendation = lazy(() => import("./pages/RecommendationsPage/EditRecommendation"));
+const RecommendationsPage = lazy(() =>
+  import("./pages/RecommendationsPage/RecommendationsPage")
+);
+const AddRecommendation = lazy(() =>
+  import("./pages/RecommendationsPage/AddRecommendation")
+);
+const EditRecommendation = lazy(() =>
+  import("./pages/RecommendationsPage/EditRecommendation")
+);
 
 // ⚙️ General Settings
-const GeneralSettings = lazy(() => import("./pages/GeneralSettings/GeneralSettings"));
+const GeneralSettings = lazy(() =>
+  import("./pages/GeneralSettings/GeneralSettings")
+);
 const EditSettings = lazy(() => import("./pages/GeneralSettings/EditSettings"));
 
 // 🧩 Anamnesis
-const AnamnesisCategoryList = lazy(() => import("./pages/Anamnesis/AnamnesisCategoryList"));
-const AddAnamnesisCategory = lazy(() => import("./pages/Anamnesis/AddAnamnesisCategory"));
-const EditAnamnesisCategory = lazy(() => import("./pages/Anamnesis/EditAnamnesisCategory"));
+const AnamnesisCategoryList = lazy(() =>
+  import("./pages/Anamnesis/AnamnesisCategoryList")
+);
+const AddAnamnesisCategory = lazy(() =>
+  import("./pages/Anamnesis/AddAnamnesisCategory")
+);
+const EditAnamnesisCategory = lazy(() =>
+  import("./pages/Anamnesis/EditAnamnesisCategory")
+);
 const AnamnesisList = lazy(() => import("./pages/Anamnesis/AnamnesisList"));
 const AddAnamnesis = lazy(() => import("./pages/Anamnesis/AddAnamnesis"));
-const EditAnamnesis = lazy(() => import("./pages/Anamnesis/EditAnamnesisCategory"));
+const EditAnamnesis = lazy(() =>
+  import("./pages/Anamnesis/EditAnamnesisCategory")
+);
 
 // 💊 Recepts & Medicines
 const ReceptsList = lazy(() => import("./pages/ReceptsPage/ReceptsList"));
@@ -246,9 +343,15 @@ const EditSize = lazy(() => import("./pages/Implants/EditSize"));
 const AddSize = lazy(() => import("./pages/Implants/AddSize"));
 
 // 🧬 Operations
-const OperationCategoryList = lazy(() => import("./pages/Operations/OperationCategoryList"));
-const AddOperationCategory = lazy(() => import("./pages/Operations/AddOperationCategory"));
-const EditOperationCategory = lazy(() => import("./pages/Operations/EditOperationCategory"));
+const OperationCategoryList = lazy(() =>
+  import("./pages/Operations/OperationCategoryList")
+);
+const AddOperationCategory = lazy(() =>
+  import("./pages/Operations/AddOperationCategory")
+);
+const EditOperationCategory = lazy(() =>
+  import("./pages/Operations/EditOperationCategory")
+);
 const OperationList = lazy(() => import("./pages/Operations/OperationList"));
 const EditOperation = lazy(() => import("./pages/Operations/EditOperation"));
 const AddOperation = lazy(() => import("./pages/Operations/AddOperation"));
@@ -256,31 +359,54 @@ const AddOperation = lazy(() => import("./pages/Operations/AddOperation"));
 // 🦷 Teeth
 const TeethList = lazy(() => import("./pages/Teeth/TeethList"));
 const OperationPictures = lazy(() => import("./pages/Teeth/OperationPictures"));
-const ExaminationPictures = lazy(() => import("./pages/Teeth/ExaminationPictures"));
+const ExaminationPictures = lazy(() =>
+  import("./pages/Teeth/ExaminationPictures")
+);
 const AddTeeth = lazy(() => import("./pages/Teeth/AddTeeth"));
 const EditTeeth = lazy(() => import("./pages/Teeth/EditTeeth"));
-const AddOperationPicture = lazy(() => import("./pages/Teeth/AddOperationPicture"));
-const AddExaminationPicture = lazy(() => import("./pages/Teeth/AddExaminationPicture"));
+const AddOperationPicture = lazy(() =>
+  import("./pages/Teeth/AddOperationPicture")
+);
+const AddExaminationPicture = lazy(() =>
+  import("./pages/Teeth/AddExaminationPicture")
+);
 
-// �  Home
+// �  Home
 const Home = lazy(() => import("./pages/Home/HomePhoto"));
 
 // 🔀 Other
 const Redirecter = lazy(() => import("./components/Redirecter"));
 
-
 // 🔹 Patient Insurance Extensions
-const AddInsurancePatient = lazy(() => import("./pages/patient/AddInsurancePatient.jsx"));
-const EditInsurancePatient = lazy(() => import("./pages/patient/EditInsurancePatient.jsx"));
-const PatientInsuranceBalance = lazy(() => import("./pages/patient/PatientInsuranceBalance.jsx"));
-const PatientInsuranceBalanceAdd = lazy(() => import("./pages/patient/PatientInsuranceBalanceAdd.jsx"));
-const PatientInsuranceBalanceEdit = lazy(() => import("./pages/patient/PatientInsuranceBalanceEdit.jsx"));
-const PatientInsuranceBalanceInfo = lazy(() => import("./pages/patient/PatientInsuranceBalanceInfo.jsx"));
-const EditPrescription = lazy(() => import("./pages/patient/EditPrescription.jsx"));
+const AddInsurancePatient = lazy(() =>
+  import("./pages/patient/AddInsurancePatient.jsx")
+);
+const EditInsurancePatient = lazy(() =>
+  import("./pages/patient/EditInsurancePatient.jsx")
+);
+const PatientInsuranceBalance = lazy(() =>
+  import("./pages/patient/PatientInsuranceBalance.jsx")
+);
+const PatientInsuranceBalanceAdd = lazy(() =>
+  import("./pages/patient/PatientInsuranceBalanceAdd.jsx")
+);
+const PatientInsuranceBalanceEdit = lazy(() =>
+  import("./pages/patient/PatientInsuranceBalanceEdit.jsx")
+);
+const PatientInsuranceBalanceInfo = lazy(() =>
+  import("./pages/patient/PatientInsuranceBalanceInfo.jsx")
+);
+const EditPrescription = lazy(() =>
+  import("./pages/patient/EditPrescription.jsx")
+);
 
 // 🔹 Laboratory Tech Reports
-const AddTechReport = lazy(() => import("./pages/Laboratory/AddTechReport.jsx"));
-const TechReportDetail = lazy(() => import("./pages/Laboratory/TechReportDetail.jsx"));
+const AddTechReport = lazy(() =>
+  import("./pages/Laboratory/AddTechReport.jsx")
+);
+const TechReportDetail = lazy(() =>
+  import("./pages/Laboratory/TechReportDetail.jsx")
+);
 
 // Constants
 const roomOptions = [
@@ -290,9 +416,6 @@ const roomOptions = [
   { value: "4", label: "Otaq 4" },
   { value: "5", label: "Otaq 5" },
 ];
-
-
-
 
 const employees = [
   {
@@ -432,6 +555,10 @@ const AnimatedRoutes = () => {
 
             <Route path="patients/patient/:id" element={<PatientLayout />}>
               <Route path="general" element={<General />} />
+              <Route path="examination" element={<Examination />} />
+              <Route path="images" element={<Images />} />
+              <Route path="video" element={<Videos />} />
+
               <Route path="edit" element={<PatientEdit />} />
               <Route path="report" element={<PatientReport />} />
               <Route path="plans" element={<Plans />} />
