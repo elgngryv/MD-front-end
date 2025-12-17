@@ -1,4 +1,4 @@
-import { lazy, StrictMode, useEffect } from "react";
+import { lazy, StrictMode, useEffect, Suspense } from "react";
 import { createRoot } from "react-dom/client";
 import {
   BrowserRouter,
@@ -480,8 +480,63 @@ const WORK_HOURS = [
 
 const WEEKDAYS_SHORT = ["B.e", "Ç.a", "Ç", "C.a", "C", "Ş", "B"];
 
-// Create a client
-const queryClient = new QueryClient();
+// Loading Spinner Komponenti
+const LoadingSpinner = () => (
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      height: "100vh",
+      width: "100%",
+      background: "#EEF2F6",
+    }}
+  >
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "16px",
+      }}
+    >
+      <div
+        style={{
+          border: "4px solid #f3f3f3",
+          borderTop: "4px solid #3498db",
+          borderRadius: "50%",
+          width: "40px",
+          height: "40px",
+          animation: "spin 1s linear infinite",
+        }}
+      />
+      <p style={{ color: "#666", fontFamily: "Open Sans, sans-serif" }}>
+        Yüklənir...
+      </p>
+    </div>
+    <style>
+      {`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}
+    </style>
+  </div>
+);
+
+// QueryClient konfiqurasiyası - Optimizasiya ilə
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 dəqiqə
+      gcTime: 10 * 60 * 1000, // 10 dəqiqə (cacheTime əvəzinə)
+      refetchOnWindowFocus: false,
+      retry: 1,
+      refetchOnMount: false,
+    },
+  },
+});
 
 const PageTransition = ({ children }) => {
   return (
@@ -509,8 +564,9 @@ const AnimatedRoutes = () => {
   return (
     <AnimatePresence mode="wait">
       <div className="app-wrapper">
-        <Redirecter />
-        <Routes location={location} key={location.pathname}>
+        <Suspense fallback={<LoadingSpinner />}>
+          <Redirecter />
+          <Routes location={location} key={location.pathname}>
           {/* Auth Routes */}
           {/* <Route path="/" element={<LogIn />} /> */}
           <Route path="/login" element={<LogIn />} />
@@ -985,6 +1041,7 @@ const AnimatedRoutes = () => {
             <Route path="/change-password" element={<ChangePassword />} />
           </Route>
         </Routes>
+        </Suspense>
       </div>
     </AnimatePresence>
   );
