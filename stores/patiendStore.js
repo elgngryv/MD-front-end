@@ -9,7 +9,7 @@ import {
   exportPatientsToExcel,
 } from "../src/api/patient";
 
-const usePatientStore = create((set) => ({
+const usePatientStore = create((set, get) => ({
   patients: [],
   selectedPatient: null,
   loading: false,
@@ -26,56 +26,96 @@ const usePatientStore = create((set) => ({
     }
   },
 
-  // Read single patient by ID
+  // Read single patient by ID - Cache check ilə
   fetchPatientById: async (id) => {
+    // Cache check - əgər artıq selectedPatient varsa və eyni ID-dirsə, yenidən fetch etmə
+    const current = get().selectedPatient;
+    if (current?.id === id) {
+      return current;
+    }
+    
+    set({ loading: true, error: null });
     try {
       const data = await readPatientById(id);
-      set({ selectedPatient: data });
+      set({ selectedPatient: data, loading: false });
+      return data;
     } catch (err) {
-      set({ error: err.message });
+      set({ error: err.message, loading: false });
+      throw err;
     }
   },
 
-  // Add new patient
+  // Add new patient - Optimistic update
   addPatient: async (patientData) => {
+    set({ loading: true, error: null });
     try {
-      await createPatient(patientData);
-      await usePatientStore.getState().fetchPatients();
+      const newPatient = await createPatient(patientData);
+      // Optimistic update - bütün list-i yenidən fetch etmə
+      set((state) => ({
+        patients: [newPatient, ...state.patients],
+        loading: false,
+      }));
+      return newPatient;
     } catch (err) {
-      set({ error: err.message });
+      set({ error: err.message, loading: false });
       throw err;
     }
   },
 
-  // Update patient
+  // Update patient - Optimistic update
+  updatePatient: async (patientData) => {
+    set({ loading: true, error: null });
+    try {
+      const updated = await editPatient(patientData);
+      // Optimistic update
+      set((state) => ({
+        patients: state.patients.map((p) =>
+          p.id === updated.id ? updated : p
+        ),
+        selectedPatient:
+          state.selectedPatient?.id === updated.id
+            ? updated
+            : state.selectedPatient,
+        loading: false,
+      }));
+      return updated;
+    } catch (err) {
+      set({ error: err.message, loading: false });
+      throw err;
+    }
+  },
+
+  // Edit patient - alias for updatePatient
   editPatient: async (patientData) => {
-    try {
-      const response = await editPatient(patientData);
-      await usePatientStore.getState().fetchPatients();
-      return response;
-    } catch (err) {
-      set({ error: err.message });
-      throw err;
-    }
+    return get().updatePatient(patientData);
   },
 
-  // Delete patient
+  // Delete patient - Optimistic update
   removePatient: async (id) => {
+    set({ loading: true, error: null });
     try {
       await deletePatient(id);
-      await usePatientStore.getState().fetchPatients();
+      // Optimistic update
+      set((state) => ({
+        patients: state.patients.filter((p) => p.id !== id),
+        selectedPatient:
+          state.selectedPatient?.id === id ? null : state.selectedPatient,
+        loading: false,
+      }));
     } catch (err) {
-      set({ error: err.message });
+      set({ error: err.message, loading: false });
+      throw err;
     }
   },
 
   // Search patients
   searchPatients: async (params) => {
+    set({ loading: true, error: null });
     try {
       const data = await searchPatients(params);
-      set({ patients: data });
+      set({ patients: data, loading: false });
     } catch (err) {
-      set({ error: err.message });
+      set({ error: err.message, loading: false });
     }
   },
 
@@ -88,5 +128,24 @@ const usePatientStore = create((set) => ({
     }
   },
 }));
+
+// Selector helper funksiyaları - Re-render optimizasiyası üçün
+export const usePatients = () => usePatientStore((state) => state.patients);
+export const useSelectedPatient = () =>
+  usePatientStore((state) => state.selectedPatient);
+export const usePatientLoading = () =>
+  usePatientStore((state) => state.loading);
+export const usePatientError = () => usePatientStore((state) => state.error);
+export const usePatientActions = () =>
+  usePatientStore((state) => ({
+    fetchPatients: state.fetchPatients,
+    fetchPatientById: state.fetchPatientById,
+    addPatient: state.addPatient,
+    updatePatient: state.updatePatient,
+    editPatient: state.editPatient,
+    removePatient: state.removePatient,
+    searchPatients: state.searchPatients,
+    exportPatients: state.exportPatients,
+  }));
 
 export default usePatientStore;
