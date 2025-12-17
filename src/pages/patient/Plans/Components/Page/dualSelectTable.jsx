@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Checkbox, Card, Divider, Spin, message } from "antd";
-import { useParams } from 'react-router-dom';
 import usePatientPlansControllerStore from '../../../../../../stores/patient-plans-controller';
 
-const DualSelectTable = ({ onOperationSelect }) => {
-  const { id: patientId } = useParams();
+// insuranceId: yaradılan planın sığorta şirkətinin ID-si (patientId deyil)
+const DualSelectTable = ({ insuranceId, onOperationSelect, onCategoryAndOperationSelect, resetSelection = false }) => {
   const { 
     selectedCategoryAndOperationItems, 
     fetchCategoryAndOperationItems, 
@@ -15,28 +14,42 @@ const DualSelectTable = ({ onOperationSelect }) => {
   const [selectedCategory, setSelectedCategory] = useState([]);
   const [selectedAction, setSelectedAction] = useState([]);
 
-  // 🔹 API'den verileri getir
+  // 🔹 API-dən məlumatları gətir (seçilmiş planın insuranceId-si ilə)
   useEffect(() => {
-    if (patientId) {
-      fetchCategoryAndOperationItems(Number(patientId));
+      // insuranceId null olarsa 0 kimi göndər
+      const idToSend = insuranceId == null ? 0 : Number(insuranceId);
+      fetchCategoryAndOperationItems(idToSend);
+  }, [insuranceId, fetchCategoryAndOperationItems]);
+
+  // 🔹 Seçimləri sıfırla (resetSelection prop dəyişdikdə)
+  useEffect(() => {
+    if (resetSelection) {
+      setSelectedCategory([]);
+      setSelectedAction([]);
+      if (onOperationSelect) {
+        onOperationSelect(null);
+      }
+      if (onCategoryAndOperationSelect) {
+        onCategoryAndOperationSelect(null, null);
+      }
     }
-  }, [patientId, fetchCategoryAndOperationItems]);
+  }, [resetSelection, onOperationSelect, onCategoryAndOperationSelect]);
 
   // 🔹 İlk kateqoriya default aktiv olsun
   useEffect(() => {
-    if (selectedCategoryAndOperationItems && selectedCategoryAndOperationItems.length > 0) {
+    if (selectedCategoryAndOperationItems && selectedCategoryAndOperationItems.length > 0 && !resetSelection) {
       setSelectedCategory([selectedCategoryAndOperationItems[0].id]);
     }
-  }, [selectedCategoryAndOperationItems]);
+  }, [selectedCategoryAndOperationItems, resetSelection]);
 
-  // 🔹 Seçilen kategoriye göre işlemleri filtrele
+  // 🔹 Seçilmiş kateqoriyaya görə əməliyyatları filtrlə
   const filteredOperations = selectedCategory.length > 0 && selectedCategoryAndOperationItems
     ? selectedCategoryAndOperationItems
         .find(cat => cat.id === selectedCategory[0])
         ?.opTypeItemReadResponses || []
     : [];
 
-  // 🔹 Kategori seçildiğinde işlem seçimini temizle
+  // 🔹 Kateqoriya seçildikdə əməliyyat seçimini təmizlə
   const handleCategoryChange = (categoryId) => {
     setSelectedCategory([categoryId]);
     setSelectedAction([]);
@@ -45,14 +58,20 @@ const DualSelectTable = ({ onOperationSelect }) => {
     }
   };
 
-  // 🔹 İşlem seçildiğinde operationCode'u parent'a gönder
+  // 🔹 Əməliyyat seçildikdə operationCode-u parent-a göndər
   const handleActionChange = (operationId) => {
     setSelectedAction([operationId]);
     const selectedOperation = filteredOperations.find(op => op.id === operationId);
-    if (selectedOperation && onOperationSelect) {
-      // operationCode string ise number'a çevir
+    if (selectedOperation) {
+      // operationCode string-dirsə number-a çevir
       const code = selectedOperation.operationCode;
-      onOperationSelect(code ? Number(code) : null);
+      if (onOperationSelect) {
+        onOperationSelect(code ? Number(code) : null);
+      }
+      // Kateqoriya və əməliyyat ID-lərini göndər
+      if (onCategoryAndOperationSelect && selectedCategory.length > 0) {
+        onCategoryAndOperationSelect(selectedCategory[0], operationId);
+      }
     }
   };
 

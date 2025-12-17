@@ -1,7 +1,7 @@
 import InteractiveSVG from "./interactivesvg";
 import data from "./data.json";
 
-const Svg = ({ categoryCode = null }) => {
+const Svg = ({ categoryCode = null, onToothSelect, resetSelection = false, patientPlansData = [], planKey = null }) => {
   return (
     <InteractiveSVG
       data={data}
@@ -12,6 +12,10 @@ const Svg = ({ categoryCode = null }) => {
       defaultColor="#D1D5DB"
       hoverColor="#0040C1"
       activeColor="#FD4A3D"
+      onToothSelect={onToothSelect}
+      resetSelection={resetSelection}
+      patientPlansData={patientPlansData}
+      planKey={planKey}
     />
   );
 };
