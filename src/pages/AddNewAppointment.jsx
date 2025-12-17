@@ -185,7 +185,8 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
     const { value } = e.target;
     const [hours, minutes] = value.split(":").map(Number);
 
-    const periodString = `${String(hours || 0).padStart(2, "0")}:${String(
+    // Default olaraq 1 saat təyin et
+    const periodString = `${String(hours || 1).padStart(2, "0")}:${String(
       minutes || 0
     ).padStart(2, "0")}:00`;
 
