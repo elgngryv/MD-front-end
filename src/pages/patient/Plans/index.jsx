@@ -2,8 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'react-router-dom';
 import "@ant-design/v5-patch-for-react-19"; // React 19 uyumluluğu için gerekli
 import 'antd/dist/reset.css';
-import { Select, Space, Divider, Card, Button, Form, Input, message, Modal, Popconfirm, Drawer } from 'antd';
-import { CalendarOutlined, MailOutlined, PoweroffOutlined, SaveOutlined, PlusOutlined, EditOutlined, DeleteOutlined, UnorderedListOutlined } from '@ant-design/icons';
+import { Select, Space, Divider, Card, Button, Form, message, Modal, Popconfirm, Drawer, Spin } from 'antd';
+import {  SaveOutlined, PlusOutlined, EditOutlined, DeleteOutlined, UnorderedListOutlined, LoadingOutlined } from '@ant-design/icons';
 import Svg from './Components/Teths/svg';
 import DualSelectTable from './Components/Page/dualSelectTable';
 import AddToPlan from './Components/Page/addToPlan';
@@ -27,6 +27,11 @@ const Plans = () => {
   const [resetToothSelection, setResetToothSelection] = useState(false);
   const [resetDrawerSelection, setResetDrawerSelection] = useState(false);
   const [patientPlansData, setPatientPlansData] = useState([]);
+  const [loadingPatientPlans, setLoadingPatientPlans] = useState(false);
+  const [sendingPlan, setSendingPlan] = useState(false);
+  const [confirmingPlan, setConfirmingPlan] = useState(false);
+  const [deletingPlan, setDeletingPlan] = useState(false);
+  const [deletingPlanItem, setDeletingPlanItem] = useState(false);
 
   const {
     patientInsurance,
@@ -89,6 +94,7 @@ const Plans = () => {
   };
 
   const handleDeletePlan = async (planId) => {
+    setDeletingPlan(true);
     try {
       const result = await deletePlansFromStore(planId);
       
@@ -96,16 +102,25 @@ const Plans = () => {
       if (result.success && result.status === 200) {
         const updatedPlans = plans.filter(plan => plan.id !== planId);
         setPlans(updatedPlans);
-        const newSelectedPlanId = updatedPlans.length > 0 ? updatedPlans[0].id : null;
-        if (selectedPlanId === planId) {
-          setSelectedPlanId(newSelectedPlanId);
+        // Əgər yalnız 1 plan qalıbsa, onu seç, yoxsa seçimi sıfırla
+        if (updatedPlans.length === 1) {
+          setSelectedPlanId(updatedPlans[0].id);
+        } else if (updatedPlans.length > 1) {
+          // Birdən çox plan varsa, seçimi sıfırla
+          if (selectedPlanId === planId) {
+            setSelectedPlanId(null);
+          }
+        } else {
+          setSelectedPlanId(null);
         }
         // Plan silindikdən sonra, əgər başqa plan seçilibsə, patient plans datayı yenilə
-        if (newSelectedPlanId) {
-          const plansResult = await readPatientPlansFromStore(newSelectedPlanId);
+        if (updatedPlans.length === 1) {
+          setLoadingPatientPlans(true);
+          const plansResult = await readPatientPlansFromStore(updatedPlans[0].id);
           if (plansResult.success && plansResult.status === 200) {
             setPatientPlansData(Array.isArray(plansResult.data) ? plansResult.data : []);
           }
+          setLoadingPatientPlans(false);
         } else {
           setPatientPlansData([]);
         }
@@ -119,6 +134,8 @@ const Plans = () => {
     } catch (error) {
       console.error('Plan silmə xətası:', error);
       message.error(error.response?.data?.message || 'Plan silinərkən xəta baş verdi');
+    } finally {
+      setDeletingPlan(false);
     }
   };
   const selectedPlan = plans.find(plan => plan.id === selectedPlanId);
@@ -169,16 +186,19 @@ const Plans = () => {
       return;
     }
 
+    setConfirmingPlan(true);
     try {
       const result = await savePatientPlanFromStore(selectedPlanId);
       
       if (result.success && result.status === 200) {
         message.success('Plan uğurla təsdiqləndi!');
         // Patient plans datayı yenilə
+        setLoadingPatientPlans(true);
         const plansResult = await readPatientPlansFromStore(selectedPlanId);
         if (plansResult.success && plansResult.status === 200) {
           setPatientPlansData(Array.isArray(plansResult.data) ? plansResult.data : []);
         }
+        setLoadingPatientPlans(false);
       } else {
         const status = result.status || result.error?.response?.status;
         const errorMessage = result.error?.response?.data?.message || 'Plan təsdiqlənərkən xəta baş verdi';
@@ -187,6 +207,8 @@ const Plans = () => {
     } catch (error) {
       console.error('Plan təsdiqləmə xətası:', error);
       message.error(error.response?.data?.message || 'Plan təsdiqlənərkən xəta baş verdi');
+    } finally {
+      setConfirmingPlan(false);
     }
   };
 
@@ -197,6 +219,7 @@ const Plans = () => {
       return;
     }
 
+    setSendingPlan(true);
     try {
       const payload = {
         patientPlanMainId: selectedPlanId,
@@ -215,12 +238,14 @@ const Plans = () => {
         // Diş seçimini temizle
         setResetToothSelection(true);
         // Patient plans datayı getir
-        const result = await readPatientPlansFromStore(selectedPlanId);
-        if (result.success && result.status === 200) {
-          setPatientPlansData(Array.isArray(result.data) ? result.data : []);
+        setLoadingPatientPlans(true);
+        const plansResult = await readPatientPlansFromStore(selectedPlanId);
+        if (plansResult.success && plansResult.status === 200) {
+          setPatientPlansData(Array.isArray(plansResult.data) ? plansResult.data : []);
         } else {
           setPatientPlansData([]);
         }
+        setLoadingPatientPlans(false);
         setTimeout(() => setResetToothSelection(false), 100);
       } else {
         const status = result.status || result.error?.response?.status;
@@ -230,6 +255,8 @@ const Plans = () => {
     } catch (error) {
       console.error('Diş göndərmə xətası:', error);
       message.error(error.response?.data?.message || 'Diş göndərilərkən xəta baş verdi');
+    } finally {
+      setSendingPlan(false);
     }
   };
 
@@ -257,9 +284,12 @@ const Plans = () => {
               }))
             : [];
           setPlans(formattedPlans);
-          // İlk planı otomatik seç
-          if (formattedPlans.length > 0) {
-            setSelectedPlanId(prev => prev || formattedPlans[0].id);
+          // Yalnız 1 plan varsa, onu avtomatik seç
+          if (formattedPlans.length === 1) {
+            setSelectedPlanId(formattedPlans[0].id);
+          } else {
+            // Birdən çox plan varsa, seçimi sıfırla
+            setSelectedPlanId(null);
           }
         }
       }
@@ -268,10 +298,13 @@ const Plans = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [patientId]);
 
-  // İlk plan eklendiğinde veya plans.length === 1 olduğunda otomatik seç
+  // Yalnız 1 plan varsa və heç bir plan seçilməyibsə, avtomatik seç
   useEffect(() => {
     if (plans.length === 1 && !selectedPlanId) {
       setSelectedPlanId(plans[0].id);
+    } else if (plans.length > 1 && selectedPlanId && !plans.find(p => p.id === selectedPlanId)) {
+      // Əgər seçilmiş plan artıq yoxdursa, seçimi sıfırla
+      setSelectedPlanId(null);
     }
   }, [plans, selectedPlanId]);
 
@@ -289,14 +322,17 @@ const Plans = () => {
     const timeoutId = setTimeout(() => {
       const loadPatientPlans = async () => {
         if (selectedPlanId) {
+          setLoadingPatientPlans(true);
           const result = await readPatientPlansFromStore(selectedPlanId);
           if (result.success && result.status === 200) {
             setPatientPlansData(Array.isArray(result.data) ? result.data : []);
           } else {
             setPatientPlansData([]);
           }
+          setLoadingPatientPlans(false);
         } else {
           setPatientPlansData([]);
+          setLoadingPatientPlans(false);
         }
       };
       loadPatientPlans();
@@ -313,7 +349,9 @@ const Plans = () => {
       <div className='mb-4'>
         <div className='flex justify-between items-center mb-4'>
           <div className='flex-1'>
-            {plans.length === 0 ? (
+            {plansLoading ? (
+              <Spin indicator={<LoadingOutlined style={{ fontSize: 24 }} spin />} />
+            ) : plans.length === 0 ? (
               <div className='text-gray-500'>Hələ plan yoxdur</div>
             ) : plans.length === 1 ? (
               <div className='flex items-center gap-4'>
@@ -335,6 +373,8 @@ const Plans = () => {
                     type="link" 
                     danger 
                     icon={<DeleteOutlined />}
+                    loading={deletingPlan}
+                    disabled={deletingPlan}
                   >
                     Sil
                   </Button>
@@ -372,6 +412,8 @@ const Plans = () => {
                         type="link" 
                         danger 
                         icon={<DeleteOutlined />}
+                        loading={deletingPlan}
+                        disabled={deletingPlan}
                       >
                         Sil
                       </Button>
@@ -421,6 +463,8 @@ const Plans = () => {
                 size="large"
                 icon={<SaveOutlined />}
                 onClick={handleConfirmPlan}
+                loading={confirmingPlan}
+                disabled={confirmingPlan}
               >
                 Planı Təsdiqlə
               </Button>
@@ -428,9 +472,10 @@ const Plans = () => {
           )}
 
           <Card>
-            <div className='flex gap-2'>
+            <Spin spinning={loadingPatientPlans} tip="Yüklənir...">
+              <div className='flex gap-2'>
 
-              <div>
+                <div>
 
                 {/* secilen disleri ve kategori, emelyatlari backe gonderme buttonu */}
                 <div className='flex justify-between flex-col gap-3 items-center mb-4'>
@@ -476,7 +521,8 @@ const Plans = () => {
                     type="primary" 
                     icon={<SaveOutlined />}
                     onClick={handleSendPlan}
-                    disabled={!selectedPlanId || !selectedCategoryId || !selectedOperationId || !selectedToothData}
+                    disabled={!selectedPlanId || !selectedCategoryId || !selectedOperationId || !selectedToothData || sendingPlan}
+                    loading={sendingPlan}
                   >
                     Göndər
                   </Button>
@@ -526,7 +572,7 @@ const Plans = () => {
               </div>
 
             </div>
-
+            </Spin>
           </Card>
 
           {/* Plan Əməliyyatları cədvəli - yalnız data varsa görünsün */}
@@ -536,15 +582,18 @@ const Plans = () => {
               <PlansTable 
                 data={patientPlansData} 
                 onDelete={async (id) => {
+                  setDeletingPlanItem(true);
                   try {
                     const result = await deletePatientPlanItemFromStore(id);
                     if (result.success && result.status === 200) {
                       message.success('Əməliyyat uğurla silindi!');
                       // Patient plans datayı yenilə
+                      setLoadingPatientPlans(true);
                       const plansResult = await readPatientPlansFromStore(selectedPlanId);
                       if (plansResult.success && plansResult.status === 200) {
                         setPatientPlansData(Array.isArray(plansResult.data) ? plansResult.data : []);
                       }
+                      setLoadingPatientPlans(false);
                     } else {
                       const status = result.status || result.error?.response?.status;
                       const errorMessage = result.error?.response?.data?.message || 'Əməliyyat silinərkən xəta baş verdi';
@@ -553,6 +602,8 @@ const Plans = () => {
                   } catch (error) {
                     console.error('Əməliyyat silmə xətası:', error);
                     message.error(error.response?.data?.message || 'Əməliyyat silinərkən xəta baş verdi');
+                  } finally {
+                    setDeletingPlanItem(false);
                   }
                 }}
               />

@@ -20,7 +20,6 @@ const XRayCard = ({ image_url, date, handleClick, xrayId }) => {
     const handleDeleteClick = (e) => {
         e.stopPropagation();
         console.log(`Delete icon clicked for X-ray ID: ${xrayId}`);
-        // Burada silmə məntiqini yerləşdirin, məsələn, bir API çağırışı
     };
 
     return (

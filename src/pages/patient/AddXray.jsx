@@ -1,31 +1,26 @@
-import React, { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom"; // useParams əlavə edildi
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import TitleUpdater from "../../components/TitleUpdater";
 import { FaCalendarAlt } from "react-icons/fa";
 import { IoMdClose, IoMdCheckmarkCircleOutline } from "react-icons/io";
 import { MdDeleteForever } from "react-icons/md";
-
-// Tutaq ki, patientId URL-dən gəlir.
-// Məsələn, marşrutunuz `/patients/:patientId/xrays/add` kimi ola bilər.
-// Əgər ID başqa yerdən gəlirsə, ona uyğun tənzimləyin.
+import usePatientXrayStore from "../../../stores/patient-xrayStore";
 
 const AddXRay = () => {
     const navigate = useNavigate();
-    const { patientId } = useParams(); // URL-dən patientId-ni alırıq
+    const { id } = useParams();
+
+    // Store'dan state ve fonksiyonları al
+    const { loading, error, createMultipleXrays, clearError } =
+        usePatientXrayStore();
 
     const [newXray, setNewXray] = useState({
         date: "",
         description: "",
-        // patientId əlavə edildi (Əgər URL-dən gəlmirsə, başqa yolla əldə edin)
-        patientId: patientId || "", // useParams-dan gələn patientId istifadə olunur
+        patientId: id || "",
     });
 
-    const [newImages, setNewImages] = useState([]); // Yeni yüklənəcək şəkillər üçün state
-    const [loading, setLoading] = useState(false); // Yüklənmə vəziyyəti üçün state
-    const [error, setError] = useState(null); // Səhvlər üçün state
-
-    // Bunu öz API-nizin ünvanına uyğun dəyişdirin!
-    const API_BASE_URL = "http://161.97.179.107:8080"; // Məsələn
+    const [newImages, setNewImages] = useState([]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -63,94 +58,80 @@ const AddXRay = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setLoading(true);
-        setError(null);
 
-        // Validasiya (məsələn, şəkil seçilibmi)
+        // Validasiya
         if (newImages.length === 0) {
-            setError("Zəhmət olmasa, ən azı bir şəkil seçin.");
-            setLoading(false);
+            usePatientXrayStore.setState({
+                error: "Zəhmət olmasa, şəkil seçin.",
+            });
             return;
         }
         if (!newXray.date) {
-            setError("Rentgenin tarixi boş ola bilməz.");
-            setLoading(false);
+            usePatientXrayStore.setState({
+                error: "Rentgenin tarixi boş ola bilməz.",
+            });
             return;
         }
         if (!newXray.patientId) {
-            setError("Xəstə ID-si təyin olunmayıb. Zəhmət olmasa, səhifəni yenidən yükləyin və ya ID-nin düzgün göndərildiyindən əmin olun.");
-            setLoading(false);
+            usePatientXrayStore.setState({
+                error:
+                    "Xəstə ID-si təyin olunmayıb. Zəhmət olmasa, səhifəni yenidən yükləyin və ya ID-nin düzgün göndərildiyindən əmin olun.",
+            });
             return;
         }
 
-        const formData = new FormData();
-
-        // 'data' hissəsini JSON stringi kimi əlavə et
-        // Buradakı 'patientId' key-value cütü sizin back-end-inizin gözlədiyi kimi olmalıdır.
-        // Swagger-də "data" obyekti altında olduğu görünür.
-        const xrayData = {
-            date: newXray.date,
-            description: newXray.description,
-            patientId: parseInt(newXray.patientId), // patientId-ni int-ə çevirin, əgər backend int gözləyirsə
-            // urls sahəsi boş qalacaq, çünki server onu avtomatik dolduracaq
-        };
-
-        // FormData-ya 'data' JSON hissəsini əlavə edirik
-        // Blob olaraq əlavə etmək, Postman-dəki "JSON" tipi seçiminə bənzərdir
-        formData.append("data", new Blob([JSON.stringify(xrayData)], { type: "application/json" }));
-
-        // Faylları əlavə et (birdən çox ola bilər)
-        newImages.forEach((image, index) => {
-            // Server tərəfdə @RequestPart("file") deyə qəbul edilirsə, sadəcə "file" olaraq göndərilir.
-            // Əgər server tərəfdə List<MultipartFile> qəbul edilsə, bəzən "files" və ya "file[]" kimi göndərilir.
-            // Swagger-də "file" string($binary) yazıldığından, "file" olaraq tək-tək göndəririk.
-            formData.append("file", image.file);
-        });
-
         try {
-            const response = await fetch(`${API_BASE_URL}/api/v1/patient-xray/create`, {
-                method: "POST",
-                // Headers avtomatik olaraq 'multipart/form-data; boundary=...' təyin olunacaq
-                // FormData istifadə edərkən Content-Type başlığını əl ilə təyin etməyin!
-                headers: {
-                    // Məsələn, Authorization tokenini localStorage-dan oxuya bilərsiniz
-                    'Authorization': `Bearer ${localStorage.getItem('yourAuthToken')}`, // Tokeninizi buradan alın
-                    // 'Accept': 'application/json', // Opsiyonel: Yaxşı praktikadır
-                },
-                body: formData,
-            });
+            const xrayData = {
+                date: newXray.date,
+                description: newXray.description,
+                patientId: parseInt(newXray.patientId),
+            };
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || `API səhvi: ${response.status}`);
-            }
+            // Store'dan createMultipleXrays fonksiyonunu kullan
+            const files = newImages.map((img) => img.file);
+            await createMultipleXrays(xrayData, files);
 
             // Uğurlu cavab
             alert("Yeni rentgen məlumatları uğurla əlavə edildi!");
-            navigate(`/patients/${patientId}/xrays`); // X-ray siyahısı səhifəsinə yönləndirmə
-        } catch (err) {
-            console.error("Rentgen əlavə edilərkən səhv baş verdi:", err);
-            setError(err.message || "Rentgen əlavə edilərkən gözlənilməyən səhv baş verdi.");
-        } finally {
-            setLoading(false);
+
             // Preview URL-ləri təmizlə
-            newImages.forEach(img => {
+            newImages.forEach((img) => {
                 if (img.preview) {
                     URL.revokeObjectURL(img.preview);
                 }
             });
+
+            navigate(`/patients/patient/${id}/xray`);
+        } catch (err) {
+            console.error("Rentgen əlavə edilərkən səhv baş verdi:", err);
+            // Hata zaten store'da set edildi
         }
     };
 
     const handleCancel = () => {
         // Yüklənmiş şəkillərin preview URL-lərini təmizlə
-        newImages.forEach(img => {
+        newImages.forEach((img) => {
             if (img.preview) {
                 URL.revokeObjectURL(img.preview);
             }
         });
-        navigate(`/patients/${patientId}/xrays`); // X-ray siyahısı səhifəsinə yönləndirmə
+        // Store'daki hatayı temizle
+        if (clearError) {
+            clearError();
+        }
+        navigate(`/patients/${patientId}/xrays`);
     };
+
+    // Component unmount olduğunda preview URL'lerini temizle
+    useEffect(() => {
+        return () => {
+            newImages.forEach((img) => {
+                if (img.preview) {
+                    URL.revokeObjectURL(img.preview);
+                }
+            });
+        };
+    }, []);
 
     return (
         <div className="flex flex-col items-center p-6 bg-gray-100 min-h-screen">
@@ -174,7 +155,6 @@ const AddXRay = () => {
                                 className="block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-base"
                                 required
                             />
-                            <FaCalendarAlt className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" />
                         </div>
                     </div>
 
@@ -206,10 +186,11 @@ const AddXRay = () => {
                                 type="file"
                                 id="image-upload"
                                 name="image-upload"
-                                multiple // Birdən çox şəkil seçmək üçün
+                                multiple
                                 accept="image/*"
                                 onChange={handleNewImageUpload}
-                                className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                                disabled={loading}
+                                className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 disabled:cursor-not-allowed file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                             />
                             {/* Yüklənmiş şəkillərin önizləməsi */}
                             <div className="flex flex-wrap gap-4 mt-4 p-2 border border-gray-300 rounded-lg bg-gray-50">
@@ -242,7 +223,7 @@ const AddXRay = () => {
 
                     {/* Error Mesajı */}
                     {error && (
-                        <div className="flex justify-center text-red-600 text-sm mt-4">
+                        <div className="flex justify-center text-red-600 text-sm mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
                             {error}
                         </div>
                     )}
@@ -259,8 +240,8 @@ const AddXRay = () => {
                         </button>
                         <button
                             type="submit"
-                            className="flex items-center px-6 py-3 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                            disabled={loading} // Yüklənərkən düyməni deaktiv et
+                            className="flex items-center px-6 py-3 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled={loading}
                         >
                             {loading ? (
                                 <>

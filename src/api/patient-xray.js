@@ -5,19 +5,28 @@ const API_BASE_URL = import.meta.env.VITE_BASE_URL;
 
 export const createPatientXray = async (data, file) => {
   const formData = new FormData();
-  formData.append("date", data.date);
-  formData.append("description", data.description);
-  formData.append("patientId", data.patientId);
+  
+  // API dokümantasyonuna göre data bir obje olarak gönderilmeli
+  // Blob kullanarak Content-Type'ı application/json olarak ayarlıyoruz
+  const jsonData = JSON.stringify({
+    date: data.date,
+    description: data.description,
+    patientId: data.patientId,
+  });
+  
+  formData.append(
+    "data",
+    new Blob([jsonData], { type: "application/json" })
+  );
+  
+  // File binary olarak gönderilmeli
   formData.append("file", file);
 
+  // Content-Type header'ını manuel eklemeye gerek yok
+  // Interceptor FormData'yı algılayıp otomatik olarak doğru header'ı ayarlayacak
   const response = await axiosInstance.post(
     `${API_BASE_URL}/patient-xray/create`,
-    formData,
-    {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    }
+    formData
   );
   return response.data;
 };
