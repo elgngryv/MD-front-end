@@ -87,18 +87,25 @@ const useAuthStore = create((set) => ({
   },
 
   // Refresh access token using refresh token
-  refreshAccessToken: async () => {
+  refreshAccessToken: async (accessTokenFromCaller) => {
     try {
       const refreshTokenValue = localStorage.getItem("refreshToken");
+      const currentAccessToken =
+        accessTokenFromCaller || localStorage.getItem("token");
       if (!refreshTokenValue) {
         throw new Error("Refresh token not found");
       }
 
-      const response = await refreshTokenApi(refreshTokenValue);
-      const newAccessToken = response.tokenPair?.accessToken;
-      const newRefreshToken = response.tokenPair?.refreshToken;
+      const response = await refreshTokenApi(
+        refreshTokenValue,
+        currentAccessToken
+      );
+      const status = response?.status;
+      const payload = response?.data;
+      const newAccessToken = payload?.tokenPair?.accessToken;
+      const newRefreshToken = payload?.tokenPair?.refreshToken;
 
-      if (newAccessToken) {
+      if (status === 200 && newAccessToken) {
         localStorage.setItem("token", newAccessToken);
         if (newRefreshToken) {
           localStorage.setItem("refreshToken", newRefreshToken);
