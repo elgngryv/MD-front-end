@@ -5,52 +5,60 @@ import AddPhoto from "../../assets/icons/AddPhoto";
 import downloadIcon from "../../assets/images/EmployeesPage/verifyProcess.png";
 import "../../assets/style/Teeth/addoperationpicture.css";
 import { useParams, useNavigate } from "react-router-dom";
+
 import useOperationTypesStore from "../../../stores/operationsTypeStore";
 import useOperationItemsTypeStore from "../../../stores/operationItemTypeStore";
 import useTeethOperationStore from "../../../stores/teeth-opetaionStore";
 
 const AddOperationPicture = () => {
-  const { id } = useParams(); // teethId olaraq
+  const { id } = useParams(); // teethId
   const navigate = useNavigate();
+  const fileInputRef = useRef(null);
 
   const { fetchAll: fetchAllCategories, operationTypes } =
     useOperationTypesStore();
 
-  const { fetchAllOp, operationItemsType } = useOperationItemsTypeStore();
+  const { fetchAllOp, operationItemsType } =
+    useOperationItemsTypeStore();
 
-  const { createTeethOperations, loading, error } = useTeethOperationStore();
+  const { createTeethOperations, loading, error } =
+    useTeethOperationStore();
 
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedOperation, setSelectedOperation] = useState(null);
   const [image, setImage] = useState(null);
-  const fileInputRef = useRef();
 
+  // Kateqoriyalar
   useEffect(() => {
     fetchAllCategories();
   }, []);
 
+  // Əməliyyatlar
   useEffect(() => {
     if (selectedCategory) {
       fetchAllOp(selectedCategory.value);
+      setSelectedOperation(null);
     }
   }, [selectedCategory]);
 
-  const handleImageUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImage(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
+  // Şəkil upload
+  const handleImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => setImage(reader.result);
+    reader.readAsDataURL(file);
   };
 
   const handleImageDelete = () => {
     setImage(null);
-    if (fileInputRef.current) fileInputRef.current.value = null;
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
+  // SUBMIT
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -61,9 +69,12 @@ const AddOperationPicture = () => {
 
     const payload = {
       teethId: Number(id),
+      status: "ACTIVE", // 🔴 VACİB
       opTypeAndItemRequests: [
         {
           operationName: `${selectedCategory.label}-${selectedOperation.label}`,
+          // Əgər backend ID istəyirsə:
+          // opTypeItemId: selectedOperation.value,
         },
       ],
     };
@@ -73,7 +84,8 @@ const AddOperationPicture = () => {
       alert("Əlavə olundu!");
       navigate(`/teeth/${id}/operation-pictures`);
     } catch (err) {
-      alert("Xəta baş verdi: " + (err.message || "Naməlum"));
+      console.error(err);
+      alert("Xəta baş verdi");
     }
   };
 
@@ -91,12 +103,16 @@ const AddOperationPicture = () => {
     <div className="addOperationPictureContainer">
       <div className="header-icons">
         <MdEdit className="icon edit-icon" />
-        <MdDelete className="icon delete-icon" onClick={handleImageDelete} />
+        <MdDelete
+          className="icon delete-icon"
+          onClick={handleImageDelete}
+        />
       </div>
+
       <form className="addoperationpicture-form" onSubmit={handleSubmit}>
         <div className="addoperationpicture-row">
           <label>
-            Əməliyyat Kateqoriyası{" "}
+            Əməliyyat Kateqoriyası
             <span className="addoperationpicture-required">*</span>
           </label>
           <CustomSelect
@@ -109,13 +125,15 @@ const AddOperationPicture = () => {
 
         <div className="addoperationpicture-row">
           <label>
-            Əməliyyat <span className="addoperationpicture-required">*</span>
+            Əməliyyat
+            <span className="addoperationpicture-required">*</span>
           </label>
           <CustomSelect
             options={operationOptions}
             value={selectedOperation}
             onChange={setSelectedOperation}
             placeholder="Əməliyyat seçin"
+            isDisabled={!selectedCategory}
           />
         </div>
 
@@ -134,18 +152,22 @@ const AddOperationPicture = () => {
                 </div>
               </div>
             ) : (
-              <label htmlFor="image-upload" className="image-placeholder">
+              <label
+                htmlFor="image-upload"
+                className="image-placeholder"
+              >
                 <AddPhoto className="add-photo-icon" />
                 <span>Şəkil yükləyin</span>
               </label>
             )}
+
             <input
               id="image-upload"
               type="file"
               accept="image/*"
               onChange={handleImageUpload}
-              style={{ display: "none" }}
               ref={fileInputRef}
+              hidden
             />
           </div>
         </div>
@@ -154,16 +176,20 @@ const AddOperationPicture = () => {
           <button
             type="button"
             className="addoperationpicture-cancel-btn"
-            onClick={() => navigate(-1)}>
+            onClick={() => navigate(-1)}
+          >
             İmtina et
           </button>
+
           <button
             type="submit"
             className="addoperationpicture-save-btn"
-            disabled={loading}>
+            disabled={loading}
+          >
             {loading ? "Yüklənir..." : "Yadda saxla"}
           </button>
         </div>
+
         {error && (
           <p className="error-message">
             Xəta: {error.message || "Naməlum xəta"}

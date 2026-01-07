@@ -15,12 +15,24 @@ export const login = async ({ username, password }) => {
   }
 };
 
-export const refreshToken = async (refreshTokenValue) => {
+export const refreshToken = async (refreshTokenValue, accessToken) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
-      refreshToken: refreshTokenValue,
-    });
-    return response.data;
+    const response = await axios.post(
+      `${API_BASE_URL}/auth/refresh`,
+      {
+        refreshToken: refreshTokenValue,
+      },
+      accessToken
+        ? {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
+        : undefined
+    );
+
+    // Full response is returned so callers can also inspect status codes
+    return response;
   } catch (error) {
     console.error("Refresh token error:", error.response || error.message);
     throw error;
