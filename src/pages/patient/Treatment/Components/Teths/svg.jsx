@@ -1,7 +1,7 @@
 import InteractiveSVG from "./interactivesvg";
 import data from "../../../Disler/data.json";
 
-const Svg = ({ categoryCode = null, onToothSelect, resetSelection = false, patientPlansData = [], planKey = null }) => {
+const Svg = ({ categoryCode = null, onToothSelect, resetSelection = false, patientPlansData = [], planKey = null, externalSelection = null }) => {
   return (
     <InteractiveSVG
       data={data}
@@ -16,6 +16,7 @@ const Svg = ({ categoryCode = null, onToothSelect, resetSelection = false, patie
       resetSelection={resetSelection}
       patientPlansData={patientPlansData}
       planKey={planKey}
+      externalSelection={externalSelection}
     />
   );
 };

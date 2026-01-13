@@ -42,7 +42,7 @@ const PatientAdd = lazy(() => import("./pages/Patients/PatientAdd"));
 const PatientEdit = lazy(() => import("./pages/patient/PatientEdit"));
 const General = lazy(() => import("./pages/patient/General"));
 const Plans = lazy(() => import("./pages/patient/Plans/index"));
-const Treatment = lazy(() => import("./pages/patient/Treatment"));
+const Treatment = lazy(() => import("./pages/patient/Treatment/index.jsx"));
 const History = lazy(() => import("./pages/patient/History"));
 const EditHistory = lazy(() => import("./pages/patient/EditHistory"));
 const Prescription = lazy(() => import("./pages/patient/Prescription"));
