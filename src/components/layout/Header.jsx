@@ -5,8 +5,7 @@ import { AiOutlineUserAdd } from "react-icons/ai";
 import { IoIosArrowBack } from "react-icons/io";
 import { FiLock, FiLogOut } from "react-icons/fi";
 import { Link } from "react-router-dom";
-import axios from "axios";
-
+import axiosInstance from "../../api/temp-axios-auth";
 import useAuthStore from "../../../stores/authStore";
 
 import adminUser from "../../assets/images/header-component-images/adminPFP.jpeg";
@@ -22,14 +21,8 @@ function Header() {
     const fetchWorkerInfo = async () => {
       if (user?.id && !workerInfo) {
         try {
-          const refreshToken = localStorage.getItem("refreshToken");
-          const response = await axios.get(
-            `http://62.84.178.128:5555/api/v1/add-worker/info/${user.id}`,
-            {
-              headers: {
-                Authorization: `Bearer ${refreshToken}`,
-              },
-            }
+          const response = await axiosInstance.get(
+            `/add-worker/info/${user.id}`
           );
           setWorkerInfo(response.data);
         } catch (error) {
@@ -66,7 +59,7 @@ function Header() {
           className="headerUserProfileLink"
           onClick={() => setMenuOpen((prev) => !prev)}
         >
-          <img src={adminUser} alt="Admin" />
+          <img src={adminUser} alt="Admin" loading="lazy" decoding="async" />
           <div className="headerRightPart">
             <div className="headerTitle">
               <p className="headerNamePart">

@@ -130,6 +130,8 @@ const Images = () => {
                     alt={`X-Ray ${index + 1}`}
                     className="max-w-full max-h-full object-contain rounded-lg shadow-md"
                     style={{ minWidth: "0", minHeight: "0" }}
+                    loading="lazy"
+                    decoding="async"
                   />
                 </div>
               </SwiperSlide>

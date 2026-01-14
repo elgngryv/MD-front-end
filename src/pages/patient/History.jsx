@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import axios from 'axios';
+import axiosInstance from '../../api/temp-axios-auth';
 import './history.css';
 import useAnamnesisStore from '../../../stores/anamnesisStore'; // Zustand store'u import edirik
 import { FaFolder, FaTrash } from "react-icons/fa";
@@ -47,21 +47,9 @@ const History = () => {
   const [selectedAnamnesis, setSelectedAnamnesis] = useState(null);
 
   const fetchData = async () => {
-    const refreshToken = localStorage.getItem('refreshToken');
-
-    if (!refreshToken) {
-      console.error('No refresh token found. User is not authenticated.');
-      return;
-    }
-
     try {
-      const response = await axios.get(
-        'http://62.84.178.128:5555/api/v1/anamnesis-categories/read',
-        {
-          headers: {
-            'Authorization': `Bearer ${refreshToken}`,
-          },
-        }
+      const response = await axiosInstance.get(
+        '/anamnesis-categories/read'
       );
 
       const fetchedData = response.data.data;

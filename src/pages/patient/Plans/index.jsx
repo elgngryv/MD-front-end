@@ -293,7 +293,9 @@ const Plans = () => {
           setPatientPlansData([]);
         }
         setLoadingPatientPlans(false);
-        setTimeout(() => setResetToothSelection(false), 100);
+        const resetTimeout = setTimeout(() => setResetToothSelection(false), 100);
+        // Note: This timeout is in an async function, cleanup handled by component unmount
+        // For better cleanup, consider using a ref to track this timeout
       } else {
         const status = result.status || result.error?.response?.status;
         const errorMessage = result.error?.response?.data?.message || 'Diş göndərilərkən xəta baş verdi';
@@ -383,13 +385,16 @@ const Plans = () => {
       // Sonra reset flag-i set et
       setResetToothSelection(true);
       // Reset flag-i bir az sonra false et ki, növbəti dəfə işləsin
-      setTimeout(() => {
+      const firstTimeout = setTimeout(() => {
         setResetToothSelection(false);
         // Təmizləmə flag-i də false et
         setTimeout(() => {
           setIsClearingTooth(false);
         }, 50);
       }, 200);
+      
+      // Cleanup first timeout on unmount or dependency change
+      return () => clearTimeout(firstTimeout);
     }
     
     // Əvvəlki dəyərləri yenilə (yalnız əməliyyat həqiqətən dəyişibsə)

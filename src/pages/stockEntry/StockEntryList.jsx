@@ -36,7 +36,7 @@ const StockEntryList = () => {
 
     try {
       const response = await fetch(
-        `http://62.84.178.128:5555/api/v1/add-worker/info/${workerId}`,
+        `${import.meta.env.VITE_BASE_URL || "/api/v1"}/add-worker/info/${workerId}`,
         {
           method: "GET",
           headers: {

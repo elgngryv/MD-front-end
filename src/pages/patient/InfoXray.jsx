@@ -166,6 +166,8 @@ const InfoXray = () => {
                                         src={url}
                                         alt={`X-Ray ${index + 1}`}
                                         className="w-full h-full object-cover"
+                                        loading="lazy"
+                                        decoding="async"
                                     />
                                     {/* Yükləmə ikonu */}
                                     <button
@@ -217,6 +219,8 @@ const InfoXray = () => {
                                             alt={`X-Ray ${index + 1}`}
                                             className="max-w-full max-h-full object-contain rounded-lg shadow-md"
                                             style={{ minWidth: '0', minHeight: '0' }}
+                                            loading="lazy"
+                                            decoding="async"
                                         />
                                         <div className="mt-4 text-gray-700 text-lg">
                                             {index + 1} / {currentSlideshowImages.length}

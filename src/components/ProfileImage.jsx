@@ -21,7 +21,7 @@ const ProfileImage = ({ userId, mode }) => {
     <div className="image-uploader">
       <div className="profile-picture">
         {image ? (
-          <img src={image} alt="Profile" className="rounded-image" />
+          <img src={image} alt="Profile" className="rounded-image" loading="lazy" decoding="async" />
         ) : (
           <div className="placeholder">Şəkil yoxdur</div>
         )}

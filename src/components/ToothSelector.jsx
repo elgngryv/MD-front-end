@@ -28,6 +28,8 @@ console.log("s");
                 src={`/src/assets/images/teeth/${tooth}.png`} // Example path for tooth images
                 alt={`Tooth ${tooth}`}
                 className="tooth-image"
+                loading="lazy"
+                decoding="async"
               />
             )}
             <button
@@ -51,6 +53,8 @@ console.log("s");
                 src={`/src/assets/images/teeth/${tooth}.png`} // Example path for tooth images
                 alt={`Tooth ${tooth}`}
                 className="tooth-image"
+                loading="lazy"
+                decoding="async"
               />
             )}
             <button

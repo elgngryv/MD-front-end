@@ -186,6 +186,8 @@ function InfoTechnician() {
                     src={image}
                     alt={`image-${index}`}
                     onClick={() => handleImageClick(image)}
+                    loading="lazy"
+                    decoding="async"
                   />
                   <button
                     className="downloadImageButton"
@@ -201,6 +203,8 @@ function InfoTechnician() {
                     getUsernameForAvatar()
                   )}`}
                   alt="Placeholder Avatar"
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
             )}
@@ -211,7 +215,7 @@ function InfoTechnician() {
       {selectedImage && (
         <div className="modalOverlay" onClick={() => setSelectedImage(null)}>
           <div className="modalContent">
-            <img src={selectedImage} alt="Selected" />
+            <img src={selectedImage} alt="Selected" loading="lazy" />
           </div>
         </div>
       )}

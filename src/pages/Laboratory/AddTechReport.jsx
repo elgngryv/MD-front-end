@@ -30,7 +30,8 @@ function AddTechReport() {
           return;
         }
 
-        const response = await fetch("http://62.84.178.128:5555/api/v1/technician/read", {
+        const API_BASE_URL = import.meta.env.VITE_BASE_URL || "/api/v1";
+        const response = await fetch(`${API_BASE_URL}/technician/read`, {
           headers: {
             Authorization: `Bearer ${refreshToken}`,
           },
@@ -140,7 +141,7 @@ function AddTechReport() {
             onClick={handleCancel}
             disabled={isLoading}
           >
-            <img src={cancelButton} alt="cancel" />
+            <img src={cancelButton} alt="cancel" loading="lazy" />
             İmtina et
           </button>
 
@@ -149,7 +150,7 @@ function AddTechReport() {
             className="acceptFormCondition"
             disabled={isLoading}
           >
-            <img src={acceptButton} alt="accept" />
+            <img src={acceptButton} alt="accept" loading="lazy" />
             {isLoading ? "Yüklənir..." : "Yadda saxla"}
           </button>
         </div>

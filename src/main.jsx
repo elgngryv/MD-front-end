@@ -20,6 +20,15 @@ import { AnimatePresence, motion } from "framer-motion";
 // stores
 import useAuthStore from "../stores/authStore";
 
+// Components
+import ErrorBoundary from "./components/ErrorBoundary";
+
+// Utils
+import { initWebVitals } from "./utils/webVitals";
+
+// Initialize Web Vitals tracking
+initWebVitals();
+
 // Style
 import "./assets/style/index.css";
 import Examination from "./pages/patient/Examination.jsx";
@@ -375,7 +384,7 @@ const AddExaminationPicture = lazy(() =>
 const Home = lazy(() => import("./pages/Home/HomePhoto"));
 
 // 🔀 Other
-const Redirecter = lazy(() => import("./components/Redirecter"));
+const Redirecter = lazy(() => import("./components/Redirecter.jsx"));
 
 // 🔹 Patient Insurance Extensions
 const AddInsurancePatient = lazy(() =>
@@ -531,9 +540,14 @@ const queryClient = new QueryClient({
     queries: {
       staleTime: 5 * 60 * 1000, // 5 dəqiqə
       gcTime: 10 * 60 * 1000, // 10 dəqiqə (cacheTime əvəzinə)
-      refetchOnWindowFocus: false,
-      retry: 1,
-      refetchOnMount: false,
+      refetchOnWindowFocus: false, // Window focus'ta refetch yapma
+      refetchOnReconnect: true, // Bağlantı yenilendiğinde refetch yap
+      retry: 1, // Sadece 1 kez retry yap
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      refetchOnMount: false, // Mount'ta refetch yapma (cache'den kullan)
+    },
+    mutations: {
+      retry: 1, // Mutation'larda da 1 kez retry
     },
   },
 });
@@ -1049,12 +1063,14 @@ const AnimatedRoutes = () => {
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <HashRouter>
-        <AnimatedRoutes />
-      </HashRouter>
-      <ToastContainer position="top-right" autoClose={3000} />
-      {/* <ReactQueryDevtools initialIsOpen={false} /> */}
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <HashRouter>
+          <AnimatedRoutes />
+        </HashRouter>
+        <ToastContainer position="top-right" autoClose={3000} />
+        {/* <ReactQueryDevtools initialIsOpen={false} /> */}
+      </QueryClientProvider>
+    </ErrorBoundary>
   </StrictMode>
 );

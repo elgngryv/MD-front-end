@@ -20,9 +20,22 @@ function Redirecter({ children }) {
 
     const goToLogin = () => {
       clearCountdown();
+      const location = window.location;
+      // HashRouter kullanıldığında hash'ten path'i al
+      const currentPath = location.hash ? location.hash.replace('#', '') : location.pathname;
+      
+      // Orijinal route'u sakla (login sonrası geri dönmek için)
+      // Sadece login olmayan route'ları sakla
+      if (currentPath && currentPath !== '/login' && !currentPath.startsWith('/login') && currentPath !== '/') {
+        sessionStorage.setItem('redirectAfterLogin', currentPath);
+      }
+      
       localStorage.removeItem("token");
       localStorage.removeItem("refreshToken");
       localStorage.removeItem("userId");
+      
+      // HashRouter kullanıldığında hash'i temizleyerek login'e git
+      // replace: true ile history'yi temizle
       navigate("/login", { replace: true });
     };
 

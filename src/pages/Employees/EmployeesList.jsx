@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import OrdinaryListHeader from "../../components/OrdinaryList/OrdinaryListHeader";
 import { CiSearch, CiCircleInfo, CiCalendar } from "react-icons/ci";
 import { GoTrash } from "react-icons/go";
@@ -7,21 +7,21 @@ import { HiArrowsUpDown } from "react-icons/hi2";
 import "../../assets/style/EmployeesPage/employeespage.css";
 import useEmployeeStore from "../../../stores/workerStore";
 import { useNavigate, Link } from "react-router-dom";
+import { useDebounce } from "../../hooks/useDebounce";
 import "./EmployeList.css";
 
 const EmployeesList = () => {
-  const {
-    workers,
-    fetchWorkers,
-    searchWorkers,
-    removeWorker,
-    searchResult,
-    loading,
-    setSearchResult,
-    fetchByPermission,
-    permissions,
-    fetchPermissions,
-  } = useEmployeeStore();
+  // Zustand selector optimization - sadece ihtiyaç duyulan state'leri al
+  const workers = useEmployeeStore(state => state.workers);
+  const searchResult = useEmployeeStore(state => state.searchResult);
+  const loading = useEmployeeStore(state => state.loading);
+  const permissions = useEmployeeStore(state => state.permissions);
+  const fetchWorkers = useEmployeeStore(state => state.fetchWorkers);
+  const searchWorkers = useEmployeeStore(state => state.searchWorkers);
+  const removeWorker = useEmployeeStore(state => state.removeWorker);
+  const setSearchResult = useEmployeeStore(state => state.setSearchResult);
+  const fetchByPermission = useEmployeeStore(state => state.fetchByPermission);
+  const fetchPermissions = useEmployeeStore(state => state.fetchPermissions);
 
   const [searchParams, setSearchParams] = useState({
     username: "",
@@ -37,6 +37,9 @@ const EmployeesList = () => {
   const itemsPerPage = 8;
 
   const navigation = useNavigate();
+  
+  // Debounce search params
+  const debouncedSearchParams = useDebounce(searchParams, 300);
 
   useEffect(() => {
     fetchWorkers();
@@ -69,7 +72,7 @@ const EmployeesList = () => {
     }
   };
 
-  const handleInputChange = (e) => {
+  const handleInputChange = useCallback((e) => {
     const { name, value } = e.target;
     setSearchParams((prev) => ({
       ...prev,
@@ -77,18 +80,12 @@ const EmployeesList = () => {
     }));
   
     // Reset other search parameters if a specific one is being typed
-    // This is optional but can improve UX
     if (name !== 'enabled' && selectedPermission) {
       setSelectedPermission("");
     }
-    
-    // Use a timeout to debounce the search, preventing API calls on every keystroke
-    setTimeout(() => {
-      handleSearch({ ...searchParams, [name]: value });
-    }, 300);
-  };
+  }, [selectedPermission]);
   
-  const handleSearch = async (currentParams) => {
+  const handleSearch = useCallback(async (currentParams) => {
     try {
       const allSearchParamsEmpty = Object.values(currentParams).every(
         (val) => val === "" || val === undefined
@@ -123,58 +120,91 @@ const EmployeesList = () => {
       console.error("Axtarış xətası:", error);
       alert("Axtarış zamanı xəta baş verdi");
     }
-  };
+  }, [selectedPermission, fetchWorkers, searchWorkers, setSearchResult]);
+  
+  // Debounced search effect
+  useEffect(() => {
+    handleSearch(debouncedSearchParams);
+  }, [debouncedSearchParams, handleSearch]);
   
 
-  const icons = [
+  // Memoized icons with handlers
+  const handleInfoClick = useCallback((row) => {
+    navigation(`employee/${row.id}`);
+  }, [navigation]);
+
+  const handleEditClick = useCallback((row) => {
+    navigation(`edit-employee/${row.id}`);
+  }, [navigation]);
+
+  const handleDeleteClick = useCallback(async (row) => {
+    const confirmDelete = window.confirm(
+      `İşçini silmək istədiyinizə əminsiniz? (${row.username})`
+    );
+    if (confirmDelete) {
+      try {
+        await removeWorker(row.id);
+        alert("İşçi uğurla silindi!");
+
+        const allSearchParamsEmpty = Object.values(searchParams).every(
+          (val) => val === "" || val === undefined
+        );
+
+        if (allSearchParamsEmpty) {
+          await fetchWorkers();
+          const updatedWorkers = useEmployeeStore.getState().workers;
+          setSearchResult(updatedWorkers);
+        } else {
+          handleSearch(searchParams);
+        }
+      } catch (err) {
+        alert("Silinmə zamanı xəta baş verdi.");
+      }
+    }
+  }, [removeWorker, searchParams, fetchWorkers, setSearchResult, handleSearch]);
+
+  const icons = useMemo(() => [
     {
       icon: CiCircleInfo,
-      action: (row) => navigation(`employee/${row.id}`),
+      action: handleInfoClick,
       className: "info",
     },
     {
       icon: FiEdit3,
-      action: (row) => navigation(`edit-employee/${row.id}`),
+      action: handleEditClick,
       className: "edit",
     },
     {
       icon: GoTrash,
-      action: async (row) => {
-        const confirmDelete = window.confirm(
-          `İşçini silmək istədiyinizə əminsiniz? (${row.username})`
-        );
-        if (confirmDelete) {
-          try {
-            await removeWorker(row.id);
-            alert("İşçi uğurla silindi!");
-
-            const allSearchParamsEmpty = Object.values(searchParams).every(
-              (val) => val === "" || val === undefined
-            );
-
-            if (allSearchParamsEmpty) {
-              await fetchWorkers();
-              const updatedWorkers = useEmployeeStore.getState().workers;
-              setSearchResult(updatedWorkers);
-            } else {
-              handleSearch(searchParams);
-            }
-          } catch (err) {
-            alert("Silinmə zamanı xəta baş verdi.");
-          }
-        }
-      },
+      action: handleDeleteClick,
       className: "delete",
     },
-  ];
+  ], [handleInfoClick, handleEditClick, handleDeleteClick]);
 
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentEmployees = searchResult.slice(
-    indexOfFirstItem,
-    indexOfLastItem
-  );
-  const totalPages = Math.ceil(searchResult.length / itemsPerPage);
+  // Memoized pagination
+  const totalPages = useMemo(() => {
+    return Math.ceil(searchResult.length / itemsPerPage);
+  }, [searchResult.length, itemsPerPage]);
+
+  const currentEmployees = useMemo(() => {
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    return searchResult.slice(indexOfFirstItem, indexOfLastItem);
+  }, [searchResult, currentPage, itemsPerPage]);
+
+  // Memoized pagination buttons
+  const paginationButtons = useMemo(() => {
+    return Array.from({ length: totalPages }, (_, i) => (
+      <button
+        key={i}
+        className={`pagination-button ${
+          currentPage === i + 1 ? "active" : ""
+        }`}
+        onClick={() => setCurrentPage(i + 1)}>
+        {i + 1}
+      </button>
+    ));
+  }, [totalPages, currentPage]);
 
   return (
     <div className="employeesListWrapper">
@@ -356,13 +386,16 @@ const EmployeesList = () => {
                     </td>
                     <td>
                       <div className="icons flex gap-3 cursor-pointer">
-                        {icons.map((iconObj, idx) => (
-                          <iconObj.icon
-                            key={idx}
-                            className={iconObj.className}
-                            onClick={() => iconObj.action(emp)}
-                          />
-                        ))}
+                        {icons.map((iconObj, idx) => {
+                          const IconComponent = iconObj.icon;
+                          return (
+                            <IconComponent
+                              key={idx}
+                              className={iconObj.className}
+                              onClick={() => iconObj.action(emp)}
+                            />
+                          );
+                        })}
                       </div>
                     </td>
                   </tr>
@@ -372,16 +405,7 @@ const EmployeesList = () => {
 
             {totalPages > 1 && (
               <div className="pagination">
-                {Array.from({ length: totalPages }, (_, i) => (
-                  <button
-                    key={i}
-                    className={`pagination-button ${
-                      currentPage === i + 1 ? "active" : ""
-                    }`}
-                    onClick={() => setCurrentPage(i + 1)}>
-                    {i + 1}
-                  </button>
-                ))}
+                {paginationButtons}
               </div>
             )}
           </>

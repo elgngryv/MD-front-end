@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
 import {
   createWorker,
   readWorkers,
@@ -11,7 +12,9 @@ import {
   apiFetchPermissions,
 } from "../src/api/add-worker";
 
-const useWorkerStore = create((set, get) => ({
+const useWorkerStore = create(
+  persist(
+    (set, get) => ({
   workers: [],
   searchResult: [],
   selectedWorker: null,
@@ -132,6 +135,19 @@ const useWorkerStore = create((set, get) => ({
       console.error("Permissions gətirərkən xəta:", error);
     }
   },
-}));
+    }),
+    {
+      name: 'worker-storage', // localStorage key
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        // Sadece belirli state'leri persist et (büyük array'leri persist etme)
+        selectedWorker: state.selectedWorker,
+        permissions: state.permissions,
+        statusList: state.statusList,
+        // workers ve searchResult persist edilmesin (her zaman fresh fetch edilsin)
+      }),
+    }
+  )
+);
 
 export default useWorkerStore;

@@ -19,44 +19,7 @@ import useWarehouseDeletionStore from "../../stores/warehouseDeletionStore";
 import { useProductCategoryStore } from "../../stores/productCategories";
 import { useProductStore } from "../../stores/productStore";
 import useWarehouseEntryStore from "../../stores/warehouseEntryStore";
-import axios from "axios";
-
-const API_BASE_URL = "http://62.84.178.128:5555/api/v1/";
-
-const apiClient = axios.create({
-  baseURL: API_BASE_URL,
-});
-
-apiClient.interceptors.request.use(
-  (config) => {
-    const token =
-      localStorage.getItem("authToken") ||
-      localStorage.getItem("token") ||
-      sessionStorage.getItem("authToken");
-
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("authToken");
-      localStorage.removeItem("token");
-      sessionStorage.removeItem("authToken");
-      window.location.href = "/login";
-    }
-    return Promise.reject(error);
-  }
-);
+import axiosInstance from "../api/temp-axios-auth";
 
 const StockDeleteForm = ({
   initialData,
@@ -118,7 +81,7 @@ const StockDeleteForm = ({
 
         if (mode === "edit" && id) {
           try {
-            const deletionResponse = await apiClient.get(
+            const deletionResponse = await axiosInstance.get(
               `/deletion-from-warehouse/info/${id}`
             );
             const deletionData = deletionResponse.data;
@@ -222,7 +185,7 @@ const StockDeleteForm = ({
   const fetchWarehouseEntryProducts = async (warehouseEntryId) => {
     setIsLoadingEntryProducts(true);
     try {
-      const infoResponse = await apiClient.get(
+      const infoResponse = await axiosInstance.get(
         `/warehouse-entry/info/${warehouseEntryId}`
       );
 
@@ -373,12 +336,12 @@ const StockDeleteForm = ({
 
       let response;
       if (mode === "create") {
-        response = await apiClient.post(
+        response = await axiosInstance.post(
           "/deletion-from-warehouse/create",
           formData
         );
       } else if (mode === "edit") {
-        response = await apiClient.put(
+        response = await axiosInstance.put(
           `/deletion-from-warehouse/update/${id}`,
           formData
         );
@@ -450,7 +413,7 @@ const StockDeleteForm = ({
       window.confirm("Bu silinmə əməliyyatını silmək istədiyinizə əminsiniz?")
     ) {
       try {
-        await apiClient.delete(`/deletion-from-warehouse/delete/${id}`);
+        await axiosInstance.delete(`/deletion-from-warehouse/delete/${id}`);
         alert("Silinmə uğurla silindi!");
         if (onCancel) {
           onCancel();
