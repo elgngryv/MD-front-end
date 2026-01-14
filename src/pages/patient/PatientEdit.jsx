@@ -51,10 +51,9 @@ const PatientEdit = () => {
     const fetchDoctors = async () => {
       try {
         const token = localStorage.getItem("token");
+        const API_BASE_URL = import.meta.env.VITE_BASE_URL || "/api/v1";
         const response = await axios.get(
-          `${
-            import.meta.env.VITE_BASE_URL || "http://62.84.178.128:5555/api/v1"
-          }/general-calendar/read-doctors`,
+          `${API_BASE_URL}/general-calendar/read-doctors`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

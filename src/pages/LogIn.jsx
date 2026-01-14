@@ -45,8 +45,25 @@ function LogIn() {
       if (loginSuccess) {
         console.log("Login Success ✅");
 
+        // Orijinal route'a geri dön (eğer varsa)
+        const redirectPath = sessionStorage.getItem('redirectAfterLogin');
+        const targetPath = redirectPath && redirectPath !== '/login' && !redirectPath.startsWith('/login') 
+          ? redirectPath 
+          : '/';
+        
+        if (redirectPath) {
+          sessionStorage.removeItem('redirectAfterLogin');
+        }
+
         setTimeout(() => {
-          navigate("/");
+          // HashRouter kullanıldığında hash'i manuel olarak güncelle
+          // Önce window.location.hash'i güncelle, sonra navigate yap
+          // Bu HashRouter'ın hash'i doğru güncellemesini sağlar
+          if (window.location.hash !== `#${targetPath}`) {
+            window.location.hash = targetPath;
+          }
+          // navigate'i de çağır (React Router state'i için)
+          navigate(targetPath, { replace: true });
         }, 800);
       } else {
         console.log("Login failed ❌");

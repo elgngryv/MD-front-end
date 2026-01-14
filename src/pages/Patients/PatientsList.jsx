@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { HiArrowsUpDown } from "react-icons/hi2";
 import axios from "axios";
@@ -12,6 +12,7 @@ import "../../assets/style/PatientsPage/patientslist.css";
 
 // Components
 import OrdinaryListHeader from "../../components/OrdinaryList/OrdinaryListHeader";
+import { useDebounce } from "../../hooks/useDebounce";
 
 const initialSearch = {
   name: "",
@@ -23,17 +24,52 @@ const initialSearch = {
   status: "",
 };
 
+// Memoized table row component
+const PatientRow = React.memo(({ item, onInfoClick, onDeleteClick }) => {
+  return (
+    <tr>
+      <td>{item.id}</td>
+      <td>{item.id}</td>
+      <td>{item.name}</td>
+      <td>{item.finCode}</td>
+      <td>{item.genderStatus === "MAN" ? "Kişi" : "Qadın"}</td>
+      <td>{item.phone}</td>
+      <td>{item.dateOfBirth}</td>
+      <td>{item.isBlocked ? "Bəli" : "Xeyr"}</td>
+      <td>{item.phone}</td>
+      <td>
+        <div className="actionsWrapper">
+          <CiCircleInfo
+            className="icon info"
+            onClick={() => onInfoClick(item)}
+          />
+          <GoTrash
+            className="icon delete"
+            onClick={() => onDeleteClick(item)}
+          />
+        </div>
+      </td>
+    </tr>
+  );
+}, (prevProps, nextProps) => prevProps.item.id === nextProps.item.id);
+
+PatientRow.displayName = 'PatientRow';
+
 function PatientsList() {
   const [data, setData] = useState([]);
   const [search, setSearch] = useState(initialSearch);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const navigate = useNavigate();
+  
+  // Debounce search for better performance
+  const debouncedSearch = useDebounce(search, 300);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
+    const API_BASE_URL = import.meta.env.VITE_BASE_URL || "http://62.84.178.128:5555/api/v1";
     axios
-      .get("http://62.84.178.128:5555/api/v1/patient/read", {
+      .get(`${API_BASE_URL}/patient/read`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -46,77 +82,96 @@ function PatientsList() {
       });
   }, []);
 
-  const removePatient = async (id) => {
+  const removePatient = useCallback(async (id) => {
     try {
       const token = localStorage.getItem("token");
+      const API_BASE_URL = import.meta.env.VITE_BASE_URL || "http://62.84.178.128:5555/api/v1";
       await axios.delete(
-        `http://62.84.178.128:5555/api/v1/patient/delete/${id}`,
+        `${API_BASE_URL}/patient/delete/${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      setData(data.filter((item) => item.id !== id));
+      setData((prevData) => prevData.filter((item) => item.id !== id));
     } catch (error) {
       console.error("Error deleting patient:", error);
     }
-  };
+  }, []);
 
-  const filteredData = [...data]
-    .reverse()
-    .filter(
+  // Memoized reversed data
+  const reversedData = useMemo(() => {
+    return [...data].reverse();
+  }, [data]);
+
+  // Memoized filtered data - use debouncedSearch for filtering
+  const filteredData = useMemo(() => {
+    return reversedData.filter(
       (item) =>
         (item.name || "")
           .toLowerCase()
-          .includes(search.name.toLowerCase()) &&
+          .includes(debouncedSearch.name.toLowerCase()) &&
         (item.surname || "")
           .toLowerCase()
-          .includes(search.surname.toLowerCase()) &&
+          .includes(debouncedSearch.surname.toLowerCase()) &&
         (item.patronymic || "")
           .toLowerCase()
-          .includes(search.patronymic.toLowerCase()) &&
+          .includes(debouncedSearch.patronymic.toLowerCase()) &&
         (item.finCode || "")
           .toLowerCase()
-          .includes(search.fin.toLowerCase()) &&
+          .includes(debouncedSearch.fin.toLowerCase()) &&
         (item.phone || "")
           .toLowerCase()
-          .includes(search.phone.toLowerCase()) &&
-        (search.gender ? item.genderStatus === search.gender : true) &&
-        (search.status ? item.priceCategoryName === search.status : true)
+          .includes(debouncedSearch.phone.toLowerCase()) &&
+        (debouncedSearch.gender ? item.genderStatus === debouncedSearch.gender : true) &&
+        (debouncedSearch.status ? item.priceCategoryName === debouncedSearch.status : true)
     );
+  }, [reversedData, debouncedSearch]);
 
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
+  // Memoized pagination
+  const totalPages = useMemo(() => {
+    return Math.ceil(filteredData.length / itemsPerPage);
+  }, [filteredData.length, itemsPerPage]);
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const currentItems = useMemo(() => {
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    return filteredData.slice(indexOfFirstItem, indexOfLastItem);
+  }, [filteredData, currentPage, itemsPerPage]);
 
-  const paginate = (pageNumber) => {
+  const paginate = useCallback((pageNumber) => {
     if (pageNumber >= 1 && pageNumber <= totalPages) {
       setCurrentPage(pageNumber);
     }
-  };
+  }, [totalPages]);
 
-  const icons = [
-    {
-      icon: CiCircleInfo,
-      action: (row) => navigate(`patient/${row.id}/general`),
-      className: "info",
-    },
-    {
-      icon: GoTrash,
-      action: (row) => {
-        const confirmed = window.confirm(
-          `Silmək istədiyinizə əminsiniz? (${row.name})`
-        );
-        if (confirmed) {
-          removePatient(row.id);
-        }
-      },
-      className: "delete",
-    },
-  ];
+  // Memoized event handlers
+  const handleInfoClick = useCallback((row) => {
+    navigate(`/patients/patient/${row.id}/general`);
+  }, [navigate]);
+
+  const handleDeleteClick = useCallback((row) => {
+    const confirmed = window.confirm(
+      `Silmək istədiyinizə əminsiniz? (${row.name})`
+    );
+    if (confirmed) {
+      removePatient(row.id);
+    }
+  }, [removePatient]);
+
+  // Memoized pagination buttons
+  const paginationButtons = useMemo(() => {
+    return [...Array(totalPages).keys()].map((number) => (
+      <button
+        key={number + 1}
+        onClick={() => paginate(number + 1)}
+        className={currentPage === number + 1 ? "active" : ""}
+      >
+        {number + 1}
+      </button>
+    ));
+  }, [totalPages, currentPage, paginate]);
 
   return (
     <>
@@ -227,31 +282,12 @@ function PatientsList() {
             </thead>
             <tbody>
               {currentItems.map((item) => (
-                <tr key={item.id}>
-                  <td>{item.id}</td>
-                  <td>{item.id}</td>
-                  <td>{item.name}</td>
-                  <td>{item.finCode}</td>
-                  <td>{item.genderStatus === "MAN" ? "Kişi" : "Qadın"}</td>
-                  <td>{item.phone}</td>
-                  <td>{item.dateOfBirth}</td>
-                  <td>{item.isBlocked ? "Bəli" : "Xeyr"}</td>
-                  <td>{item.phone}</td>
-                  <td>
-                    <div className="actionsWrapper">
-                      {icons.map((iconObj, idx) => {
-                        const IconComponent = iconObj.icon;
-                        return (
-                          <IconComponent
-                            key={idx}
-                            className={`icon ${iconObj.className}`}
-                            onClick={() => iconObj.action(item)}
-                          />
-                        );
-                      })}
-                    </div>
-                  </td>
-                </tr>
+                <PatientRow
+                  key={item.id}
+                  item={item}
+                  onInfoClick={handleInfoClick}
+                  onDeleteClick={handleDeleteClick}
+                />
               ))}
             </tbody>
           </table>
@@ -264,15 +300,7 @@ function PatientsList() {
           >
             <GoChevronLeft />
           </button>
-          {[...Array(totalPages).keys()].map((number) => (
-            <button
-              key={number + 1}
-              onClick={() => paginate(number + 1)}
-              className={currentPage === number + 1 ? "active" : ""}
-            >
-              {number + 1}
-            </button>
-          ))}
+          {paginationButtons}
           <button
             onClick={() => paginate(currentPage + 1)}
             disabled={currentPage === totalPages}

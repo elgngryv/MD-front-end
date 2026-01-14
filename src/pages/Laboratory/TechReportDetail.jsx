@@ -24,7 +24,8 @@ function TechReportDetail() {
           return;
         }
 
-        const response = await fetch("http://62.84.178.128:5555/api/v1/laboratory-payment/read", {
+        const API_BASE_URL = import.meta.env.VITE_BASE_URL || "/api/v1";
+        const response = await fetch(`${API_BASE_URL}/laboratory-payment/read`, {
           headers: {
             Authorization: `Bearer ${refreshToken}`,
           },
@@ -114,7 +115,7 @@ function TechReportDetail() {
             onClick={handleCancel}
             disabled={isLoading}
           >
-            <img src={cancelButton} alt="cancel" />
+            <img src={cancelButton} alt="cancel" loading="lazy" />
             İmtina et
           </button>
         </div>

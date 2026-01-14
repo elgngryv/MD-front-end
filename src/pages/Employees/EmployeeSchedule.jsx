@@ -144,17 +144,18 @@ const EmployeeSchedule = () => {
           "Content-Type": "application/json",
         };
 
+        const API_BASE_URL = import.meta.env.VITE_BASE_URL || "/api/v1";
         const [employeesResponse, schedulesResponse, roomsResponse] =
           await Promise.all([
-            fetch("http://62.84.178.128:5555/api/v1/add-worker/read", {
+            fetch(`${API_BASE_URL}/add-worker/read`, {
               headers,
             }),
             fetch(
-              "http://62.84.178.128:5555/api/v1/workers-work-schedule/read",
+              `${API_BASE_URL}/workers-work-schedule/read`,
               { headers }
             ),
             fetch(
-              "http://62.84.178.128:5555/api/v1/general-calendar/read-rooms",
+              `${API_BASE_URL}/general-calendar/read-rooms`,
               { headers }
             ),
           ]);

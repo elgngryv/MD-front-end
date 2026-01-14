@@ -43,7 +43,7 @@
   height: 50px;
 }
 
-.patient-nav button {
+.patient-nav a {
   flex: 1;
   padding: 15px;
   background-color: #EEF2F6;
@@ -53,21 +53,19 @@
   white-space: nowrap;
   font-size: 14px;
   font-weight: 600;
-}
-
-.patient-nav button a {
   color: #4B5565;
   text-decoration: none;
-  display: block;
-  font-size: 14px;
-  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
-.patient-nav button:hover {
+.patient-nav a:hover {
   background-color: #d1d9e6;
 }
 
-.patient-nav button:focus {
+.patient-nav a:focus {
   background-color: #155EEF;
   color: #fff;
 }
@@ -79,10 +77,8 @@
   padding: 20px;
   background-color: #fff;
 }
-.patient-nav button.active {
-  background-color: #155EEF;
-}
 
-.patient-nav button.active a {
+.patient-nav a.active {
+  background-color: #155EEF;
   color: #ffffff;
 }

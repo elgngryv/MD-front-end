@@ -14,7 +14,7 @@ import InfoIcon from "../../assets/icons/Info";
 import BlurLoader from "../../components/layout/BlurLoader";
 import { toast } from "react-toastify";
 import PatientForm from "./PatientEdit";
-import axios from "axios";
+import axiosInstance from "../../api/temp-axios-auth";
 
 const General = () => {
   const [isEditing, setIsEditing] = useState(false);
@@ -32,14 +32,8 @@ const General = () => {
   useEffect(() => {
     const fetchDoctors = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const res = await axios.get(
-          "http://62.84.178.128:5555/api/v1/general-calendar/read-doctors",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+        const res = await axiosInstance.get(
+          "/general-calendar/read-doctors"
         );
 
         setDoctors(res.data);

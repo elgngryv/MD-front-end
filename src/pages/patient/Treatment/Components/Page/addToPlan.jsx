@@ -55,16 +55,13 @@ const AddToPlan = ({ onClose, onFinish, editingPlan, patientId }) => {
         if (result.success && result.status === 200) {
           message.success('Plan uğurla yeniləndi!');
           
-          // API-dən gələn bütün məlumatı onFinish-ə göndər
+          // Store-dan gələn məlumatı onFinish-ə göndər
           if (onFinish) {
-            const apiData = result.data || {};
             const planData = {
-              id: apiData.id || editingPlan.id,
-              'Plan Adı': apiData.planName || values['Plan Adı'],
-              'Sığorta Şirkəti': apiData.insuranceId || apiData.patientInsuranceId || values['Sığorta Şirkəti'],
+              id: editingPlan.id,
+              'Plan Adı': values['Plan Adı'],
+              'Sığorta Şirkəti': values['Sığorta Şirkəti'],
               'Gender': values['Gender'],
-              key: apiData.key,
-              isSave: apiData.isSave !== undefined ? apiData.isSave : editingPlan.isSave !== undefined ? editingPlan.isSave : false,
             };
             onFinish(planData);
           }
@@ -94,18 +91,14 @@ const AddToPlan = ({ onClose, onFinish, editingPlan, patientId }) => {
         if (result.success && result.status === 200 || result.status === 201) {
           message.success('Plan uğurla əlavə edildi!');
           
-          // API-dən gələn bütün məlumatı onFinish-ə göndər
+          // Store-dan gələn məlumatı onFinish-ə göndər
           if (onFinish) {
-            const apiData = result.data || {};
             const planData = {
-              id: apiData.id || Date.now(),
-              'Plan Adı': apiData.planName || values['Plan Adı'],
-              'Sığorta Şirkəti': apiData.insuranceId || apiData.patientInsuranceId || values['Sığorta Şirkəti'],
+              id: result.data?.id || Date.now(),
+              'Plan Adı': values['Plan Adı'],
+              'Sığorta Şirkəti': values['Sığorta Şirkəti'],
               'Gender': values['Gender'],
-              key: apiData.key || genderValue,
-              isSave: apiData.isSave !== undefined ? apiData.isSave : false,
             };
-            console.log('API-dən gələn plan data:', apiData); // Debug üçün
             onFinish(planData);
           }
           

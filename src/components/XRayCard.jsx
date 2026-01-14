@@ -20,7 +20,6 @@ const XRayCard = ({ image_url, date, handleClick, xrayId }) => {
     const handleDeleteClick = (e) => {
         e.stopPropagation();
         console.log(`Delete icon clicked for X-ray ID: ${xrayId}`);
-        // Burada silmə məntiqini yerləşdirin, məsələn, bir API çağırışı
     };
 
     return (
@@ -51,7 +50,7 @@ const XRayCard = ({ image_url, date, handleClick, xrayId }) => {
             </div>
             <div className="flex flex-col items-center justify-center h-[208px]" onClick={handleClick}>
                 {image_url ? (
-                    <img src={image_url} alt="X-Ray" className="w-full h-full object-cover p-2 rounded-lg" />
+                    <img src={image_url} alt="X-Ray" className="w-full h-full object-cover p-2 rounded-lg" loading="lazy" decoding="async" />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-500 rounded-lg">
                         Şəkil yoxdur

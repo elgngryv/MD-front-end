@@ -65,6 +65,41 @@ axiosInstance.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // Handle Content-Type based on request body type
+    // If FormData, remove Content-Type header (browser will set it automatically with boundary)
+    // If JSON or other, set appropriate Content-Type
+    if (config.data instanceof FormData) {
+      // Remove Content-Type header for FormData - browser will set it automatically
+      delete config.headers["Content-Type"];
+    } else if (config.data && typeof config.data === "object") {
+      // For JSON objects, ensure Content-Type is application/json
+      config.headers["Content-Type"] = "application/json";
+    } else if (config.data) {
+      // For other data types, keep default or set as needed
+      if (!config.headers["Content-Type"]) {
+        config.headers["Content-Type"] = "application/json";
+      }
+    }
+
+    // Log request body for debugging
+    if (config.data) {
+      if (config.data instanceof FormData) {
+        console.log("Request Body (FormData):", {
+          url: config.url,
+          method: config.method,
+          formDataEntries: Array.from(config.data.entries()),
+        });
+      } else {
+        console.log("Request Body:", {
+          url: config.url,
+          method: config.method,
+          data: config.data,
+          contentType: config.headers["Content-Type"],
+        });
+      }
+    }
+
     return config;
   },
   (error) => {

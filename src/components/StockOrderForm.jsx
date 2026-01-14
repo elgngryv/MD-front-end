@@ -13,46 +13,9 @@ import EditIcon from "../assets/icons/Edit";
 import DeleteIcon from "../assets/icons/Delete";
 import { useNavigate, useParams } from "react-router-dom";
 import MultiFileForm from "./MultiFileForm";
-import axios from "axios";
+import axiosInstance from "../api/temp-axios-auth";
 import useOrdersFromWarehouseStore from "../../stores/orderFromWarehouseStore";
 import useCabinetStore from "../../stores/cabinetStore";
-
-const API_BASE_URL = "http://62.84.178.128:5555/api/v1/";
-
-const apiClient = axios.create({
-  baseURL: API_BASE_URL,
-});
-
-apiClient.interceptors.request.use(
-  (config) => {
-    const token =
-      localStorage.getItem("authToken") ||
-      localStorage.getItem("token") ||
-      sessionStorage.getItem("authToken");
-
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("authToken");
-      localStorage.removeItem("token");
-      sessionStorage.removeItem("authToken");
-      window.location.href = "/login";
-    }
-    return Promise.reject(error);
-  }
-);
 
 const StockOrderForm = ({
   initialData,
@@ -94,7 +57,7 @@ const StockOrderForm = ({
         setIsLoading(true);
         await fetchCabinets();
 
-        const categoriesResponse = await apiClient.get(
+        const categoriesResponse = await axiosInstance.get(
           "/product-category/read"
         );
         setCategories(
@@ -104,7 +67,7 @@ const StockOrderForm = ({
           }))
         );
 
-        const productsResponse = await apiClient.get("/product/read");
+        const productsResponse = await axiosInstance.get("/product/read");
         setProductsByCategory(
           productsResponse.data.map((prod) => ({
             value: prod.id,
@@ -114,7 +77,7 @@ const StockOrderForm = ({
           }))
         );
 
-        const warehouseEntriesResponse = await apiClient.get(
+        const warehouseEntriesResponse = await axiosInstance.get(
           "/warehouse-entry/read"
         );
         setWarehouseEntries(
@@ -125,7 +88,7 @@ const StockOrderForm = ({
         );
 
         if (mode === "edit" && id) {
-          const orderResponse = await apiClient.get(
+          const orderResponse = await axiosInstance.get(
             `/order-from-warehouse/info/${id}`
           );
 
@@ -199,7 +162,7 @@ const StockOrderForm = ({
   const fetchWarehouseEntryProducts = async (warehouseEntryId) => {
     setIsLoadingEntryProducts(true);
     try {
-      const infoResponse = await apiClient.get(
+      const infoResponse = await axiosInstance.get(
         `/warehouse-entry/info/${warehouseEntryId}`
       );
       console.log("Warehouse entry info:", infoResponse.data);
@@ -227,7 +190,7 @@ const StockOrderForm = ({
       console.log(
         "No warehouse entry products found in info, trying dedicated endpoint"
       );
-      const productsResponse = await apiClient.get(
+      const productsResponse = await axiosInstance.get(
         `/warehouse-entry-product/read-by-warehouse-entry/${warehouseEntryId}`
       );
       console.log(
@@ -253,7 +216,7 @@ const StockOrderForm = ({
       console.log(
         "No warehouse entry products found, trying to get all warehouse entry products"
       );
-      const allProductsResponse = await apiClient.get(
+      const allProductsResponse = await axiosInstance.get(
         "/warehouse-entry-product/read"
       );
       console.log("All warehouse entry products:", allProductsResponse.data);
@@ -278,7 +241,7 @@ const StockOrderForm = ({
       console.log(
         "No warehouse entry products found, fetching products from API"
       );
-      const productsApiResponse = await apiClient.get("/product/read");
+      const productsApiResponse = await axiosInstance.get("/product/read");
 
       if (
         Array.isArray(productsApiResponse.data) &&
@@ -463,7 +426,7 @@ const StockOrderForm = ({
       console.log("Sending payload:", payload);
       setDebugInfo(JSON.stringify(payload, null, 2));
 
-      const response = await apiClient({
+      const response = await axiosInstance({
         method: mode === "create" ? "POST" : "PUT",
         url:
           mode === "create"
@@ -565,7 +528,7 @@ const StockOrderForm = ({
   const handleDelete = async () => {
     if (window.confirm("Bu sifarişi silmək istədiyinizə əminsiniz?")) {
       try {
-        await apiClient.delete(`/order-from-warehouse/delete/${id}`);
+        await axiosInstance.delete(`/order-from-warehouse/delete/${id}`);
         alert("Sifariş uğurla silindi!");
         navigate("/orders");
       } catch (error) {

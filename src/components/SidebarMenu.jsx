@@ -219,7 +219,7 @@ const SidebarMenu = ({ isCollapsed, toggleSidebar }) => {
     <div className={`sidebar-menu ${isCollapsed ? "collapsed" : ""}`}>
       <div className="sidebar-header">
         {!isCollapsed && (
-          <img src={mdLogo} alt="MD Logo" className="logo-image" />
+          <img src={mdLogo} alt="MD Logo" className="logo-image" loading="lazy" decoding="async" />
         )}
         {/* toggleSidebar funksiyasını basma hadisəsi ilə bağlayırıq */}
         <button className="toggle-button" onClick={toggleSidebar}>

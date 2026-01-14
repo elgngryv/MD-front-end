@@ -28,8 +28,9 @@ const InfoAdmin = ({ showEdit = true }) => {
       }
 
       try {
+        const API_BASE_URL = import.meta.env.VITE_BASE_URL || "/api/v1";
         const response = await fetch(
-          `http://62.84.178.128:5555/api/v1/add-worker/info/${id}`,
+          `${API_BASE_URL}/add-worker/info/${id}`,
           {
             method: "GET",
             headers: {

@@ -32,8 +32,9 @@ const AdminUser = () => {
           throw new Error("Refresh token not found.");
         }
 
+        const API_BASE_URL = import.meta.env.VITE_BASE_URL || "/api/v1";
         const response = await fetch(
-          "http://62.84.178.128:5555/api/v1/add-worker/read",
+          `${API_BASE_URL}/add-worker/read`,
           {
             headers: {
               Authorization: `Bearer ${refreshToken}`,
@@ -91,8 +92,9 @@ const AdminUser = () => {
         throw new Error("Refresh token not found.");
       }
 
+      const API_BASE_URL = import.meta.env.VITE_BASE_URL || "/api/v1";
       const response = await fetch(
-        `http://62.84.178.128:5555/api/v1/add-worker/delete/${userToDeleteId}`,
+        `${API_BASE_URL}/add-worker/delete/${userToDeleteId}`,
         {
           method: "DELETE",
           headers: {

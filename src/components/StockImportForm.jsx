@@ -8,42 +8,7 @@ import EditIcon from "../assets/icons/Edit";
 import DeleteIcon from "../assets/icons/Delete";
 import { useNavigate } from "react-router-dom";
 import useWarehouseEntryStore from "../../stores/warehouseEntryStore";
-import axios from "axios";
-
-const apiClient = axios.create({
-  baseURL: "http://62.84.178.128:5555/api/v1/",
-});
-
-apiClient.interceptors.request.use(
-  (config) => {
-    const token =
-      localStorage.getItem("authToken") ||
-      localStorage.getItem("token") ||
-      sessionStorage.getItem("authToken");
-
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-apiClient.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("authToken");
-      localStorage.removeItem("token");
-      sessionStorage.removeItem("authToken");
-      window.location.href = "/login";
-    }
-    return Promise.reject(error);
-  }
-);
+import axiosInstance from "../api/temp-axios-auth";
 
 // Min və max tarix limitlərini təyin edirik
 const MIN_DATE = '1900-01-01';
@@ -103,7 +68,7 @@ const StockImportForm = ({
     async function loadCategories() {
       try {
         setLoading(true);
-        const response = await apiClient.get("/product-category/read");
+        const response = await axiosInstance.get("/product-category/read");
 
         const formattedCategories = response.data.map((category) => ({
           value: category.id,
@@ -132,7 +97,7 @@ const StockImportForm = ({
       if (currentProduct.category) {
         try {
           setLoading(true);
-          const response = await apiClient.get("/product/read");
+          const response = await axiosInstance.get("/product/read");
 
           const filteredProducts = response.data
             .filter((product) => product.categoryId === currentProduct.category)

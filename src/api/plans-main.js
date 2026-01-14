@@ -16,9 +16,7 @@ export const createPlans = async (newData) => {
 };
 export const fetchPlans = async (patientId) => {
   try {
-    const response = await axiosInstance.get(`${API_BASE_URL}/patient-plans-main/read`, {
-      params: patientId ? { patientId } : {}
-    });
+    const response = await axiosInstance.get(`${API_BASE_URL}/patient-plans-main/read/${patientId}`);
     return response;
   } catch (error) {
     console.error("Planları oxumaqda xəta:", error);
