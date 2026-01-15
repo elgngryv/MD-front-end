@@ -9,6 +9,7 @@ const roomOptions = [
   { value: 'STOM5', label: 'Otaq 5' },
 ];
 
+const employees = []; // TODO: Bu məlumatı API-dən və ya store-dan gətirmək lazımdır
 
 const AppointmentContext = createContext();
 
