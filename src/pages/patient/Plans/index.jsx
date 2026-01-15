@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams } from 'react-router-dom';
+import "@ant-design/v5-patch-for-react-19"; // React 19 uyumluluğu için gerekli
 import 'antd/dist/reset.css';
 import { Select, Space, Divider, Card, Button, Form, message, Modal, Popconfirm, Drawer, Spin } from 'antd';
 import {  SaveOutlined, PlusOutlined, EditOutlined, DeleteOutlined, UnorderedListOutlined, LoadingOutlined } from '@ant-design/icons';
