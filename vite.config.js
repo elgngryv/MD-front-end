@@ -15,8 +15,6 @@ export default defineConfig({
       registerType: 'autoUpdate',
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,woff,ttf}'],
-        globIgnores: ['**/stats.html'], // Bundle analyzer dosyasını hariç tut
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MB limit (varsayılan 2 MB)
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/.*\/api\/v1\/.*/i,
@@ -80,12 +78,6 @@ export default defineConfig({
   ],
   base: '/', // Əgər app serverdə root-da (/) açılırsa, dəyişmə
   
-  // React.version'ı korumak için define
-  define: {
-    // React.version'ın build sırasında korunmasını sağla
-    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
-  },
-  
   // Build optimizasiyası
   build: {
     rollupOptions: {
@@ -93,9 +85,11 @@ export default defineConfig({
         manualChunks: (id) => {
           // Vendor chunks
           if (id.includes('node_modules')) {
-            // React ve React'e bağımlı kütüphaneleri aynı chunk'ta topla
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router') || id.includes('antd') || id.includes('@ant-design')) {
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
               return 'vendor-react';
+            }
+            if (id.includes('antd') || id.includes('@ant-design')) {
+              return 'vendor-ui';
             }
             if (id.includes('react-hook-form') || id.includes('@hookform') || id.includes('yup')) {
               return 'vendor-forms';
@@ -119,20 +113,6 @@ export default defineConfig({
     cssCodeSplit: true, // CSS-ləri ayrı chunk-lara böl
     sourcemap: false, // Production-da sourcemap yox
     minify: 'terser', // Daha yaxşı minification
-    terserOptions: {
-      compress: {
-        // React.version property'sini koru
-        keep_classnames: false,
-        keep_fnames: false,
-        // React.version'ı korumak için - properties'i mangle etme
-        properties: false,
-      },
-      mangle: {
-        // React.version'ı korumak için - version property'sini mangle etme
-        properties: false,
-        reserved: ['version', 'React', 'react'],
-      },
-    },
     target: 'esnext', // Modern browser support
   },
   

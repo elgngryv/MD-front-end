@@ -25,8 +25,7 @@ function Redirecter({ children }) {
       const currentPath = location.hash ? location.hash.replace('#', '') : location.pathname;
       
       // Orijinal route'u sakla (login sonrası geri dönmek için)
-      // Sadece login olmayan route'ları sakla
-      if (currentPath && currentPath !== '/login' && !currentPath.startsWith('/login') && currentPath !== '/') {
+      if (currentPath && currentPath !== '/login' && !currentPath.startsWith('/login')) {
         sessionStorage.setItem('redirectAfterLogin', currentPath);
       }
       
@@ -35,7 +34,6 @@ function Redirecter({ children }) {
       localStorage.removeItem("userId");
       
       // HashRouter kullanıldığında hash'i temizleyerek login'e git
-      // replace: true ile history'yi temizle
       navigate("/login", { replace: true });
     };
 
