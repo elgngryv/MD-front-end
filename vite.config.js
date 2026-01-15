@@ -89,15 +89,34 @@ export default defineConfig({
     'global': 'globalThis',
   },
   
+  // React'in doğru yüklenmesi için resolve ayarları
+  resolve: {
+    alias: {
+      'react': 'react',
+      'react-dom': 'react-dom',
+    },
+  },
+  
   // Build optimizasiyası
   build: {
     rollupOptions: {
       output: {
+        // Chunk yükleme sırasını garanti etmek için
+        chunkFileNames: (chunkInfo) => {
+          // vendor-react her zaman önce yüklensin
+          if (chunkInfo.name === 'vendor-react') {
+            return 'assets/vendor-react-[hash].js';
+          }
+          return 'assets/[name]-[hash].js';
+        },
         manualChunks: (id) => {
           // Vendor chunks
           if (id.includes('node_modules')) {
             // React ve React'e bağımlı kütüphaneleri aynı chunk'ta topla
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router') || id.includes('antd') || id.includes('@ant-design')) {
+            // @emotion ve @mui React'e bağımlı, bu yüzden aynı chunk'ta olmalı
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router') || 
+                id.includes('antd') || id.includes('@ant-design') || 
+                id.includes('@emotion') || id.includes('@mui')) {
               return 'vendor-react';
             }
             if (id.includes('react-hook-form') || id.includes('@hookform') || id.includes('yup')) {
