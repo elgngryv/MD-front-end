@@ -5,7 +5,6 @@
 
 .login-container {
   position: relative;
-  min-height: 100vh;
   min-width: 100vw;
   display: flex;
   justify-content: flex-end;
@@ -28,12 +27,9 @@
   position: relative;
   z-index: 1;
   background: var(--login-form-container-bg-color);
-  margin-right: 7vh;
-  width: 45vw;
-  height: 96vh;
   border-radius: 2vh;
+  padding: 0 20px;
   > .topPart {
-    padding-top: 7vh;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -68,7 +64,6 @@
     .password-part {
       > input {
         width: 35vw;
-        height: 8vh;
         padding: 3vh;
         padding-right: 10vh;
         border: 0.1vh solid #697586;
