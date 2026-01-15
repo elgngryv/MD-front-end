@@ -80,6 +80,15 @@ export default defineConfig({
   ],
   base: '/', // Əgər app serverdə root-da (/) açılırsa, dəyişmə
   
+  // Global değişkenler (process.env sorunlarını çözmek için)
+  define: {
+    'process.env': '{}',
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
+    'process.env.VITE_BASE_URL': JSON.stringify(process.env.VITE_BASE_URL || ''),
+    'process.env.npm_package_version': JSON.stringify(process.env.npm_package_version || '0.0.0'),
+    'global': 'globalThis',
+  },
+  
   // Build optimizasiyası
   build: {
     rollupOptions: {
