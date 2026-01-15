@@ -114,8 +114,7 @@ export default defineConfig({
             return 'vendor-react';
           }
         
-          // Ant Design ve bağımlılıkları - AYRI chunk (vendor-react'tan SONRA yüklenmeli)
-          // DİKKAT: Bu chunk React'e bağımlı, vendor-react önce yüklenmeli!
+          // Ant Design ve bağımlılıkları - React'e bağımlı, vendor-react'ta olmalı
           if (
             id.includes('antd') ||
             id.includes('@ant-design') ||
@@ -124,7 +123,7 @@ export default defineConfig({
             id.includes('framer-motion') ||
             id.includes('@mui/material')
           ) {
-            return 'vendor-ui';
+            return 'vendor-react';
           }
         
           // React Query - React'e bağımlı, vendor-react'a gitmeli
