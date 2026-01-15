@@ -32,8 +32,8 @@ const Plans = () => {
   const [confirmingPlan, setConfirmingPlan] = useState(false);
   const [deletingPlan, setDeletingPlan] = useState(false);
   const [deletingPlanItem, setDeletingPlanItem] = useState(false);
-  const [isClearingTooth, setIsClearingTooth] = useState(false); // Diş seçimini təmizlədiyimizi izlə (state istifadə et)
   const prevOperationRef = useRef({ operationId: null, operationCode: null }); // Əvvəlki əməliyyat dəyərlərini izlə
+  const isClearingToothRef = useRef(false); // Diş seçimini təmizlədiyimizi izlə
 
   const {
     patientInsurance,
@@ -178,11 +178,10 @@ const Plans = () => {
   // Diş seçimi callback-i - təmizləmə zamanı ignore et
   const handleToothSelect = useCallback((toothData) => {
     // Əgər təmizləmə prosesindədirsə, callback-i ignore et
-    if (isClearingTooth) {
-      return;
+    if (!isClearingToothRef.current) {
+      setSelectedToothData(toothData);
     }
-    setSelectedToothData(toothData);
-  }, [isClearingTooth]);
+  }, []);
   
   // Seçilmiş kateqoriya və əməliyyat məlumatlarını tap
   const getSelectedOperationInfo = () => {
@@ -293,9 +292,7 @@ const Plans = () => {
           setPatientPlansData([]);
         }
         setLoadingPatientPlans(false);
-        const resetTimeout = setTimeout(() => setResetToothSelection(false), 100);
-        // Note: This timeout is in an async function, cleanup handled by component unmount
-        // For better cleanup, consider using a ref to track this timeout
+        setTimeout(() => setResetToothSelection(false), 100);
       } else {
         const status = result.status || result.error?.response?.status;
         const errorMessage = result.error?.response?.data?.message || 'Diş göndərilərkən xəta baş verdi';
@@ -379,22 +376,19 @@ const Plans = () => {
     
     if (operationChanged && selectedToothData && (selectedOperationId || selectedOperationCode)) {
       // Təmizləmə flag-i set et
-      setIsClearingTooth(true);
+      isClearingToothRef.current = true;
       // Əvvəlcə diş seçimini təmizlə
       setSelectedToothData(null);
       // Sonra reset flag-i set et
       setResetToothSelection(true);
       // Reset flag-i bir az sonra false et ki, növbəti dəfə işləsin
-      const firstTimeout = setTimeout(() => {
+      setTimeout(() => {
         setResetToothSelection(false);
         // Təmizləmə flag-i də false et
         setTimeout(() => {
-          setIsClearingTooth(false);
+          isClearingToothRef.current = false;
         }, 50);
       }, 200);
-      
-      // Cleanup first timeout on unmount or dependency change
-      return () => clearTimeout(firstTimeout);
     }
     
     // Əvvəlki dəyərləri yenilə (yalnız əməliyyat həqiqətən dəyişibsə)
