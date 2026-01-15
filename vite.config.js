@@ -87,11 +87,9 @@ export default defineConfig({
         manualChunks: (id) => {
           // Vendor chunks
           if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+            // React ve React'e bağımlı kütüphaneleri aynı chunk'ta topla
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router') || id.includes('antd') || id.includes('@ant-design')) {
               return 'vendor-react';
-            }
-            if (id.includes('antd') || id.includes('@ant-design')) {
-              return 'vendor-ui';
             }
             if (id.includes('react-hook-form') || id.includes('@hookform') || id.includes('yup')) {
               return 'vendor-forms';
