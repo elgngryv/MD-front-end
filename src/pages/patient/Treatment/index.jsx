@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams } from 'react-router-dom';
+import "@ant-design/v5-patch-for-react-19"; // React 19 uyumluluğu için gerekli
 import 'antd/dist/reset.css';
 import { Select, Space, Divider, Card, Button, Form, message, Drawer, Spin } from 'antd';
 import {  SaveOutlined, PlusOutlined, EditOutlined, DeleteOutlined, UnorderedListOutlined, LoadingOutlined } from '@ant-design/icons';
@@ -37,7 +38,6 @@ const Plans = () => {
   const [svgSelectedToothData, setSvgSelectedToothData] = useState(null); // interactiveSVG-dən gələn seçim
   const isTableSelectionRef = useRef(false); // Table-dan gələn seçimləri izlə
   const [useExternalSelection, setUseExternalSelection] = useState(false); // External selection istifadə et
-  const [isClearingTooth, setIsClearingTooth] = useState(false); // Diş seçimini təmizlədiyimizi izlə (state istifadə et)
   const prevOperationRef = useRef({ operationId: null, operationCode: null }); // Əvvəlki əməliyyat dəyərlərini izlə
 
   const {
@@ -172,7 +172,7 @@ const Plans = () => {
   // Diş seçimi callback-i - təmizləmə zamanı ignore et
   const handleToothSelect = useCallback((toothData) => {
     // Əgər təmizləmə prosesindədirsə, callback-i ignore et
-    if (isClearingTooth) {
+    if (isClearingToothRef.current) {
       return;
     }
     
@@ -212,7 +212,7 @@ const Plans = () => {
       // Table-dakı seçimləri təmizləmək üçün externalSelectedRowKeys-i null göndər
       // Bu plansTable-dakı useEffect tərəfindən işlənəcək
     }
-  }, [patientPlansData, isClearingTooth]);
+  }, [patientPlansData]);
   
   // Seçilmiş kateqoriya və əməliyyat məlumatlarını tap
   const getSelectedOperationInfo = () => {
@@ -251,7 +251,7 @@ const Plans = () => {
       const result = await savePatientPlanFromStore(selectedPlanId);
       
       if (result.success && result.status === 200) {
-        message.success('Müalicə uğurla təsdiqləndi!');
+        message.success('Plan uğurla təsdiqləndi!');
         // Patient plans datayı yenilə
         setLoadingPatientPlans(true);
         const plansResult = await readPatientTreatmentByPlanMainIdFromStore(selectedPlanId);
@@ -390,7 +390,7 @@ const Plans = () => {
     
     if (operationChanged && selectedToothData && (selectedOperationId || selectedOperationCode) && !isTableSelectionRef.current) {
       // Təmizləmə flag-i set et
-      setIsClearingTooth(true);
+      isClearingToothRef.current = true;
       // Əvvəlcə diş seçimini təmizlə
       setSelectedToothData(null);
       // Sonra reset flag-i set et
@@ -400,7 +400,7 @@ const Plans = () => {
         setResetToothSelection(false);
         // Təmizləmə flag-i də false et
         setTimeout(() => {
-          setIsClearingTooth(false);
+          isClearingToothRef.current = false;
         }, 50);
       }, 200);
     }

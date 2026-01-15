@@ -85,32 +85,65 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          // Vendor chunks
-          if (id.includes('node_modules')) {
-            // React ve React-DOM'u önce ayır (diğer paketler buna bağımlı)
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
-              return 'vendor-react';
-            }
-            // antd React'e bağımlı olduğu için ayrı chunk'ta tutuyoruz
-            // ama React'in yüklendiğinden emin olmak için optimizeDeps'te include ediyoruz
-            if (id.includes('antd') || id.includes('@ant-design')) {
-              return 'vendor-ui';
-            }
-            if (id.includes('react-hook-form') || id.includes('@hookform') || id.includes('yup')) {
-              return 'vendor-forms';
-            }
-            if (id.includes('react-big-calendar') || id.includes('react-calendar') || id.includes('date-fns')) {
-              return 'vendor-calendar';
-            }
-            if (id.includes('framer-motion')) {
-              return 'vendor-animation';
-            }
-            if (id.includes('axios') || id.includes('@tanstack/react-query') || id.includes('zustand')) {
-              return 'vendor-utils';
-            }
-            // Diğer node_modules
+          if (!id.includes('node_modules')) return;
+        
+          // Devtools'u exclude et
+          if (id.includes('react-query-devtools')) {
             return 'vendor-other';
           }
+        
+          // ÖNCE React core ve React DOM - mutlaka birlikte
+          if (id.includes('/react/') || id.includes('/react-dom/') || 
+              id.includes('\\react\\') || id.includes('\\react-dom\\')) {
+            return 'vendor-react';
+          }
+        
+          // Sonra React bağımlı kütüphaneleri
+          if (
+            id.includes('react-router') ||
+            id.includes('react-hook-form') ||
+            id.includes('@hookform') ||
+            id.includes('react-big-calendar') ||
+            id.includes('react-calendar') ||
+            id.includes('react-toastify') ||
+            id.includes('react-select') ||
+            id.includes('react-icons') ||
+            id.includes('react-spinners') ||
+            id.includes('react-color')
+          ) {
+            return 'vendor-react';
+          }
+        
+          // Ant Design ve bağımlılıkları - AYRI chunk (vendor-react'tan SONRA yüklenmeli)
+          // DİKKAT: Bu chunk React'e bağımlı, vendor-react önce yüklenmeli!
+          if (
+            id.includes('antd') ||
+            id.includes('@ant-design') ||
+            id.includes('@emotion/react') ||
+            id.includes('@emotion/styled') ||
+            id.includes('framer-motion') ||
+            id.includes('@mui/material')
+          ) {
+            return 'vendor-ui';
+          }
+        
+          // React Query - React'e bağımlı, vendor-react'a gitmeli
+          if (id.includes('@tanstack/react-query')) {
+            return 'vendor-react';
+          }
+        
+          // Utility & data libs - React'ten bağımsız
+          if (
+            id.includes('axios') ||
+            id.includes('zustand') ||
+            id.includes('yup') ||
+            id.includes('date-fns')
+          ) {
+            return 'vendor-utils';
+          }
+        
+          // Qalan node_modules
+          return 'vendor-other';
         },
       },
     },
@@ -119,6 +152,11 @@ export default defineConfig({
     sourcemap: false, // Production-da sourcemap yox
     minify: 'terser', // Daha yaxşı minification
     target: 'esnext', // Modern browser support
+    // CommonJS modüllerini ES modüllerine dönüştür
+    commonjsOptions: {
+      include: [/node_modules/],
+      transformMixedEsModules: true,
+    },
   },
   
   // CSS optimizasiyası
@@ -143,10 +181,26 @@ export default defineConfig({
   
   // Optimizasiya
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom', 'antd', '@ant-design/icons'],
+    include: [
+      'react', 
+      'react-dom', 
+      'react/jsx-runtime',
+      'react-router-dom', 
+      'antd', 
+      '@ant-design/icons'
+    ],
     exclude: ['@tanstack/react-query-devtools'],
+    // React'in doğru şekilde optimize edilmesini sağla
+    esbuildOptions: {
+      target: 'esnext',
+    },
   },
   resolve: {
-    dedupe: ['react', 'react-dom'], // React'in tek bir instance'ının kullanılmasını sağla
+    dedupe: ['react', 'react-dom', 'react/jsx-runtime'], // React'in tek bir instance'ının kullanılmasını sağla
+    // React modüllerinin doğru çözümlenmesini garanti et
+    alias: {
+      'react': 'react',
+      'react-dom': 'react-dom',
+    },
   },
 })
