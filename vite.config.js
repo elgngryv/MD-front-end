@@ -80,6 +80,12 @@ export default defineConfig({
   ],
   base: '/', // Əgər app serverdə root-da (/) açılırsa, dəyişmə
   
+  // React.version'ı korumak için define
+  define: {
+    // React.version'ın build sırasında korunmasını sağla
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
+  },
+  
   // Build optimizasiyası
   build: {
     rollupOptions: {
@@ -113,6 +119,20 @@ export default defineConfig({
     cssCodeSplit: true, // CSS-ləri ayrı chunk-lara böl
     sourcemap: false, // Production-da sourcemap yox
     minify: 'terser', // Daha yaxşı minification
+    terserOptions: {
+      compress: {
+        // React.version property'sini koru
+        keep_classnames: false,
+        keep_fnames: false,
+        // React.version'ı korumak için - properties'i mangle etme
+        properties: false,
+      },
+      mangle: {
+        // React.version'ı korumak için - version property'sini mangle etme
+        properties: false,
+        reserved: ['version', 'React', 'react'],
+      },
+    },
     target: 'esnext', // Modern browser support
   },
   
