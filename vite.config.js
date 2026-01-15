@@ -87,9 +87,12 @@ export default defineConfig({
         manualChunks: (id) => {
           // Vendor chunks
           if (id.includes('node_modules')) {
+            // React ve React-DOM'u önce ayır (diğer paketler buna bağımlı)
             if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
               return 'vendor-react';
             }
+            // antd React'e bağımlı olduğu için ayrı chunk'ta tutuyoruz
+            // ama React'in yüklendiğinden emin olmak için optimizeDeps'te include ediyoruz
             if (id.includes('antd') || id.includes('@ant-design')) {
               return 'vendor-ui';
             }
@@ -140,7 +143,10 @@ export default defineConfig({
   
   // Optimizasiya
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom'],
+    include: ['react', 'react-dom', 'react-router-dom', 'antd', '@ant-design/icons'],
     exclude: ['@tanstack/react-query-devtools'],
+  },
+  resolve: {
+    dedupe: ['react', 'react-dom'], // React'in tek bir instance'ının kullanılmasını sağla
   },
 })

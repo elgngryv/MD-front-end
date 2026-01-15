@@ -1,3 +1,5 @@
+// React 19 uyumluluğu için antd patch'i - en üstte import edilmeli
+import "@ant-design/v5-patch-for-react-19";
 import { lazy, StrictMode, useEffect, Suspense } from "react";
 import { createRoot } from "react-dom/client";
 import {
