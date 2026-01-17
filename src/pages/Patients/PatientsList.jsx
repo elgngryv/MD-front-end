@@ -66,6 +66,19 @@ function PatientsList() {
   const debouncedSearch = useDebounce(search, 300);
 
   useEffect(() => {
+    // Əvvəlcə cache-dən oxu
+    const cachedData = localStorage.getItem("patients_cache");
+    if (cachedData) {
+      try {
+        const parsedData = JSON.parse(cachedData);
+        setData(parsedData);
+        return; // Cache-dən oxuduqsa, API-yə istek atma
+      } catch (e) {
+        console.error("Cache parse xətası:", e);
+      }
+    }
+
+    // Cache yoxdursa, API-dən gətir
     const token = localStorage.getItem("token");
     const API_BASE_URL = import.meta.env.VITE_BASE_URL || "http://62.84.178.128:5555/api/v1";
     axios
@@ -75,7 +88,11 @@ function PatientsList() {
         },
       })
       .then((response) => {
-        setData(response.data);
+        const data = response.data;
+        setData(data);
+        // Cache-ə yaddaşa saxla
+        localStorage.setItem("patients_cache", JSON.stringify(data));
+        localStorage.setItem("patients_cache_timestamp", Date.now().toString());
       })
       .catch((error) => {
         console.error("Error fetching data:", error);

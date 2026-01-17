@@ -3,6 +3,7 @@ import {
   login as loginApi,
   refreshToken as refreshTokenApi,
 } from "../src/api/login";
+import { readPatients } from "../src/api/patient";
 
 // Token decode helper (JWT içindən userId və ya username çıxartmaq üçün)
 function parseJwt(token) {
@@ -58,6 +59,20 @@ const useAuthStore = create((set) => ({
           loading: false,
         });
 
+        // Login olduqdan sonra cache kontrolü yap
+        // Əgər cache varsa istek atma, yoxdursa istek at və cache-ə yaddaşa saxla
+        try {
+          const cachedData = localStorage.getItem("patients_cache");
+          if (!cachedData) {
+            // Cache yoxdursa, API-dən gətir və cache-ə yaddaşa saxla
+            await readPatients(true); // Cache kontrolü yap, yoxdursa API-dən gətir
+          }
+          // Cache varsa heç nə etmə, istek atma
+        } catch (err) {
+          console.error("Patients fetch xətası (login):", err);
+          // Bu xəta login-i dayandırmamalıdır
+        }
+
         return true;
       } else {
         throw new Error("Token tapılmadı");
@@ -75,6 +90,15 @@ const useAuthStore = create((set) => ({
     localStorage.removeItem("token");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("userId");
+    // Patients cache-i sil
+    localStorage.removeItem("patients_cache");
+    localStorage.removeItem("patients_cache_timestamp");
+    // Worker info cache-lərini sil (bütün user ID-ləri üçün)
+    Object.keys(localStorage).forEach(key => {
+      if (key.startsWith("worker_info_")) {
+        localStorage.removeItem(key);
+      }
+    });
     set({ user: null, token: null });
   },
 

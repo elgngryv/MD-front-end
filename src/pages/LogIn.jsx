@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { motion } from "framer-motion";
 import "../assets/style/login.css";
 import axios from "axios";
 import "./login.css";
@@ -13,7 +15,6 @@ import { GoEyeClosed } from "react-icons/go";
 import { FaCheck } from "react-icons/fa";
 
 // Images
-import logo from "../assets/images/general/logos/logo.png";
 import loginBg from "../assets/images/login-page-images/login-background-now.jpg";
 
 // Zustand store
@@ -44,17 +45,22 @@ function LogIn() {
 
       if (loginSuccess) {
         console.log("Login Success ✅");
+        
+        toast.success("Siz sistemə daxil oldunuz", {
+          position: "top-right",
+          autoClose: 3000,
+        });
 
         // Orijinal route'a geri dön (eğer varsa)
         const redirectPath = sessionStorage.getItem('redirectAfterLogin');
         if (redirectPath && redirectPath !== '/login') {
           sessionStorage.removeItem('redirectAfterLogin');
           setTimeout(() => {
-            navigate(redirectPath);
+            navigate(redirectPath, { replace: true });
           }, 800);
         } else {
           setTimeout(() => {
-            navigate("/");
+            navigate("/", { replace: true });
           }, 800);
         }
       } else {
@@ -68,22 +74,19 @@ function LogIn() {
   };
 
   return (
-    <div className="login-wrapper">
-
+    <motion.div
+      className="login-wrapper"
+      initial={{ opacity: 0, x: -50 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 50 }}
+      transition={{ duration: 0.4, ease: "easeInOut" }}
+      style={{ overflow: "hidden" }}
+    >
     <div className="login-container">
-      <img src={loginBg} alt="login background" className="login-bg-img" />
-      <TitleUpdater title={"LogIn"} />
-
-      {/* Fullscreen Loading Spinner */}
-      {localLoading && (
-        <div className={`spinner-overlay${localLoading ? "" : " hidden"}`}>
-          <div className="spinner"></div>
-        </div>
-      )}
+     <TitleUpdater title={"LogIn"} />
 
       <form className="login-form-container" onSubmit={handleLogin}>
         <div className="topPart">
-          <img src={logo} alt="Müasir Stomatologiya" />
           <p className="logo-title">
             Müasir <br />
             Stomatologiya
@@ -132,12 +135,28 @@ function LogIn() {
 
         <div className="login-btn">
           <button type="submit" disabled={localLoading}>
-            Daxil ol
+            {localLoading ? (
+              <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+                <div
+                  style={{
+                    border: "2px solid #ffffff",
+                    borderTop: "2px solid transparent",
+                    borderRadius: "50%",
+                    width: "16px",
+                    height: "16px",
+                    animation: "spin 1s linear infinite",
+                  }}
+                />
+                Yüklənir...
+              </span>
+            ) : (
+              "Daxil ol"
+            )}
           </button>
         </div>
       </form>
     </div>
-    </div>
+    </motion.div>
   );
 }
 

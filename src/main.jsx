@@ -383,7 +383,7 @@ const AddExaminationPicture = lazy(() =>
 );
 
 // �  Home
-const Home = lazy(() => import("./pages/Home/HomePhoto"));
+const Home = lazy(() => import("./pages/Home/HomePhoto.jsx"));
 
 // 🔀 Other
 const Redirecter = lazy(() => import("./components/Redirecter.jsx"));
@@ -578,11 +578,11 @@ const AnimatedRoutes = () => {
     loadTokenFromStorage();
   }, [loadTokenFromStorage]);
   return (
-    <AnimatePresence mode="wait">
-      <div className="app-wrapper">
+    <AnimatePresence mode="wait" initial={false}>
+      <div className="app-wrapper" key={location.pathname}>
         <Suspense fallback={<LoadingSpinner />}>
           <Redirecter />
-          <Routes location={location} key={location.pathname}>
+          <Routes location={location}>
           {/* Auth Routes */}
           {/* <Route path="/" element={<LogIn />} /> */}
           <Route path="/login" element={<LogIn />} />

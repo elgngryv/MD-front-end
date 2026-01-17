@@ -1,5 +1,6 @@
 // src/Home.jsx
 import React from "react";
+import { motion } from "framer-motion";
 import SmileImg from "../../assets/images/smile.png";
 
 // Style
@@ -14,7 +15,14 @@ function Home() {
 
   return (
     <>
-      <div className="HomeWrapper">
+      <motion.div
+        className="HomeWrapper"
+        initial={{ opacity: 0, x: 50 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -50 }}
+        transition={{ duration: 0.4, ease: "easeInOut" }}
+        style={{ overflow: "hidden" }}
+      >
         <main className="MainContent">
           <section className="HeroSection flex w-[80%] justify-center items-center mb-17">
             <h1 className="!text-[85px] ">Xoş gəlmisiniz!</h1>
@@ -35,7 +43,7 @@ function Home() {
           <p>&copy; 2025 StomatoCRM. Bütün hüquqlar qorunur.</p>
 
         </footer>
-      </div>
+      </motion.div>
     </>
   );
 }

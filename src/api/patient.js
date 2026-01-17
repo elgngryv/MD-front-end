@@ -63,15 +63,49 @@ export const editPatient = async (patientData) => {
   }
 };
 
-export const readPatients = async () => {
+export const readPatients = async (useCache = true) => {
   try {
+    // Əvvəlcə cache kontrolü yap - əgər cache varsa, istek atma
+    const cachedData = localStorage.getItem("patients_cache");
+    if (cachedData) {
+      try {
+        const parsedData = JSON.parse(cachedData);
+        // Cache'in tarixini yoxla (məsələn 5 dəqiqə)
+        const cacheTimestamp = localStorage.getItem("patients_cache_timestamp");
+        if (cacheTimestamp) {
+          const cacheAge = Date.now() - parseInt(cacheTimestamp);
+          const maxAge = 5 * 60 * 1000; // 5 dəqiqə
+          if (cacheAge < maxAge) {
+            // Cache varsa və yenidirsə, direkt qaytar - istek atma
+            return parsedData;
+          }
+        } else {
+          // Timestamp yoxdursa da cache'i qaytar
+          return parsedData;
+        }
+      } catch (e) {
+        console.error("Cache parse xətası:", e);
+        // Parse xətası varsa, cache'i sil və davam et
+        localStorage.removeItem("patients_cache");
+        localStorage.removeItem("patients_cache_timestamp");
+      }
+    }
+
+    // Cache yoxdursa və ya köhnəlmişdirsə, API-dən gətir
     const token = getToken();
     const response = await axios.get(`${BASE_URL}/patient/read`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
-    return response.data;
+    
+    const data = response.data;
+    
+    // Cache-ə yaddaşa saxla
+    localStorage.setItem("patients_cache", JSON.stringify(data));
+    localStorage.setItem("patients_cache_timestamp", Date.now().toString());
+    
+    return data;
   } catch (error) {
     console.error("Pasiyentlər oxunarkən xəta baş verdi:", error);
     throw error;

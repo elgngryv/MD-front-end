@@ -161,7 +161,7 @@ const PlansTable = ({ data = [], onDelete, onSelectionChange, onConfirmSelection
       width: 200,
       align: 'center',
       render: (_, record) => {
-        return record.details?.map(detail => detail.operationName).join(', ') || '-';
+        return record.details?.[0]?.operationName || '-';
       },
     },
     {

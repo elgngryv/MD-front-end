@@ -37,6 +37,7 @@ const Plans = () => {
   const [tableSelectedToothData, setTableSelectedToothData] = useState(null); // { toothNumbers: [], partOfToothIds: [] }
   const [svgSelectedToothData, setSvgSelectedToothData] = useState(null); // interactiveSVG-dən gələn seçim
   const isTableSelectionRef = useRef(false); // Table-dan gələn seçimləri izlə
+  const isClearingToothRef = useRef(false); // Diş seçimini təmizlədiyimizi izlə
   const [useExternalSelection, setUseExternalSelection] = useState(false); // External selection istifadə et
   const prevOperationRef = useRef({ operationId: null, operationCode: null }); // Əvvəlki əməliyyat dəyərlərini izlə
 
@@ -829,12 +830,12 @@ const Plans = () => {
 
                     const result = await createPatientTreatmentFromStore(payload);
 
-                    if (result.success && result.status === 200) {
+                    if (result.success && (result.status === 200 || result.status === 201)) {
                       message.success('Əməliyyatlar uğurla təsdiqləndi!');
                       // Patient plans datayı yenilə
                       setLoadingPatientPlans(true);
                       const plansResult = await readPatientTreatmentByPlanMainIdFromStore(selectedPlanId);
-                      if (plansResult.success && plansResult.status === 200) {
+                      if (plansResult.success && (plansResult.status === 200 || plansResult.status === 201)) {
                         // Yeni response strukturuna görə: { key, patientPlanMainId, isSave, plans: [...] }
                         const plansArray = plansResult.data?.plans || plansResult.data;
                         setPatientPlansData(Array.isArray(plansArray) ? plansArray : []);

@@ -9,18 +9,21 @@ import "../../assets/style/sidebar.css";
 // Icons
 import { CiStethoscope } from "react-icons/ci";
 import { IoIosArrowBack } from "react-icons/io";
+import { Link } from "react-router-dom";
 
 function Sidebar() {
   return (
     <>
       <div className="sidebar">
         <div className="sidebar_topPart">
+          <Link to="/">
           <img src={logo} alt="Müasir Stomalogiya logo" />
           <p className="sidebar_logo_title">
             Müasir
             <br />
             Stomatologiya
           </p>
+          </Link>
         </div>
         <div className="sidebar-elements">
           <div className="element active">

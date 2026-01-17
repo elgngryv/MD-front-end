@@ -219,7 +219,9 @@ const SidebarMenu = ({ isCollapsed, toggleSidebar }) => {
     <div className={`sidebar-menu ${isCollapsed ? "collapsed" : ""}`}>
       <div className="sidebar-header">
         {!isCollapsed && (
-          <img src={mdLogo} alt="MD Logo" className="logo-image" loading="lazy" decoding="async" />
+          <Link to="/">
+            <img src={mdLogo} alt="MD Logo" className="logo-image" loading="lazy" decoding="async" />
+          </Link>
         )}
         {/* toggleSidebar funksiyasını basma hadisəsi ilə bağlayırıq */}
         <button className="toggle-button" onClick={toggleSidebar}>
@@ -241,9 +243,8 @@ const SidebarMenu = ({ isCollapsed, toggleSidebar }) => {
               {item.path ? (
                 <Link
                   to={item.path}
-                  className={`menu-item-header ${
-                    isHighlighted ? "active-header" : ""
-                  }`}
+                  className={`menu-item-header ${isHighlighted ? "active-header" : ""
+                    }`}
                   onClick={(e) => {
                     if (item.children && item.children.length > 0) {
                       e.preventDefault();
@@ -251,9 +252,8 @@ const SidebarMenu = ({ isCollapsed, toggleSidebar }) => {
                     }
                   }}>
                   <span
-                    className={`menu-item-icon ${
-                      isHighlighted ? "active" : ""
-                    }`}>
+                    className={`menu-item-icon ${isHighlighted ? "active" : ""
+                      }`}>
                     {typeof item.icon === "function"
                       ? item.icon(isHighlighted)
                       : item.icon}
@@ -263,9 +263,8 @@ const SidebarMenu = ({ isCollapsed, toggleSidebar }) => {
                       <span className="menu-item-title">{item.title}</span>
                       {item.children && item.children.length > 0 && (
                         <IoIosArrowDown
-                          className={`arrow-icon ${
-                            expandedItems.includes(item.id) ? "rotated" : ""
-                          }`}
+                          className={`arrow-icon ${expandedItems.includes(item.id) ? "rotated" : ""
+                            }`}
                         />
                       )}
                     </>
@@ -273,18 +272,16 @@ const SidebarMenu = ({ isCollapsed, toggleSidebar }) => {
                 </Link>
               ) : (
                 <div
-                  className={`menu-item-header ${
-                    isHighlighted ? "active-header" : ""
-                  }`}
+                  className={`menu-item-header ${isHighlighted ? "active-header" : ""
+                    }`}
                   onClick={() => {
                     if (item.children && item.children.length > 0) {
                       toggleItem(item.id);
                     }
                   }}>
                   <span
-                    className={`menu-item-icon ${
-                      isHighlighted ? "active" : ""
-                    }`}>
+                    className={`menu-item-icon ${isHighlighted ? "active" : ""
+                      }`}>
                     {typeof item.icon === "function"
                       ? item.icon(isHighlighted)
                       : item.icon}
@@ -294,9 +291,8 @@ const SidebarMenu = ({ isCollapsed, toggleSidebar }) => {
                       <span className="menu-item-title">{item.title}</span>
                       {item.children && item.children.length > 0 && (
                         <IoIosArrowDown
-                          className={`arrow-icon ${
-                            expandedItems.includes(item.id) ? "rotated" : ""
-                          }`}
+                          className={`arrow-icon ${expandedItems.includes(item.id) ? "rotated" : ""
+                            }`}
                         />
                       )}
                     </>
@@ -315,9 +311,8 @@ const SidebarMenu = ({ isCollapsed, toggleSidebar }) => {
                         <Link
                           key={child.id}
                           to={child.path}
-                          className={`submenu-item ${
-                            isChildActive ? "active-rov" : ""
-                          }`}>
+                          className={`submenu-item ${isChildActive ? "active-rov" : ""
+                            }`}>
                           {isChildActive && (
                             <IoIosChevronRight className="submenu-active-indicator" />
                           )}
