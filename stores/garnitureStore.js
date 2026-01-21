@@ -113,9 +113,8 @@ const useGarnitureStore = create((set) => ({
     set({ loading: true, error: null });
     try {
       const response = await getGarnitureList();
-      // ✅ DÜZƏLİŞ: Alınan məlumat state-ə yazılır.
-      // API cavabı birbaşa massivdirsə, `response.data` istifadə edilir.
-      set({ garnitures: response.data || [], loading: false });
+      // ✅ DÜZƏLİŞ: API artıq data-nı qaytarır (array), ona görə birbaşa response istifadə olunur
+      set({ garnitures: response || [], loading: false });
     } catch (error) {
       console.error("Error fetching garniture list:", error);
       set({ error: error.message || "Xəta baş verdi", loading: false });

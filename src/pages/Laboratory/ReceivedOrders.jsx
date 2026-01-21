@@ -52,7 +52,7 @@ function ReceivedOrders() {
   const icons = [
     {
       icon: CiCircleInfo,
-      action: (row) => navigate(`/details/${row.id}`),
+      action: (row) => navigate(`/lab/orders/${row.id}`),
       className: "info-icon",
     },
   ];
@@ -282,7 +282,7 @@ function ReceivedOrders() {
                     <td>{row.doctor || "-"}</td>
 
                     <td
-                      onClick={() => navigate(`/details/${row.id}`)}
+                      onClick={() => navigate(`/lab/orders/${row.id}`)}
                       className="patinetTD"
                       style={{ cursor: "pointer", color: "#155EEF" }}>
                       {row.patient || "-"}

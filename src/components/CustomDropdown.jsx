@@ -66,7 +66,7 @@ const CustomDropdown = ({
     }
     
     const selectedOption = options.find(opt => value === opt || (opt && value && opt.value === value.value));
-    return selectedOption ? (selectedOption.labelText || selectedOption.label) : placeholder;
+    return selectedOption ? (selectedOption.labelText || selectedOption.label) : (value && value.label ? value.label : placeholder);
   };
 
   const isSelected = (option) => {

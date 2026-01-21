@@ -14,6 +14,7 @@ const ViewInsurance = ({ mode }) => {
         const id=1
     }
 
+    
     return (
         <div className='flex flex-col justify-between w-full bg-transparent  rounded-lg'>
 

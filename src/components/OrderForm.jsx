@@ -90,17 +90,23 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
           initialData.inspectionDate || initialData.checkDate
         ),
         deliveryDate: formatDate(initialData.deliveryDate),
-        doctor: initialData.doctorId,
-        technician: initialData.technicianId,
-        patient: initialData.patientId,
+        doctor: initialData.doctorId || initialData.doctor,
+        technician: initialData.technicianId || initialData.technician,
+        patient: initialData.patientId || initialData.patient,
         workType: initialData.dentalWorkType,
         notes: initialData.description || initialData.notes,
-        color: initialData.orderDentureInfo?.color,
-        garniture: initialData.orderDentureInfo?.garniture,
+        color: initialData.orderDentureInfo?.color ? Number(initialData.orderDentureInfo?.color) : null,
+        garniture: initialData.orderDentureInfo?.garniture ? Number(initialData.orderDentureInfo?.garniture) : null,
       };
       reset(formattedData);
-      setSelectedTeeth(initialData.teethList || []);
-      setToothDetails(initialData.toothDetailIds || []);
+      const details = initialData.toothDetails || initialData.toothDetailIds || [];
+      setToothDetails(details);
+
+      let teeth = initialData.teethList || [];
+      if (teeth.length === 0 && details.length > 0) {
+        teeth = details.map((d) => d.toothNumber);
+      }
+      setSelectedTeeth(teeth);
       setIsChild(
         initialData.isChild !== undefined ? initialData.isChild : false
       );
@@ -212,10 +218,11 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
   const prepareSubmitData = (data) => {
     const submitData = {
       checkDate: data.inspectionDate,
+      orderDate: data.orderDate,
       deliveryDate: data.deliveryDate,
       description: data.notes || "",
       dentalWorkType: data.workType,
-      toothDetailIds: toothDetails,
+      toothDetails: toothDetails,
       teethList: selectedTeeth,
       doctorId: data.doctor,
       technicianId: data.technician,
@@ -258,18 +265,29 @@ const OrderForm = ({ initialData, mode = "create", onSubmit, onCancel }) => {
   ];
   const formValues = watch();
 
-  const selectedDoctor = useMemo(
-    () => doctors.find((d) => d.value === formValues.doctor) || null,
-    [doctors, formValues.doctor]
-  );
-  const selectedTechnician = useMemo(
-    () => technicians.find((t) => t.value === formValues.technician) || null,
-    [technicians, formValues.technician]
-  );
-  const selectedPatient = useMemo(
-    () => patients.find((p) => p.value === formValues.patient) || null,
-    [patients, formValues.patient]
-  );
+  const selectedDoctor = useMemo(() => {
+    const found = doctors.find((d) => d.value === formValues.doctor);
+    if (!found && formValues.doctor && typeof formValues.doctor === "string") {
+      return { value: formValues.doctor, label: formValues.doctor };
+    }
+    return found || null;
+  }, [doctors, formValues.doctor]);
+
+  const selectedTechnician = useMemo(() => {
+    const found = technicians.find((t) => t.value === formValues.technician);
+    if (!found && formValues.technician && typeof formValues.technician === "string") {
+      return { value: formValues.technician, label: formValues.technician };
+    }
+    return found || null;
+  }, [technicians, formValues.technician]);
+
+  const selectedPatient = useMemo(() => {
+    const found = patients.find((p) => p.value === formValues.patient);
+    if (!found && formValues.patient && typeof formValues.patient === "string") {
+      return { value: formValues.patient, label: formValues.patient };
+    }
+    return found || null;
+  }, [patients, formValues.patient]);
   const selectedWorkType = useMemo(
     () => workTypes.find((w) => w.value === formValues.workType) || null,
     [workTypes, formValues.workType]

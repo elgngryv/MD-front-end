@@ -176,6 +176,7 @@ const SentOrders = lazy(() => import("./pages/Laboratory/SentOrders"));
 const TechnicalsReport = lazy(() =>
   import("./pages/Laboratory/TechnicalsReport")
 );
+const OrderDetail = lazy(() => import("./pages/Laboratory/OrderDetail"));
 
 // ⚙️ Settings
 const ColorList = lazy(() => import("./pages/settings/colors/ColorList"));
@@ -793,6 +794,9 @@ const AnimatedRoutes = () => {
               path="/stock/delete/:id/edit"
               element={<StockDeleteDetail mode="edit" />}
             />
+
+            {/* Laboratory Detail Route */}
+            <Route path="/lab/orders/:id" element={<OrderDetail />} />
 
             {/* Stock Entry Routes */}
             <Route path="/stock/entry" element={<StockEntryList />} />
