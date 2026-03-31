@@ -227,6 +227,11 @@ const PatientAdd = () => {
       const response = await addPatient(dataToSend);
       console.log("Pasiyent uğurla əlavə olundu:", response);
       toast.success("Pasiyent uğurla əlavə olundu!");
+      
+      // Cache-i temizlə ki yeni pasiyent göstərilsin
+      localStorage.removeItem("patients_cache");
+      localStorage.removeItem("patients_cache_timestamp");
+      
       setTimeout(() => {
         navigate("/patients");
       }, 1500);
