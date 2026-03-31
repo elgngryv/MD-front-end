@@ -80,7 +80,7 @@ function PatientsList() {
 
     // Cache yoxdursa, API-dən gətir
     const token = localStorage.getItem("token");
-    const API_BASE_URL = import.meta.env.VITE_BASE_URL || "http://62.84.178.128:5555/api/v1";
+    const API_BASE_URL = import.meta.env.VITE_BASE_URL || "http://localhost:5555/api/v1";
     axios
       .get(`${API_BASE_URL}/patient/read`, {
         headers: {
@@ -102,7 +102,7 @@ function PatientsList() {
   const removePatient = useCallback(async (id) => {
     try {
       const token = localStorage.getItem("token");
-      const API_BASE_URL = import.meta.env.VITE_BASE_URL || "http://62.84.178.128:5555/api/v1";
+      const API_BASE_URL = import.meta.env.VITE_BASE_URL || "http://localhost:5555/api/v1";
       await axios.delete(
         `${API_BASE_URL}/patient/delete/${id}`,
         {

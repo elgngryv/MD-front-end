@@ -1,6 +1,6 @@
 import axios from "axios";
 const API_BASE_URL =
-  import.meta.env.VITE_BASE_URL || "http://62.84.178.128:5555/api/v1";
+  import.meta.env.VITE_BASE_URL || "http://localhost:5555/api/v1";
 
 export const login = async ({ username, password }) => {
   try {
