@@ -108,12 +108,16 @@ const StockOrderForm = ({
                   (p) => p.value === item.productId
                 );
 
+                const priceValue = product?.price || 0;
+                const quantityValue = parseInt(item.quantity) || 0;
+
                 return {
                   id: Date.now() + Math.random(),
                   category: item.categoryId,
                   name: item.productId,
                   quantity: item.quantity,
-                  price: product?.price || 0,
+                  price: priceValue,
+                  total: priceValue * quantityValue,
                   warehouseEntryId: item.warehouseEntryId,
                   warehouseEntryProductId: item.warehouseEntryProductId,
                   categoryName: category?.label || "",
@@ -274,8 +278,16 @@ const StockOrderForm = ({
   const handleWarehouseEntryChange = async (option) => {
     try {
       const warehouseEntryId = option.value;
-      handleProductChange("warehouseEntryId", warehouseEntryId);
-      handleProductChange("warehouseEntryProductId", "");
+      // Reset currentProduct fields related to entry and product selection
+      setCurrentProduct((prev) => ({
+        ...prev,
+        warehouseEntryId,
+        warehouseEntryProductId: "",
+        warehouseEntryProductName: "",
+        category: "",
+        name: "",
+        price: "",
+      }));
 
       console.log("Selected warehouse entry ID:", warehouseEntryId);
 
@@ -308,16 +320,15 @@ const StockOrderForm = ({
     );
     if (entryProduct) {
       console.log("Selected warehouse entry product:", entryProduct);
-      handleProductChange("warehouseEntryProductId", option.value);
-
-      if (entryProduct.categoryId && entryProduct.productId) {
-        handleProductChange("category", entryProduct.categoryId);
-        handleProductChange("name", entryProduct.productId);
-      }
-
-      if (entryProduct.price) {
-        handleProductChange("price", entryProduct.price);
-      }
+      // ✅ Set all related fields at once including price
+      setCurrentProduct((prev) => ({
+        ...prev,
+        warehouseEntryProductId: option.value,
+        warehouseEntryProductName: entryProduct.label || "",
+        category: entryProduct.categoryId || prev.category,
+        name: entryProduct.productId || prev.name,
+        price: entryProduct.price || prev.price || "",
+      }));
     }
   };
 
@@ -348,12 +359,24 @@ const StockOrderForm = ({
         (prod) => prod.value === productId
       );
 
+      // ✅ FIX: price comes from currentProduct (set by handleWarehouseEntryProductChange)
+      // fallback to warehouseEntryProduct price or 0
+      const priceValue =
+        parseFloat(currentProduct.price) ||
+        parseFloat(selectedWarehouseEntryProduct.price) ||
+        0;
+      const quantityValue = parseInt(currentProduct.quantity) || 0;
+
+      // ✅ FIX: total = quantity * price
+      const totalValue = quantityValue * priceValue;
+
       const newProduct = {
         id: Date.now(),
         category: categoryId,
         name: productId,
-        quantity: currentProduct.quantity,
-        price: currentProduct.price || selectedWarehouseEntryProduct.price || 0,
+        quantity: quantityValue,
+        price: priceValue,
+        total: totalValue,
         categoryName: selectedCategory?.label || "Unknown Category",
         productName: selectedProduct?.label || "Unknown Product",
         warehouseEntryId: currentProduct.warehouseEntryId,
@@ -375,6 +398,7 @@ const StockOrderForm = ({
         warehouseEntryProductId: "",
         warehouseEntryProductName: "",
       });
+      setWarehouseEntryProducts([]);
     } else {
       alert(
         "Zəhmət olmasa anbar girişini, anbar məhsulunu və miqdarı daxil edin"
@@ -487,6 +511,7 @@ const StockOrderForm = ({
     { key: "productName", label: "Məhsul" },
     { key: "quantity", label: "Miqdar" },
     { key: "price", label: "Qiymət" },
+    { key: "total", label: "Cəm" },
     { key: "warehouseEntryProductName", label: "Anbar məhsulu" },
   ];
 
@@ -756,7 +781,7 @@ const StockOrderForm = ({
             <ListWithSubtotal
               columns={columns}
               data={products}
-              subtotalColumns={["price"]}
+              subtotalColumns={["total"]}
               enableEdit={mode !== "view"}
               enableDelete={mode !== "view"}
               handleEdit={handleEditProduct}

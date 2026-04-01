@@ -55,15 +55,15 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
       .max(20, "İstifadəçi Adı 3-20 simvol arasında olmalıdır")
       .required("İstifadəçi adı tələb olunur"),
     password:
-      mode === "create"
-        ? yup
+      mode === "view"
+        ? yup.string()
+        : yup
             .string()
             .matches(
               /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!_]).{8,}$/,
               "Şifrə minimum 8 simvol olmalı, böyük/kiçik hərf, rəqəm və xüsusi simvol içerməlidir"
             )
-            .required("Şifrə tələb olunur")
-        : yup.string(),
+            .required("Şifrə tələb olunur"),
     name: yup
       .string()
       .min(3, "Ad 3-20 simvol arasında olmalıdır")
@@ -164,6 +164,7 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
       ? {
           ...userData,
           permissions: getDefaultPermissions(),
+          password: "",
           phone2: userData.phone2 || "",
           email: userData.email || "",
           address: userData.address || "",
@@ -211,6 +212,7 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
 
   const handleFormSubmit = async (data) => {
     setErrorMessage(null);
+
     const permissionsWithNames = data.permissions.map((permissionId) => {
       const permission = rawPermissions.find(
         (p) => p.id.toString() === permissionId
@@ -220,7 +222,7 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
 
     const transformedData = {
       ...data,
-      password: mode === "create" ? data.password : undefined,
+      password: data.password,
       phone2: data.phone2 || null,
       homePhone: data.homePhone || null,
       phone3: data.phone3 || null,
@@ -241,6 +243,10 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
           }
           return acc;
         }, {});
+
+        // password həmişə göndərilməlidir - backend tələb edir
+        updateData.password = transformedData.password;
+
         await onSubmit(updateData);
       } else {
         await onSubmit(transformedData);
@@ -248,7 +254,9 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
     } catch (error) {
       console.error("Form submission error:", error);
       console.error("Error details:", error.response);
-      const apiErrorMessage = error?.response?.message || "Xəta baş verdi. Zəhmət olmasa, yenidən cəhd edin.";
+      const apiErrorMessage =
+        error?.response?.message ||
+        "Xəta baş verdi. Zəhmət olmasa, yenidən cəhd edin.";
       setErrorMessage(apiErrorMessage);
     }
   };
@@ -284,14 +292,14 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                 type="button"
                 className="color-success"
                 onClick={handleEditButton}>
-                <LuPenLine className="color-success"/>
+                <LuPenLine className="color-success" />
                 Redaktə et
               </button>
               <button
                 type="button"
                 className="color-danger"
                 onClick={() => setShowModal(true)}>
-                <FaRegTrashAlt className="color-danger"/>
+                <FaRegTrashAlt className="color-danger" />
                 Sil
               </button>
             </div>
@@ -307,15 +315,21 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                 id="username"
                 type="text"
                 {...register("username")}
-                placeholder={errors.username ? errors.username.message : "İstifadəçi adını daxil edin"}
+                placeholder={
+                  errors.username
+                    ? errors.username.message
+                    : "İstifadəçi adını daxil edin"
+                }
                 readOnly={mode === "view"}
                 className={`${mode === "view" ? "readonly" : ""} ${
-                  errors.username && !watch("username") ? "border-2 text-sm border-red-500 bg-red-50 placeholder-red-500" : ""
+                  errors.username && !watch("username")
+                    ? "border-2 text-sm border-red-500 bg-red-50 placeholder-red-500"
+                    : ""
                 }`}
               />
             </div>
 
-            {mode === "create" && (
+            {(mode === "create" || mode === "edit") && (
               <div className="main-form-group password-field-group">
                 <label htmlFor="password">
                   Şifrə <span className="text-red-500">*</span>
@@ -325,19 +339,27 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                     id="password"
                     type={showPassword ? "text" : "password"}
                     {...register("password")}
-                    placeholder={errors.password ? errors.password.message : "Şifrəni daxil edin"}
-                    className={errors.password && !watch("password") ? "border-2 text-sm border-red-500 bg-red-50 placeholder-red-500" : ""}
+                    placeholder={
+                      errors.password
+                        ? errors.password.message
+                        : "Şifrəni daxil edin"
+                    }
+                    className={
+                      errors.password && !watch("password")
+                        ? "border-2 text-sm border-red-500 bg-red-50 placeholder-red-500"
+                        : ""
+                    }
                   />
                   <span
                     className="password-toggle-icon"
                     onClick={togglePasswordVisibility}>
-                    {showPassword ? <FaRegEye /> :<FaRegEyeSlash /> }
+                    {showPassword ? <FaRegEye /> : <FaRegEyeSlash />}
                   </span>
                 </div>
               </div>
             )}
 
-             <div className="main-form-group">
+            <div className="main-form-group">
               <label htmlFor="name">
                 Ad <span className="text-red-500">*</span>
               </label>
@@ -345,10 +367,14 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                 id="name"
                 type="text"
                 {...register("name")}
-                placeholder={errors.name ? errors.name.message : "Adı daxil edin"}
+                placeholder={
+                  errors.name ? errors.name.message : "Adı daxil edin"
+                }
                 readOnly={mode === "view"}
                 className={`${mode === "view" ? "readonly" : ""} ${
-                  errors.name && !watch("name") ? "border-2 text-sm border-red-500 bg-red-50 placeholder-red-500" : ""
+                  errors.name && !watch("name")
+                    ? "border-2 text-sm border-red-500 bg-red-50 placeholder-red-500"
+                    : ""
                 }`}
               />
             </div>
@@ -361,10 +387,14 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                 id="surname"
                 type="text"
                 {...register("surname")}
-                placeholder={errors.surname ? errors.surname.message : "Soyadı daxil edin"}
+                placeholder={
+                  errors.surname ? errors.surname.message : "Soyadı daxil edin"
+                }
                 readOnly={mode === "view"}
                 className={`${mode === "view" ? "readonly" : ""} ${
-                  errors.surname && !watch("surname") ? "border-2 text-sm border-red-500 bg-red-50 placeholder-red-500" : ""
+                  errors.surname && !watch("surname")
+                    ? "border-2 text-sm border-red-500 bg-red-50 placeholder-red-500"
+                    : ""
                 }`}
               />
             </div>
@@ -377,10 +407,16 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                 id="patronymic"
                 type="text"
                 {...register("patronymic")}
-                placeholder={errors.patronymic ? errors.patronymic.message : "Ata adını daxil edin"}
+                placeholder={
+                  errors.patronymic
+                    ? errors.patronymic.message
+                    : "Ata adını daxil edin"
+                }
                 readOnly={mode === "view"}
                 className={`${mode === "view" ? "readonly" : ""} ${
-                  errors.patronymic && !watch("patronymic") ? "border-2 text-sm border-red-500 bg-red-50 placeholder-red-500" : ""
+                  errors.patronymic && !watch("patronymic")
+                    ? "border-2 text-sm border-red-500 bg-red-50 placeholder-red-500"
+                    : ""
                 }`}
               />
             </div>
@@ -389,16 +425,28 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
               <label htmlFor="genderStatus">
                 Cinsiyyət <span className="text-red-500">*</span>
               </label>
-              <div className={`flex gap-4 rounded-lg -ml-10 ${errors.genderStatus && !watch("genderStatus") ? "" : ""}`}>
+              <div
+                className={`flex gap-4 rounded-lg -ml-10 ${
+                  errors.genderStatus && !watch("genderStatus") ? "" : ""
+                }`}>
                 <label className="flex items-center gap-1 cursor-pointer">
                   <input
                     type="radio"
                     value="MAN"
                     {...register("genderStatus")}
                     disabled={mode === "view"}
-                    className={` ${errors.genderStatus && !watch("genderStatus") ? "accent-red-500" : "accent-blue-600"}`}
+                    className={` ${
+                      errors.genderStatus && !watch("genderStatus")
+                        ? "accent-red-500"
+                        : "accent-blue-600"
+                    }`}
                   />
-                  <span className={errors.genderStatus && !watch("genderStatus") ? "text-red-500" : "text-gray-900"}>
+                  <span
+                    className={
+                      errors.genderStatus && !watch("genderStatus")
+                        ? "text-red-500"
+                        : "text-gray-900"
+                    }>
                     Kişi
                   </span>
                 </label>
@@ -408,53 +456,47 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                     value="WOMAN"
                     {...register("genderStatus")}
                     disabled={mode === "view"}
-                    className={` ${errors.genderStatus && !watch("genderStatus") ? "accent-red-500" : "accent-blue-600"}`}
+                    className={` ${
+                      errors.genderStatus && !watch("genderStatus")
+                        ? "accent-red-500"
+                        : "accent-blue-600"
+                    }`}
                   />
-                  <span className={errors.genderStatus && !watch("genderStatus") ? "text-red-500" : "text-gray-900"}>
+                  <span
+                    className={
+                      errors.genderStatus && !watch("genderStatus")
+                        ? "text-red-500"
+                        : "text-gray-900"
+                    }>
                     Qadın
                   </span>
                 </label>
               </div>
-              {/* {errors.genderStatus && !watch("genderStatus") && (
-                <p className="text-red-500 text-sm mt-1">{errors.genderStatus.message}</p>
-              )} */}
             </div>
 
-            {/* <div className="main-form-group">
-              <label htmlFor="finCode">FIN kod</label>
-              <input
-                id="finCode"
-                type="text"
-                {...register("finCode")}
-                readOnly={mode === "view"}
-                className={`${mode === "view" ? "readonly" : ""} ${
-                  errors.finCode ? "error" : ""
-                }`}
-              />
-              {errors.finCode && (
-                <p className="error-message">{errors.finCode.message}</p>
-              )}
-            </div> */}
             <div className="main-form-group">
-                <label htmlFor="finCode">FIN kod</label>
-            <div className="-ml-11">
-            {errors.finCode && (
-              <p className="text-red-500 text-xs mt-1">
-                {errors.finCode.message}
-              </p>
-            )}
-            <input
-              id="finCode"
-              type="text"
-              {...register("finCode")}
-              placeholder="FIN kodu daxil edin"
-              readOnly={mode === "view"}
-              className={`!w-[457px] ${mode === "view" ? "readonly" : ""} ${
-                errors.finCode ? "border-2 border-red-500 bg-red-50" : ""
-              }`}
-            />
+              <label htmlFor="finCode">FIN kod</label>
+              <div className="-ml-11">
+                {errors.finCode && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.finCode.message}
+                  </p>
+                )}
+                <input
+                  id="finCode"
+                  type="text"
+                  {...register("finCode")}
+                  placeholder="FIN kodu daxil edin"
+                  readOnly={mode === "view"}
+                  className={`!w-[457px] ${
+                    mode === "view" ? "readonly" : ""
+                  } ${
+                    errors.finCode ? "border-2 border-red-500 bg-red-50" : ""
+                  }`}
+                />
+              </div>
             </div>
-          </div>
+
             <div className="main-form-group">
               <label htmlFor="colorCode">
                 Rəng kodu <span className="text-red-500">*</span>
@@ -485,7 +527,9 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                 min="1800-01-01"
                 max="3000-12-31"
                 className={`${mode === "view" ? "readonly" : ""} ${
-                  errors.dateOfBirth && !watch("dateOfBirth") ? "border-2 border-red-500 bg-red-50" : ""
+                  errors.dateOfBirth && !watch("dateOfBirth")
+                    ? "border-2 border-red-500 bg-red-50"
+                    : ""
                 }`}
               />
             </div>
@@ -506,15 +550,19 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                     setValue("phone", formattedValue);
                   },
                 })}
-                placeholder={errors.phone ? errors.phone.message : "(000)-000-00-00"}
+                placeholder={
+                  errors.phone ? errors.phone.message : "(000)-000-00-00"
+                }
                 readOnly={mode === "view"}
                 className={`${mode === "view" ? "readonly" : ""} ${
-                  errors.phone && !watch("phone") ? "border-2 text-sm border-red-500 bg-red-50 placeholder-red-500" : ""
+                  errors.phone && !watch("phone")
+                    ? "border-2 text-sm border-red-500 bg-red-50 placeholder-red-500"
+                    : ""
                 }`}
               />
             </div>
 
-             <div className="main-form-group">
+            <div className="main-form-group">
               <label htmlFor="phone2">
                 Mobil nömrə 2
                 {mode === "create" && <span className="text-red-500">*</span>}
@@ -529,10 +577,14 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                     setValue("phone2", formattedValue);
                   },
                 })}
-                placeholder={errors.phone2 ? errors.phone2.message : "(000)-000-00-00"}
+                placeholder={
+                  errors.phone2 ? errors.phone2.message : "(000)-000-00-00"
+                }
                 readOnly={mode === "view"}
                 className={`${mode === "view" ? "readonly" : ""} ${
-                  errors.phone2 && !watch("phone2") ? "border-2 text-sm border-red-500 bg-red-50 placeholder-red-500" : ""
+                  errors.phone2 && !watch("phone2")
+                    ? "border-2 text-sm border-red-500 bg-red-50 placeholder-red-500"
+                    : ""
                 }`}
               />
             </div>
@@ -558,6 +610,7 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                 <p className="error-message">{errors.phone3.message}</p>
               )}
             </div>
+
             <div className="main-form-group">
               <label htmlFor="homePhone">Ev telefonu</label>
               <input
@@ -613,11 +666,17 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
               <input
                 id="experience"
                 type="number"
-                {...register("experience")} 
+                {...register("experience")}
                 readOnly={mode === "view"}
-                placeholder={errors.experience ? errors.experience.message : "Təcrübə rəqəm olmalıdır"}
+                placeholder={
+                  errors.experience
+                    ? errors.experience.message
+                    : "Təcrübə rəqəm olmalıdır"
+                }
                 className={`${mode === "view" ? "readonly" : ""} ${
-                  errors.experience && !watch("phone2") ? "border-2 text-sm border-red-500 bg-red-50 placeholder-red-500" : ""
+                  errors.experience && !watch("experience")
+                    ? "border-2 text-sm border-red-500 bg-red-50 placeholder-red-500"
+                    : ""
                 }`}
               />
             </div>
@@ -665,10 +724,11 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                               }}
                               disabled={mode === "view"}
                               className={`rounded focus:ring-blue-500 ${
-                              errors.permissions
-                                ? "border-2 !border-red-500 !text-red-600"
-                                : "border-gray-300 text-blue-600"
-                              }`} />
+                                errors.permissions
+                                  ? "border-2 !border-red-500 !text-red-600"
+                                  : "border-gray-300 text-blue-600"
+                              }`}
+                            />
                             <span>{permission.label}</span>
                           </label>
                         ))}
@@ -677,26 +737,9 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                   />
                 )}
               </div>
-              {/* {errors.permissions && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.permissions.message}
-                </p>
-              )} */}
             </div>
           </div>
         </div>
-
-        {/* {Object.keys(errors).length > 0 && (
-          <div className="error-summary">
-            <ul>
-              {Object.values(errors).map((error, index) => (
-                <li key={index} className="text-red-500 text-xs error-message">
-                  {error.message}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )} */}
 
         {mode !== "view" && (
           <div className="main-form-actions">

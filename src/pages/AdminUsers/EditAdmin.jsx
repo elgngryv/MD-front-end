@@ -6,6 +6,8 @@ import AddPhotoIcon from "../../assets/icons/AddPhoto";
 import CloseIcon from "../../assets/icons/Close";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
+const API_BASE_URL = import.meta.env.VITE_BASE_URL || "/api/v1";
+
 function EditAdmin() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -45,7 +47,6 @@ function EditAdmin() {
       };
 
       try {
-        const API_BASE_URL = import.meta.env.VITE_BASE_URL || "/api/v1";
         // Fetch permissions list
         const permissionsResponse = await fetch(
           `${API_BASE_URL}/permission/read`,

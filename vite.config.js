@@ -8,7 +8,11 @@ import { ViteImageOptimizer } from 'vite-plugin-image-optimizer'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
-    react(),
+    react({
+      // Refresh konfigürasyonu
+      include: /src\/.*\.[jt]sx?$/,
+      exclude: /node_modules/,
+    }),
     tailwindcss(),
     // PWA plugin
     VitePWA({
