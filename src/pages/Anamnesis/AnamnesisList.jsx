@@ -5,8 +5,12 @@ import { CiSearch } from "react-icons/ci";
 import { FiDownload, FiEdit3 } from "react-icons/fi";
 import { GoTrash } from "react-icons/go";
 import { HiOutlineArrowsUpDown } from "react-icons/hi2";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { FaPlus } from "react-icons/fa6";
+import { useNavigate, useParams } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import useAnamnesisListStore from "../../../stores/anamnesStore";
+import { exportAnamnesisItemsToExcel } from "../../../src/api/anamnesis-list";
 
 const AnamnesisList = () => {
   const navigate = useNavigate();
@@ -20,12 +24,14 @@ const AnamnesisList = () => {
   } = useAnamnesisListStore();
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     if (categoryId) {
       fetchAnamnesisList(categoryId);
     }
-  }, [categoryId]);
+  }, [categoryId, fetchAnamnesisList]);
 
   const handleEdit = (id) => {
     navigate(`/anamnesis/anamnesis-details/${categoryId}/edit/${id}`);
@@ -33,16 +39,17 @@ const AnamnesisList = () => {
 
   const handleDelete = async (id, name) => {
     const confirmed = window.confirm(
-      `${name} anamnezini silmək istədiyinizə əminsiniz?`
+      `"${name}" anamnezini silmək istədiyinizə əminsiniz?`
     );
     if (!confirmed) return;
 
     try {
       await removeAnamnesis(id);
-      fetchAnamnesisList(categoryId);
-      alert(`${name} uğurla silindi.`);
+      await fetchAnamnesisList(categoryId);
+      toast.success(`${name} uğurla silindi.`);
     } catch (error) {
-      alert("Silinmə zamanı xəta baş verdi.");
+      console.error("Delete error:", error);
+      toast.error("Silinmə zamanı xəta baş verdi.");
     }
   };
 
@@ -50,26 +57,69 @@ const AnamnesisList = () => {
     const newStatus = row.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
     try {
       await updateAnamnesisStatus(row.id, { status: newStatus });
-      fetchAnamnesisList(categoryId);
+      // Refresh the list to reflect the change
+      setTimeout(() => {
+        fetchAnamnesisList(categoryId);
+      }, 500);
+      toast.success("Status uğurla dəyişdirildi!");
     } catch (err) {
-      alert("Status dəyişdirilə bilmədi!");
+      console.error("Status update error:", err);
+      toast.error("Status dəyişdirilə bilmədi!");
     }
   };
 
-  const filteredAnamnesis = anamnesisList.filter((item) =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleExport = async () => {
+    try {
+      setExporting(true);
+      const response = await exportAnamnesisItemsToExcel();
+      
+      // Create blob and download
+      const blob = new Blob([response.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "anamnesis-list.xlsx");
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      toast.success("Excel faylı uğurla yükləndi!");
+    } catch (error) {
+      console.error("Export error:", error);
+      toast.error("Export zamanı xəta baş verdi.");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const filteredAnamnesis = anamnesisList.filter((item) => {
+    const matchesSearch = item.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesStatus = !statusFilter || item.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   return (
     <div className="anamnesisList-container">
+      <ToastContainer />
       <div className="anamnesisList-controls-section">
         <div className="anamnesisList-filters">
           <select
             className="anamnesisList-status-dropdown"
-            onChange={(e) => setSearchTerm(e.target.value)}>
-            <option value="">Status</option>
-            <option value="ACTIVE">Aktiv</option>
-            <option value="INACTIVE">Passiv</option>
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="">Hamısı ({anamnesisList.length})</option>
+            <option value="ACTIVE">
+              Aktiv ({anamnesisList.filter(a => a.status === "ACTIVE").length})
+            </option>
+            <option value="INACTIVE">
+              Passiv ({anamnesisList.filter(a => a.status === "INACTIVE").length})
+            </option>
           </select>
           <div className="anamnesisList-search-box">
             <input
@@ -79,17 +129,35 @@ const AnamnesisList = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <button className="anamnesisList-search-button">
+            <button className="anamnesisList-search-button" type="button">
               <CiSearch className="anamnesisList-search-icon" />
             </button>
           </div>
         </div>
         <div className="anamnesisList-actions">
-          <Link
-            to={`/anamnesis/anamnesis-details/${categoryId}/add`}
-            className="anamnesisList-add-new-button">
-            <span>+</span> Yeni anamnez əlavə et
-          </Link>
+          <button
+            onClick={handleExport}
+            disabled={exporting || anamnesisList.length === 0}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              fontSize: "20px",
+              color: "#155EEF",
+            }}
+            title="Excel'ə ixrac et"
+          >
+            <FiDownload />
+          </button>
+          <div
+            className="anamnesisList-add-new-button"
+            onClick={() =>
+              navigate(`/anamnesis/anamnesis-details/${categoryId}/add`)
+            }
+            style={{ cursor: "pointer" }}
+          >
+            <FaPlus style={{ marginRight: "4px" }} /> Yeni anamnez əlavə et
+          </div>
         </div>
       </div>
 
@@ -97,7 +165,12 @@ const AnamnesisList = () => {
         <table className="anamnesisList-table">
           <thead>
             <tr>
-              <th>#</th>
+              <th>
+                #{" "}
+                <span>
+                  ({filteredAnamnesis.length === 0 ? "0" : `1-${filteredAnamnesis.length}`})
+                </span>
+              </th>
               <th>
                 <span>
                   <HiOutlineArrowsUpDown /> Anamnezin adı
@@ -114,11 +187,15 @@ const AnamnesisList = () => {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan="4">Yüklənir...</td>
+                <td colSpan="4" style={{ textAlign: "center" }}>
+                  Yüklənir...
+                </td>
               </tr>
             ) : filteredAnamnesis.length === 0 ? (
               <tr>
-                <td colSpan="4">Heç bir anamnez tapılmadı.</td>
+                <td colSpan="4" style={{ textAlign: "center" }}>
+                  Heç bir anamnez tapılmadı.
+                </td>
               </tr>
             ) : (
               filteredAnamnesis.map((row, index) => (
@@ -132,7 +209,8 @@ const AnamnesisList = () => {
                       className={`anamnesisList-status-badge ${
                         row.status === "ACTIVE" ? "active" : "passive"
                       }`}
-                      title="Statusu dəyişmək üçün kliklə">
+                      title="Statusu dəyişmək üçün kliklə"
+                    >
                       {row.status === "ACTIVE" ? "Aktiv" : "Passiv"}
                     </span>
                   </td>
@@ -141,10 +219,12 @@ const AnamnesisList = () => {
                       <FiEdit3
                         className="anamnesisList-edit-button"
                         onClick={() => handleEdit(row.id)}
+                        title="Düzəlt"
                       />
                       <GoTrash
                         className="anamnesisList-delete-button"
                         onClick={() => handleDelete(row.id, row.name)}
+                        title="Sil"
                       />
                     </div>
                   </td>

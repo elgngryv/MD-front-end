@@ -382,6 +382,18 @@ const AddOperationPicture = lazy(() =>
 const AddExaminationPicture = lazy(() =>
   import("./pages/Teeth/AddExaminationPicture")
 );
+const InfoExaminationPicture = lazy(() =>
+  import("./pages/Teeth/InfoExaminationPicture")
+);
+const EditExaminationPicture = lazy(() =>
+  import("./pages/Teeth/EditExaminationPicture")
+);
+const InfoOperationPicture = lazy(() =>
+  import("./pages/Teeth/InfoOperationPicture")
+);
+const EditOperationPicture = lazy(() =>
+  import("./pages/Teeth/EditOperationPicture")
+);
 
 // �  Home
 const Home = lazy(() => import("./pages/Home/HomePhoto.jsx"));
@@ -1038,12 +1050,28 @@ const AnimatedRoutes = () => {
               element={<AddOperationPicture />}
             />
             <Route
+              path="/teeth/:id/operation-pictures/info/:operationId"
+              element={<InfoOperationPicture />}
+            />
+            <Route
+              path="/teeth/:id/operation-pictures/edit/:operationId"
+              element={<EditOperationPicture />}
+            />
+            <Route
               path="/teeth/:id/examination-pictures"
               element={<ExaminationPictures />}
             />
             <Route
               path="/teeth/:id/examination-pictures/add"
               element={<AddExaminationPicture />}
+            />
+            <Route
+              path="/teeth/:id/examination-pictures/info/:examinationId"
+              element={<InfoExaminationPicture />}
+            />
+            <Route
+              path="/teeth/:id/examination-pictures/edit/:examinationId"
+              element={<EditExaminationPicture />}
             />
 
             {/* General Settings Routes */}

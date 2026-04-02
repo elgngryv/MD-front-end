@@ -4,15 +4,19 @@ import { GoTrash } from "react-icons/go";
 import { CiSearch } from "react-icons/ci";
 import { PiWarningCircleLight } from "react-icons/pi";
 import { HiArrowsUpDown } from "react-icons/hi2";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "../../assets/style/Teeth/operationpictures.css";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import useTeethStore from "../../../stores/teethStore";
+import useTeethOperationStore from "../../../stores/teeth-opetaionStore";
 
 const OperationPictures = () => {
   const navigate = useNavigate();
   const { id: teethId } = useParams();
 
   const { teeth, fetchTeeth, loading, error } = useTeethStore();
+  const { removeTeethOperations } = useTeethOperationStore();
 
   useEffect(() => {
     fetchTeeth();
@@ -25,16 +29,32 @@ const OperationPictures = () => {
     return tooth?.operations || [];
   }, [teeth, teethId]);
 
-  const handleEdit = (id) => () => {
-    navigate(`edit/${id}`);
+  const handleEdit = (id, operation) => () => {
+    navigate(`edit/${id}`, { state: { operation } });
   };
 
-  const handleInfo = (id) => () => {
-    navigate(`info/${id}`);
+  const handleInfo = (id, operation) => () => {
+    navigate(`info/${id}`, { state: { operation } });
+  };
+
+  const handleDelete = async (id, operationName) => {
+    const confirmed = window.confirm(
+      `"${operationName}" əməliyyatını silmək istədiyinizə əminsiniz?`
+    );
+    if (!confirmed) return;
+
+    try {
+      await removeTeethOperations(id);
+      toast.success("Əməliyyat uğurla silindi!");
+    } catch (error) {
+      toast.error("Silinmə zamanı xəta baş verdi!");
+      console.error("Delete error:", error);
+    }
   };
 
   return (
     <div className="operationPictures-container">
+      <ToastContainer />
       <div className="operationPictures-controls-section">
         <div style={{ width: 250 }}>
           <div className="operationPictures-search-box">
@@ -88,14 +108,17 @@ const OperationPictures = () => {
                 <td>
                   <div className="operationPictures-action-icons">
                     <PiWarningCircleLight
-                      onClick={handleInfo(row.id)}
+                      onClick={handleInfo(row.id, row)}
                       className="operationPictures-warning-button"
                     />
                     <FiEdit3
-                      onClick={handleEdit(row.id)}
+                      onClick={handleEdit(row.id, row)}
                       className="operationPictures-edit-button"
                     />
-                    <GoTrash className="operationPictures-delete-button" />
+                    <GoTrash
+                      onClick={() => handleDelete(row.id, row.operationName)}
+                      className="operationPictures-delete-button"
+                    />
                   </div>
                 </td>
               </tr>

@@ -236,17 +236,16 @@ function EditPermission() {
         .filter(([_, isChecked]) => isChecked)
         .map(([action]) => convertFrontendAction(action));
 
-      if (selectedActions.length > 0) {
-        const matchedModule = selectedPermission?.modulePermissions?.find(
-          (m) => m.moduleUrl === moduleUrl
-        );
+      const matchedModule = selectedPermission?.modulePermissions?.find(
+        (m) => m.moduleUrl === moduleUrl
+      );
 
-        permissions.push({
-          modulePermissionId: matchedModule?.modulePermissionId || 0,
-          moduleUrl,
-          actions: selectedActions,
-        });
-      }
+      // Hər halda modulun aksiyaları göndər - backend boş aksiyaları (delete) kimi işlə
+      permissions.push({
+        modulePermissionId: matchedModule?.modulePermissionId || 0,
+        moduleUrl,
+        actions: selectedActions,
+      });
     });
 
     const payload = {
@@ -257,8 +256,12 @@ function EditPermission() {
 
     console.log("Göndərilən payload:", payload);
 
-    await updatePermission(payload);
-    navigate("/permissions");
+    try {
+      await updatePermission(payload);
+      navigate("/permissions");
+    } catch (error) {
+      console.error("Xəta baş verdi:", error);
+    }
   };
 
   return (

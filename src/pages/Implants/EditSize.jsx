@@ -13,45 +13,75 @@ import cancelButton from "../../assets/images/EmployeesPage/cancelProcess.png";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-// Static data
-const staticSizesData = [
-  { id: "1", diameter: "2.0", length: "6" },
-  { id: "2", diameter: "2.5", length: "8" },
-  { id: "3", diameter: "3.0", length: "10" },
-  { id: "4", diameter: "3.5", length: "12" },
-];
+// Store
+import useImplantSizeStore from "../../../stores/ImplantSizeStore";
 
 function EditSize() {
   const [diameter, setDiameter] = useState("");
   const [length, setLength] = useState("");
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const { id } = useParams();
+  const { name: implantId, id: sizeId } = useParams(); // Route: /implants/sizes/:name/edit/:id
+  const { implants, fetchImplantsWithSizes, editImplantSize } = useImplantSizeStore();
 
   useEffect(() => {
-    // Find size from static data
-    const size = staticSizesData.find(item => item.id === id);
-    if (size) {
-      setDiameter(size.diameter);
-      setLength(size.length);
+    const loadData = async () => {
+      try {
+        await fetchImplantsWithSizes();
+        setLoading(false);
+      } catch (error) {
+        console.error("Məlumat yükləməkdə xəta:", error);
+        toast.error("Məlumat yükləməkdə xəta baş verdi!");
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  useEffect(() => {
+    console.log("implants:", implants);
+    console.log("implantId:", implantId, "sizeId:", sizeId);
+    
+    if (implants.length > 0 && sizeId && implantId) {
+      const implant = implants.find((impl) => impl.id === Number(implantId));
+      console.log("Tapılan implant:", implant);
+      
+      const size = implant?.implantSizesReads?.find((s) => s.id === Number(sizeId));
+      console.log("Tapılan size:", size);
+      
+      if (size) {
+        setDiameter(String(size.diameter));
+        setLength(String(size.length));
+        console.log("Size yükləndi - Diameter:", size.diameter, "Length:", size.length);
+      } else {
+        console.error("Size tapılmadı!");
+        toast.error("Ölçü tapılmadı!");
+      }
     }
-  }, [id]);
+  }, [sizeId, implantId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!diameter.trim() || !length.trim()) return;
+    if (!diameter.trim() || !length.trim()) {
+      toast.error("Bütün sahələri doldurun!");
+      return;
+    }
 
     try {
-      // Static data update example
       const updatedSize = {
-        id,
-        diameter: diameter.trim(),
-        length: length.trim(),
+        id: Number(sizeId),
+        implantSizeId: Number(implantId),
+        diameter: parseFloat(diameter),
+        length: parseFloat(length),
       };
 
-      console.log("Updated Size:", updatedSize);
+      console.log("Göndərilən data:", updatedSize);
+
+      await editImplantSize(updatedSize);
       toast.success("Ölçü uğurla yeniləndi!");
-      navigate("/sizes");
+      navigate(`/implants/sizes/${implantId}`);
     } catch (error) {
       console.error("Ölçü yenilənərkən xəta:", error);
       toast.error("Ölçü yenilənərkən xəta baş verdi!");
@@ -60,46 +90,53 @@ function EditSize() {
 
   return (
     <div className="editSizesWrapper">
-      <form className="editSizesContainer" onSubmit={handleSubmit}>
-        <div className="editSizesInput">
-          <p>
-            Diametir<span>*</span>
-          </p>
-          <input
-            type="text"
-            placeholder="Diametir"
-            value={diameter}
-            onChange={(e) => setDiameter(e.target.value)}
-          />
-        </div>
+      {loading ? (
+        <p>Yüklənir...</p>
+      ) : (
+        <form className="editSizesContainer" onSubmit={handleSubmit}>
+          <div className="editSizesInput">
+            <p>
+              Diametr<span>*</span>
+            </p>
+            <input
+              type="number"
+              step="0.1"
+              placeholder="Diametr"
+              value={diameter}
+              onChange={(e) => setDiameter(e.target.value)}
+            />
+          </div>
 
-        <div className="editSizesInput">
-          <p>
-            Uzunluq<span>*</span>
-          </p>
-          <input
-            type="text"
-            placeholder="Uzunluq"
-            value={length}
-            onChange={(e) => setLength(e.target.value)}
-          />
-        </div>
+          <div className="editSizesInput">
+            <p>
+              Uzunluq<span>*</span>
+            </p>
+            <input
+              type="number"
+              step="0.1"
+              placeholder="Uzunluq"
+              value={length}
+              onChange={(e) => setLength(e.target.value)}
+            />
+          </div>
 
-        <div className="editSizesButtons">
-          <button
-            type="button"
-            className="cancelFormCondition"
-            onClick={() => navigate("/sizes")}>
-            <img src={cancelButton} alt="cancel" />
-            İmtina et
-          </button>
+          <div className="editSizesButtons">
+            <button
+              type="button"
+              className="cancelFormCondition"
+              onClick={() => navigate(`/implants/sizes/${implantId}`)}>
+              <img src={cancelButton} alt="cancel" />
+              İmtina et
+            </button>
 
-          <button type="submit" className="acceptFormCondition">
-            <img src={acceptButton} alt="accept" />
-            Yadda saxla
-          </button>
-        </div>
-      </form>
+            <button type="submit" className="acceptFormCondition">
+              <img src={acceptButton} alt="accept" />
+              Yadda saxla
+            </button>
+          </div>
+        </form>
+      )}
+      <ToastContainer />
     </div>
   );
 }

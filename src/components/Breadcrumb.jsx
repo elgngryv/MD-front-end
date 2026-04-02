@@ -228,7 +228,7 @@ const Breadcrumb = () => {
     <nav className="breadcrumb">
       <Link to="/" className="breadcrumb-item">Ana səhifə</Link>
       {pathSegments.map((segment, index) => (
-        <React.Fragment key={segment}>
+        <React.Fragment key={`${segment}-${index}`}>
           <IoIosArrowForward className="breadcrumb-separator" />
           {index === pathSegments.length - 1 ? (
             <span className="breadcrumb-item active">

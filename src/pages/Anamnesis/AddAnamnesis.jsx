@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "../../assets/style/Anamnesis/addanamnesis.css";
 import acceptButton from "../../assets/images/EmployeesPage/verifyProcess.png";
 import cancelButton from "../../assets/images/EmployeesPage/cancelProcess.png";
@@ -10,6 +12,7 @@ function AddAnamnesis() {
     name: "",
     status: "ACTIVE",
   });
+  const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
   const { categoryId } = useParams();
@@ -26,13 +29,19 @@ function AddAnamnesis() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const numericCategoryId = Number(categoryId);
-
-    if (isNaN(numericCategoryId)) {
-      alert("Category ID düzgün deyil.");
+    if (!formData.name.trim()) {
+      toast.warning("Anamnezin adını daxil edin!");
       return;
     }
 
+    const numericCategoryId = Number(categoryId);
+
+    if (isNaN(numericCategoryId)) {
+      toast.error("Kateqoriya ID düzgün deyil.");
+      return;
+    }
+
+    setIsLoading(true);
     const dataToSend = {
       ...formData,
       anamnesisCategoryId: numericCategoryId,
@@ -40,58 +49,81 @@ function AddAnamnesis() {
 
     try {
       await addAnamnesis(dataToSend);
-      alert("Anamnez uğurla yaradıldı");
-      navigate(`/anamnesis/anamnesis-details/${categoryId}`);
+      toast.success("Anamnez uğurla yaradıldı");
+      setTimeout(() => {
+        navigate(`/anamnesis/anamnesis-details/${categoryId}`);
+      }, 1000);
     } catch (error) {
-      alert("Xəta baş verdi: " + (error?.message || "Bilinməyən xəta"));
+      console.error("Error adding anamnesis:", error);
+      toast.error("Xəta baş verdi: " + (error?.message || "Bilinməyən xəta"));
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  const handleCancel = () => {
+    setFormData({
+      name: "",
+      status: "ACTIVE",
+    });
+    navigate(`/anamnesis/anamnesis-details/${categoryId}`);
+  };
+
   return (
-    <form className="addAnamnesisWrapper" onSubmit={handleSubmit}>
-      <div className="addAnamnesisContainer">
-        <div className="addAnamnesisInput">
-          <p>
-            Anamnezin adı <span>*</span>
-          </p>
-          <input
-            type="text"
-            placeholder="Anamnezin adı"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            required
-          />
-        </div>
+    <div>
+      <ToastContainer />
+      <form className="addAnamnesisWrapper" onSubmit={handleSubmit}>
+        <div className="addAnamnesisContainer">
+          <div className="addAnamnesisInput">
+            <p>
+              Anamnezin adı <span>*</span>
+            </p>
+            <input
+              type="text"
+              placeholder="Anamnezin adı"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              disabled={isLoading}
+              required
+            />
+          </div>
 
-        <div className="addAnamnesisInput">
-          <p>Status</p>
-          <select name="status" value={formData.status} onChange={handleChange}>
-            <option value="ACTIVE">Aktiv</option>
-            <option value="INACTIVE">Passiv</option>
-          </select>
-        </div>
+          <div className="addAnamnesisInput">
+            <p>Status</p>
+            <select
+              name="status"
+              value={formData.status}
+              onChange={handleChange}
+              disabled={isLoading}
+            >
+              <option value="ACTIVE">Aktiv</option>
+              <option value="INACTIVE">Passiv</option>
+            </select>
+          </div>
 
-        <div className="addAnamnesisButtons">
-          <button
-            type="button"
-            className="cancelFormCondition"
-            onClick={() =>
-              setFormData({
-                name: "",
-                status: "ACTIVE",
-              })
-            }>
-            <img src={cancelButton} alt="Cancel" />
-            İmtina et
-          </button>
-          <button type="submit" className="acceptFormCondition">
-            <img src={acceptButton} alt="Save" />
-            Yadda saxla
-          </button>
+          <div className="addAnamnesisButtons">
+            <button
+              type="button"
+              className="cancelFormCondition"
+              onClick={handleCancel}
+              disabled={isLoading}
+            >
+              <img src={cancelButton} alt="Cancel" />
+              İmtina et
+            </button>
+            <button
+              type="submit"
+              className="acceptFormCondition"
+              disabled={isLoading}
+            >
+              <img src={acceptButton} alt="Save" />
+              {isLoading ? "Zəhmət olmasa gözləyin..." : "Yadda saxla"}
+            </button>
+          </div>
         </div>
-      </div>
-    </form>
+      </form>
+    </div>
   );
 }
 

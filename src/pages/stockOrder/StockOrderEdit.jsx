@@ -22,17 +22,20 @@ const StockOrderEdit = () => {
     orderDate: "",
     orderTime: "",
     room: null,
+    cabinetName: "",
     personWhoPlacedOrder: "",
+    personWhoPlacedOrderUUID: "",
     orderNumber: "",
     note: "",
   });
 
   const [products, setProducts] = useState([]);
+  const [workers, setWorkers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { rooms, fetchRooms } = useCalendarStore();
-  const { fetchWorkerById, selectedWorker } = useWorkerStore();
+  const { fetchWorkerById, selectedWorker, fetchWorkers } = useWorkerStore();
 
   const getAuthHeaders = () => {
     const token = localStorage.getItem("token");
@@ -60,6 +63,9 @@ const StockOrderEdit = () => {
         }
 
         await fetchRooms();
+        await fetchWorkers();
+        const workersData = useWorkerStore.getState().workers;
+        setWorkers(workersData || []);
         const roomsData = useCalendarStore.getState().rooms;
 
         if (id) {
@@ -68,6 +74,10 @@ const StockOrderEdit = () => {
             authHeaders
           );
           const orderData = orderResponse.data;
+
+          console.log("========== API-DAN GƏTİRİLƏN MƏLUMAT ==========");
+          console.log("orderData:", orderData);
+          console.log("============================================");
 
           let formattedTime = "";
           if (orderData.time) {
@@ -87,9 +97,21 @@ const StockOrderEdit = () => {
             orderDate: orderData.date || "",
             orderTime: formattedTime || "",
             room: roomToSet ? roomToSet.id : null,
+            cabinetName: orderData.cabinetName || "",
             orderNumber: orderData.number || "",
             note: orderData.description || "",
+            personWhoPlacedOrderUUID: orderData.personWhoPlacedOrderUUID || "",
           }));
+
+          console.log("========== FORM-A YERLƏŞDIRƏN MƏLUMAT ==========");
+          console.log("orderDate:", orderData.date);
+          console.log("orderTime:", formattedTime);
+          console.log("room ID:", roomToSet?.id);
+          console.log("cabinetName:", orderData.cabinetName);
+          console.log("orderNumber:", orderData.number);
+          console.log("note:", orderData.description);
+          console.log("personWhoPlacedOrderUUID:", orderData.personWhoPlacedOrderUUID);
+          console.log("============================================");
           
           if (orderData.personWhoPlacedOrderUUID) {
             await fetchWorkerById(orderData.personWhoPlacedOrderUUID);
@@ -136,9 +158,13 @@ const StockOrderEdit = () => {
 
   useEffect(() => {
     if (selectedWorker) {
+      console.log("========== SEÇILƏN İŞÇİ ==========");
+      console.log(selectedWorker);
+      console.log("==================================");
       setFormData((prev) => ({
         ...prev,
-        personWhoPlacedOrder: selectedWorker.name + " " + selectedWorker.surname || "",
+        personWhoPlacedOrder: `${selectedWorker.name} ${selectedWorker.surname}` || "",
+        personWhoPlacedOrderUUID: selectedWorker.id || selectedWorker.uuid || "",
       }));
     }
   }, [selectedWorker]);
@@ -148,9 +174,37 @@ const StockOrderEdit = () => {
     setFormData((prev) => ({ ...prev, [id]: value }));
   };
   
+  const handleWorkerChange = (e) => {
+    const selectedWorkerId = e.target.value;
+    console.log("Worker selected:", selectedWorkerId);
+    if (!selectedWorkerId) {
+      setFormData((prev) => ({
+        ...prev,
+        personWhoPlacedOrder: "",
+        personWhoPlacedOrderUUID: "",
+      }));
+      return;
+    }
+    const selectedWorker = workers.find((w) => (w.id || w.uuid) == selectedWorkerId);
+    if (selectedWorker) {
+      console.log("Found worker:", selectedWorker);
+      setFormData((prev) => ({
+        ...prev,
+        personWhoPlacedOrder: `${selectedWorker.name} ${selectedWorker.surname}` || "",
+        personWhoPlacedOrderUUID: selectedWorker.id || selectedWorker.uuid || "",
+      }));
+    }
+  };
+
   const handleRoomChange = (e) => {
     const selectedRoomId = e.target.value;
-    setFormData((prev) => ({ ...prev, room: selectedRoomId }));
+    console.log("Room selected:", selectedRoomId);
+    const selectedRoom = rooms.find((room) => room.id == selectedRoomId);
+    setFormData((prev) => ({
+      ...prev,
+      room: selectedRoomId,
+      cabinetName: selectedRoom?.cabinetName || "",
+    }));
   };
 
   const handleFormSubmit = async (e) => {
@@ -158,15 +212,42 @@ const StockOrderEdit = () => {
     try {
       setIsSubmitting(true);
 
+      // ========== DEBUGGING: Show current state ==========
+      console.log("========== FORM STATE ==========");
+      console.log("formData:", formData);
+      console.log("products count:", products.length);
+      console.log("selectedWorker:", selectedWorker);
+      console.log("rooms:", rooms);
+      console.log("=====================================");
+
       if (products.length === 0) {
+        console.error("❌ HATA: Məhsul sayı 0!");
         alert("Zəhmət olmasa ən azı bir məhsul əlavə edin.");
         setIsSubmitting(false);
         return;
       }
 
-      const { orderDate, orderTime, room, orderNumber, note } = formData;
-      if (!orderDate || !orderTime || !room || !orderNumber || !note) {
+      const { orderDate, orderTime, cabinetName, note } = formData;
+      
+      // ========== DEBUGGING: Validate each field ==========
+      console.log("========== SAHƏ VALIDASIYASI ==========");
+      console.log("orderDate:", orderDate, orderDate ? "✓" : "❌");
+      console.log("orderTime:", orderTime, orderTime ? "✓" : "❌");
+      console.log("cabinetName:", cabinetName, cabinetName ? "✓" : "❌");
+      console.log("description (note):", note, note ? "✓" : "❌");
+      console.log("products count:", products.length, products.length > 0 ? "✓" : "❌");
+      console.log("=====================================");
+
+      if (!orderDate || !orderTime || !cabinetName || !note) {
+        console.error("❌ HATA: Tələb olunan sahə boşdur!");
         alert("Zəhmət olmasa bütün tələb olunan sahələri doldurun.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (products.length === 0) {
+        console.error("❌ HATA: Heç bir məhsul əlavə edilməyib!");
+        alert("Zəhmət olmasa ən azı bir məhsul əlavə edin.");
         setIsSubmitting(false);
         return;
       }
@@ -177,15 +258,27 @@ const StockOrderEdit = () => {
         timeString = `${hour.padStart(2, "0")}:${minute.padStart(2, "0")}:00`;
       }
       
+      console.log("========== MƏHSULLAR MASSIВИ ==========");
+      console.log("Products count:", products.length);
+      console.log("Products detail:", products);
+      console.log("========================================");
+      
+      // API expects time as object, not string!
+      const [timeHour, timeMinute] = orderTime.split(":").map(Number);
+      
       const payload = {
         id: Number(id),
         date: orderDate,
-        time: timeString,
-        cabinetName: room,
-        personWhoPlacedOrderUUID: selectedWorker?.uuid,
-        orderNumber: Number(orderNumber),
+        time: {
+          hour: timeHour || 0,
+          minute: timeMinute || 0,
+          second: 0,
+          nano: 0
+        },
+        cabinetName: cabinetName,
         description: note,
-        orderFromWarehouseProductRequests: products.map((p) => ({
+        orderFromWarehouseProductUpdateRequests: products.map((p) => ({
+          orderFromWarehouseProductId: Number(p.id),
           warehouseEntryId: Number(p.warehouseEntryId),
           warehouseEntryProductId: Number(p.warehouseEntryProductId),
           categoryId: Number(p.category),
@@ -194,7 +287,9 @@ const StockOrderEdit = () => {
         })),
       };
 
-      console.log("Göndərilən məlumat (Payload):", payload);
+      console.log("========== GÖNDƏRİLƏN MƏLUMAT (PAYLOAD) - API SCHEMA ==========");
+      console.log("JSON:", JSON.stringify(payload, null, 2));
+      console.log("==============================================================");
 
       const authHeaders = getAuthHeaders();
       const response = await axios.put(
@@ -203,14 +298,21 @@ const StockOrderEdit = () => {
         authHeaders
       );
 
-      console.log("API cavabı:", response.data);
+      console.log("========== API CAVABI ==========");
+      console.log("Status:", response.status);
+      console.log("Data:", response.data);
+      console.log("================================");
       
       alert("Sifariş uğurla yeniləndi!");
       navigate("/stock/order");
       
     } catch (error) {
-      console.error("Xəta baş verdi:", error);
-      console.error("Xəta detalı:", error.response?.data || error.message);
+      console.error("========== XƏTA BAŞVERDI ==========");
+      console.error("Error Object:", error);
+      console.error("Response Status:", error.response?.status);
+      console.error("Response Data:", error.response?.data);
+      console.error("Error Message:", error.message);
+      console.error("===================================");
       
       let errorMessage = "Xəta baş verdi: ";
       if (error.response?.data?.message) {
@@ -332,13 +434,19 @@ const StockOrderEdit = () => {
             Sifariş verən <span className="stockOrderFormWrapper__required">*</span>
           </label>
           <div className="stockOrderFormWrapper__inputContainer">
-            <input
+            <select
               id="personWhoPlacedOrder"
-              type="text"
-              value={formData.personWhoPlacedOrder}
-              onChange={handleChange}
+              value={formData.personWhoPlacedOrderUUID || ""}
+              onChange={handleWorkerChange}
               className="stockOrderFormWrapper__input"
-            />
+            >
+              <option value="" disabled>Sifariş verəni seçin</option>
+              {workers.map((worker) => (
+                <option key={worker.id || worker.uuid} value={worker.id || worker.uuid}>
+                  {worker.name} {worker.surname}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 

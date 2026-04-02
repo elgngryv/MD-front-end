@@ -81,18 +81,16 @@ function ReceivedOrders() {
       console.log("Changing status from", currentStatus, "to", nextStatus);
 
       // Statusu yenilə
-      await changeOrderStatus(statusData);
+      const result = await changeOrderStatus(statusData);
       
       // Uğur mesajını göstər
       const statusText = getStatusInfo(nextStatus).text;
       setSuccessMessage(`${patientName} üçün status "${statusText}" olaraq yeniləndi`);
       
-      // Siyahını yenilə
-      await fetchOrders();
-      
     } catch (error) {
       console.error("Status dəyişmə xətası:", error);
-      alert(`Status dəyişmə xətası: ${error.message}`);
+      const errorMsg = error.response?.data?.message || error.message || "Status dəyişilə bilmədi";
+      alert(`Xəta: ${errorMsg}`);
     }
   };
 

@@ -6,6 +6,8 @@ import { FiDownload, FiEdit3 } from "react-icons/fi";
 import { GoTrash } from "react-icons/go";
 import { HiOutlineArrowsUpDown } from "react-icons/hi2";
 import { Link, useNavigate } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import useAnamnesisCategoryStore from "../../../stores/anamnesisCategoryStore";
 
 const AnamnesisList = () => {
@@ -16,9 +18,11 @@ const AnamnesisList = () => {
     deleteCategory,
     loading,
     updateCategoryStatus,
+    exportToExcel,
   } = useAnamnesisCategoryStore();
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
 
   useEffect(() => {
     fetchCategories();
@@ -36,25 +40,39 @@ const AnamnesisList = () => {
 
     try {
       await deleteCategory(id);
-      alert(`${name} uğurla silindi.`);
+      toast.success(`${name} uğurla silindi.`);
     } catch (error) {
-      alert("Silinmə zamanı xəta baş verdi.");
+      toast.error("Silinmə zamanı xəta baş verdi.");
     }
   };
 
   const toggleStatus = async (row) => {
-    const newStatus = row.status === "ACTIVE" ? "PASSIVE" : "ACTIVE";
+    const newStatus = row.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
     try {
-      await updateCategoryStatus(row.id, { status: newStatus });
+      await updateCategoryStatus(row.id, newStatus);
+      toast.success("Status uğurla dəyişdirildi!");
     } catch (err) {
-      alert("Status dəyişdirilə bilmədi!");
+      toast.error("Status dəyişdirilə bilmədi!");
+    }
+  };
+
+  const handleExport = async () => {
+    try {
+      await exportToExcel();
+      toast.success("Fayllar uğurla yükləndi!");
+    } catch (error) {
+      toast.error("Export zamanı xəta baş verdi!");
     }
   };
 
   const filteredCategories = categories
-    .filter((category) =>
-      category.name.toLowerCase().includes(searchTerm.toLowerCase())
-    )
+    .filter((category) => {
+      const matchesSearch = category.name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      const matchesStatus = !statusFilter || category.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    })
     .map((category) => ({
       ...category,
       anamnesisCount: category.anemnesisListReadResponse?.length || 0,
@@ -62,14 +80,16 @@ const AnamnesisList = () => {
 
   return (
     <div className="anamnesisList-container">
+      <ToastContainer />
       <div className="anamnesisList-controls-section">
         <div className="anamnesisList-filters">
           <select
             className="anamnesisList-status-dropdown"
-            onChange={(e) => setSearchTerm(e.target.value)}>
-            <option value="">Status</option>
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}>
+            <option value="">Hamısı</option>
             <option value="ACTIVE">Aktiv</option>
-            <option value="PASSIVE">Passiv</option>
+            <option value="INACTIVE">Passiv</option>
           </select>
           <div className="anamnesisList-search-box">
             <input
@@ -85,6 +105,13 @@ const AnamnesisList = () => {
           </div>
         </div>
         <div className="anamnesisList-actions">
+          <button 
+            className="anamnesisList-export-button"
+            onClick={handleExport}
+            disabled={loading}
+            title="Excel formatında yüklə">
+            <FiDownload /> Excel
+          </button>
           <Link to="./add-category" className="anamnesisList-add-new-button">
             <span>+</span> Yeni kateqoriya əlavə et
           </Link>

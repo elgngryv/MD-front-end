@@ -3,35 +3,36 @@ import { useParams, useNavigate } from "react-router-dom";
 import "../../assets/style/Anamnesis/editanamnesis.css";
 import acceptButton from "../../assets/images/EmployeesPage/verifyProcess.png";
 import cancelButton from "../../assets/images/EmployeesPage/cancelProcess.png";
-
-// Static data for example
-const staticAnamnesisData = [
-  { id: "1", anamnesisName: "Ümumi Anamnez", anamnesisNo: "001", anamnesisTitle: "Ümumi xəstəlik tarixçəsi" },
-  { id: "2", anamnesisName: "Stomatoloji Anamnez", anamnesisNo: "002", anamnesisTitle: "Diş xəstəlikləri tarixçəsi" },
-  { id: "3", anamnesisName: "Allergik Anamnez", anamnesisNo: "003", anamnesisTitle: "Allergiya tarixçəsi" },
-];
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import useAnamnesisListStore from "../../../stores/anamnesStore";
 
 function EditAnamnesis() {
-  const { id } = useParams();
+  const { id, categoryId } = useParams();
   const navigate = useNavigate();
+  const { selectedAnamnesis, fetchAnamnesisById, editAnamnesis, loading } = useAnamnesisListStore();
 
   const [formData, setFormData] = useState({
-    anamnesisName: "",
-    anamnesisNo: "",
-    anamnesisTitle: "",
+    name: "",
+    status: "ACTIVE",
   });
   const [formErrors, setFormErrors] = useState({});
 
   useEffect(() => {
-    const anamnesisToEdit = staticAnamnesisData.find((a) => a.id.toString() === id);
-    if (anamnesisToEdit) {
-      setFormData({
-        anamnesisName: anamnesisToEdit.anamnesisName || "",
-        anamnesisNo: anamnesisToEdit.anamnesisNo?.toString() || "",
-        anamnesisTitle: anamnesisToEdit.anamnesisTitle || "",
-      });
+    if (id) {
+      fetchAnamnesisById(id);
     }
-  }, [id]);
+  }, [id, fetchAnamnesisById]);
+
+  useEffect(() => {
+    if (selectedAnamnesis && selectedAnamnesis.id) {
+      setFormData({
+        name: selectedAnamnesis.name || "",
+        status: selectedAnamnesis.status || "ACTIVE",
+      });
+      console.log("Loaded anamnesis item:", selectedAnamnesis.name);
+    }
+  }, [selectedAnamnesis]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -46,37 +47,33 @@ function EditAnamnesis() {
 
   const validateForm = () => {
     const errors = {};
-    if (!formData.anamnesisName.trim())
-      errors.anamnesisName = "Anamnez adı tələb olunur";
-    if (!formData.anamnesisNo.trim())
-      errors.anamnesisNo = "Anamnez kodu tələb olunur";
+    if (!formData.name.trim()) {
+      errors.name = "Anamnez adı tələb olunur";
+    }
     return errors;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     const validationErrors = validateForm();
     if (Object.keys(validationErrors).length > 0) {
       setFormErrors(validationErrors);
       return;
     }
-  
-    const payload = {
-      id: Number(id),
-      anamnesisName: formData.anamnesisName,
-      anamnesisNo: Number(formData.anamnesisNo),
-      anamnesisTitle: formData.anamnesisTitle,
-    };
-  
-    console.log("EditAnamnesis payload:", payload);  
-  
+
     try {
-      // Here you would typically make an API call
-      alert("Anamnez uğurla yeniləndi!");
-      navigate("/anamnesis");
+      await editAnamnesis(id, {
+        name: formData.name.trim(),
+        anamnesisCategoryId: categoryId,
+      });
+      toast.success("Anamnez uğurla yeniləndi!");
+      setTimeout(() => {
+        navigate(categoryId ? `/anamnesis/anamnesis-details/${categoryId}` : "/anamnesis");
+      }, 1000);
     } catch (err) {
-      alert(`Xəta baş verdi: ${err.message}`);
+      toast.error(`Xəta baş verdi: ${err?.message || "Bilinməyən xəta"}`);
+      console.error("Error updating anamnesis:", err);
     }
   };
 
@@ -86,6 +83,7 @@ function EditAnamnesis() {
 
   return (
     <div className="editAnamnesisWrapper">
+      <ToastContainer />
       <form className="editAnamnesisContainer" onSubmit={handleSubmit}>
         <div className="editAnamnesisInput">
           <label>
@@ -93,58 +91,48 @@ function EditAnamnesis() {
           </label>
           <input
             type="text"
-            name="anamnesisName"
+            name="name"
             placeholder="Anamnezin adı"
-            value={formData.anamnesisName}
+            value={formData.name}
             onChange={handleChange}
             required
+            disabled={loading}
           />
-          {formErrors.anamnesisName && (
-            <span className="error">{formErrors.anamnesisName}</span>
+          {formErrors.name && (
+            <span className="error">{formErrors.name}</span>
           )}
         </div>
 
         <div className="editAnamnesisInput">
-          <label>
-            Anamnezin kodu<span>*</span>
-          </label>
-          <input
-            type="text"
-            name="anamnesisNo"
-            placeholder="Anamnezin kodu"
-            value={formData.anamnesisNo}
+          <label>Status</label>
+          <select 
+            name="status" 
+            value={formData.status} 
             onChange={handleChange}
-            required
-          />
-          {formErrors.anamnesisNo && (
-            <span className="error">{formErrors.anamnesisNo}</span>
-          )}
-        </div>
-
-        <div className="editAnamnesisInput">
-          <label>Özəllikləri</label>
-          <input
-            type="text"
-            name="anamnesisTitle"
-            placeholder="Anamnezin özəllikləri"
-            value={formData.anamnesisTitle}
-            onChange={handleChange}
-          />
+            disabled={loading}
+          >
+            <option value="ACTIVE">Aktiv</option>
+            <option value="INACTIVE">Passiv</option>
+          </select>
         </div>
 
         <div className="editAnamnesisButtons">
           <button
             type="button"
             className="cancelFormCondition"
-            onClick={handleCancel}>
+            onClick={() => navigate(-1)}
+            disabled={loading}
+          >
             <img src={cancelButton} alt="İmtina et" />
             İmtina et
           </button>
           <button
             type="submit"
-            className="acceptFormCondition">
+            className="acceptFormCondition"
+            disabled={loading}
+          >
             <img src={acceptButton} alt="Yadda saxla" />
-            Yadda saxla
+            {loading ? "Zəhmət olmasa gözləyin..." : "Yadda saxla"}
           </button>
         </div>
       </form>

@@ -4,11 +4,13 @@ import {
   searchTeethOperations,
   updateTeethOperation,
   getAllTeethOperations,
+  getTeethOperationById,
   deleteTeethOperation,
 } from "../src/api/teeth-operation";
 
 const useTeethOperationStore = create((set, get) => ({
   teethOperations: [],
+  operationDetails: null,
   loading: false,
   error: null,
 
@@ -19,6 +21,18 @@ const useTeethOperationStore = create((set, get) => ({
       set({ teethOperations: data, loading: false });
     } catch (error) {
       set({ error, loading: false });
+    }
+  },
+
+  // 📌 Read by ID
+  fetchOperationById: async (id) => {
+    set({ loading: true, error: null });
+    try {
+      const data = await getTeethOperationById(id);
+      set({ operationDetails: data, loading: false });
+    } catch (error) {
+      set({ error, loading: false });
+      throw error;
     }
   },
 

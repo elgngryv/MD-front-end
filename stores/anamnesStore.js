@@ -1,23 +1,30 @@
 import { create } from "zustand";
 import {
-  createAnamnesis,
-  updateAnamnesis,
-  deleteAnamnesis,
-  getAnamnesisListByCategory,
-  getAnamnesisById,
-  updateAnamnesisStatus,
-} from "../src/api/anamnes";
+  createAnamnesisItem,
+  updateAnamnesisItem,
+  deleteAnamnesisItem,
+  updateAnamnesisItemStatus,
+  readAnamnesisItemById,
+  readAnamnesisListAll,
+  searchAnamnesisItems,
+} from "../src/api/anamnesis-list";
 
 const useAnamnesisListStore = create((set) => ({
   anamnesisList: [],
   selectedAnamnesis: null,
   loading: false,
   error: null,
+
+  // Fetch anamnesis for a specific category (maintains backward compatibility)
   fetchAnamnesisList: async (categoryId) => {
     set({ loading: true, error: null });
     try {
       console.log("Fetching anamnesis for category:", categoryId);
-      const res = await getAnamnesisListByCategory(categoryId);
+      // Search for items by category
+      const res = await searchAnamnesisItems(
+        { anamnesisCategory: { id: categoryId } },
+        { page: 0, count: 100 }
+      );
       console.log("API response:", res);
 
       set({
@@ -26,16 +33,30 @@ const useAnamnesisListStore = create((set) => ({
       });
     } catch (error) {
       console.error("Error fetching anamnesis:", error);
-      set({ error, loading: false });
+      // Fallback: fetch all items if category-specific fetch fails
+      try {
+        const res = await readAnamnesisListAll();
+        set({
+          anamnesisList: Array.isArray(res) ? res : [],
+          loading: false,
+        });
+      } catch (fallbackError) {
+        set({ error, loading: false });
+      }
     }
   },
+
   addAnamnesis: async (data) => {
     set({ loading: true, error: null });
     try {
-      await createAnamnesis(data);
-      await useAnamnesisListStore
-        .getState()
-        .fetchAnamnesisList(data.anamnesisCategoryId);
+      await createAnamnesisItem(data);
+      if (data.anamnesisCategoryId) {
+        await useAnamnesisListStore
+          .getState()
+          .fetchAnamnesisList(data.anamnesisCategoryId);
+      } else {
+        await useAnamnesisListStore.getState().fetchAllAnamnesis();
+      }
       set({ loading: false });
       return true;
     } catch (error) {
@@ -47,10 +68,14 @@ const useAnamnesisListStore = create((set) => ({
   editAnamnesis: async (id, data) => {
     set({ loading: true, error: null });
     try {
-      await updateAnamnesis(id, data);
-      await useAnamnesisListStore
-        .getState()
-        .fetchAnamnesisList(data.anamnesisCategoryId);
+      await updateAnamnesisItem(id, data);
+      if (data.anamnesisCategoryId) {
+        await useAnamnesisListStore
+          .getState()
+          .fetchAnamnesisList(data.anamnesisCategoryId);
+      } else {
+        await useAnamnesisListStore.getState().fetchAllAnamnesis();
+      }
       set({ loading: false });
     } catch (error) {
       set({ error, loading: false });
@@ -60,7 +85,7 @@ const useAnamnesisListStore = create((set) => ({
   removeAnamnesis: async (id) => {
     set({ loading: true, error: null });
     try {
-      await deleteAnamnesis(id);
+      await deleteAnamnesisItem(id);
       set({ loading: false });
       return true;
     } catch (error) {
@@ -72,8 +97,8 @@ const useAnamnesisListStore = create((set) => ({
   fetchAnamnesisById: async (id) => {
     set({ loading: true, error: null });
     try {
-      const res = await getAnamnesisById(id);
-      set({ selectedAnamnesis: res.data, loading: false });
+      const res = await readAnamnesisItemById(id);
+      set({ selectedAnamnesis: res, loading: false });
     } catch (error) {
       set({ error, loading: false });
     }
@@ -82,8 +107,21 @@ const useAnamnesisListStore = create((set) => ({
   updateAnamnesisStatus: async (id, statusData) => {
     set({ loading: true, error: null });
     try {
-      await updateAnamnesisStatus(id, statusData);
+      await updateAnamnesisItemStatus(id, statusData.status);
       set({ loading: false });
+    } catch (error) {
+      set({ error, loading: false });
+    }
+  },
+
+  fetchAllAnamnesis: async () => {
+    set({ loading: true, error: null });
+    try {
+      const res = await readAnamnesisListAll();
+      set({
+        anamnesisList: Array.isArray(res) ? res : [],
+        loading: false,
+      });
     } catch (error) {
       set({ error, loading: false });
     }

@@ -64,6 +64,10 @@ const AddExaminationPicture = () => {
     }
   };
 
+  const handleCancel = () => {
+    navigate(-1);
+  };
+
   return (
     <div className="addExaminationPictureContainer">
       <form className="addexaminationpicture-form" onSubmit={handleSubmit}>
@@ -127,7 +131,11 @@ const AddExaminationPicture = () => {
         </div>
 
         <div className="addexaminationpicture-actions">
-          <button type="button" className="addexaminationpicture-cancel-btn">
+          <button
+            type="button"
+            className="addexaminationpicture-cancel-btn"
+            onClick={handleCancel}
+          >
             İmtina et
           </button>
           <button type="submit" className="addexaminationpicture-save-btn">

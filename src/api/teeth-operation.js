@@ -49,6 +49,14 @@ export const getAllTeethOperations = async () => {
   return response.data;
 };
 
+// Əməliyyatı ID-səsinə görə oxu
+export const getTeethOperationById = async (id) => {
+  const response = await axiosInstance.get(
+    `${API_BASE_URL}/teeth-operation/read-by-id/${id}`
+  );
+  return response.data;
+};
+
 // Əməliyyatı sil
 export const deleteTeethOperation = async (id) => {
   const response = await axiosInstance.delete(

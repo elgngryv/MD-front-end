@@ -4,11 +4,13 @@ import {
   updateTeethExamination,
   searchTeethExaminations,
   getAllTeethExaminations,
+  getTeethExaminationById,
   deleteTeethExaminationById,
 } from "../src/api/teeth-examinaton";
 
 const useTeethExaminationStore = create((set, get) => ({
   teethExaminations: [],
+  examinationDetails: null,
   loading: false,
   error: null,
 
@@ -20,6 +22,18 @@ const useTeethExaminationStore = create((set, get) => ({
       set({ teethExaminations: data, loading: false });
     } catch (error) {
       set({ error, loading: false });
+    }
+  },
+
+  // 📌 Read by ID
+  fetchExaminationById: async (id) => {
+    set({ loading: true, error: null });
+    try {
+      const data = await getTeethExaminationById(id);
+      set({ examinationDetails: data, loading: false });
+    } catch (error) {
+      set({ error, loading: false });
+      throw error;
     }
   },
 

@@ -17,24 +17,36 @@ import "react-toastify/dist/ReactToastify.css";
 import useAnamnesisCategoryStore from "../../../stores/anamnesisCategoryStore";
 
 function AddAnamnesis() {
-  const [anamnesisName, setAnamnesisName] = useState("");
+  const [formData, setFormData] = useState({
+    name: "",
+    status: "ACTIVE",
+  });
   const navigate = useNavigate();
-  const addCategory = useAnamnesisCategoryStore((state) => state.addCategory);
+  const { addCategory, loading } = useAnamnesisCategoryStore();
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!anamnesisName.trim()) {
+    if (!formData.name.trim()) {
       toast.warning("Zəhmət olmasa kateqoriya adını daxil edin!");
       return;
     }
 
     try {
-      const newAnamnesis = {
-        name: anamnesisName.trim(),
+      const newCategory = {
+        name: formData.name.trim(),
+        status: formData.status,
       };
 
-      await addCategory(newAnamnesis);
+      await addCategory(newCategory);
       toast.success("Anamnez kateqoriyası uğurla əlavə olundu!");
       setTimeout(() => {
         navigate("/anamnesis");
@@ -43,6 +55,13 @@ function AddAnamnesis() {
       console.error("Anamnez əlavə edilərkən xəta:", error);
       toast.error("Anamnez əlavə edilərkən xəta baş verdi!");
     }
+  };
+
+  const handleReset = () => {
+    setFormData({
+      name: "",
+      status: "ACTIVE",
+    });
   };
 
   return (
@@ -55,24 +74,41 @@ function AddAnamnesis() {
           </p>
           <input
             type="text"
-            placeholder="Anamnezin adı"
-            value={anamnesisName}
-            onChange={(e) => setAnamnesisName(e.target.value)}
+            placeholder="Kateqoriyanın adı"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            required
+            disabled={loading}
           />
+        </div>
+
+        <div className="addAnamnesisInput">
+          <p>Status</p>
+          <select 
+            name="status" 
+            value={formData.status} 
+            onChange={handleChange}
+            disabled={loading}
+          >
+            <option value="ACTIVE">Aktiv</option>
+            <option value="INACTIVE">Passiv</option>
+          </select>
         </div>
 
         <div className="addAnamnesisButtons">
           <button
             type="button"
             className="cancelFormCondition"
-            onClick={() => setAnamnesisName("")}>
+            onClick={handleReset}
+            disabled={loading}>
             <img src={cancelButton} alt="cancel" />
             İmtina et
           </button>
 
-          <button type="submit" className="acceptFormCondition">
+          <button type="submit" className="acceptFormCondition" disabled={loading}>
             <img src={acceptButton} alt="accept" />
-            Yadda saxla
+            {loading ? "Zəhmət olmasa gözləyin..." : "Yadda saxla"}
           </button>
         </div>
       </form>

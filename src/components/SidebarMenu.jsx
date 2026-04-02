@@ -157,7 +157,7 @@ const SidebarMenu = ({ isCollapsed, toggleSidebar }) => {
       ),
       children: [
         { id: 71, title: "İcazələr", path: "/permissions" },
-        { id: 72, title: "Admin istifadəçiləri", path: "/admin-users" },
+        // { id: 72, title: "Admin istifadəçiləri", path: "/admin-users" },
         { id: 73, title: "Texniklər", path: "/technicians" },
         { id: 74, title: "Randevu tipləri", path: "/appointment-types" },
         { id: 75, title: "Müayinə siyahısı", path: "/checklist" },

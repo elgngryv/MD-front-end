@@ -13,41 +13,42 @@ import cancelButton from "../../assets/images/EmployeesPage/cancelProcess.png";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-// Static data
-const staticAnamnesisData = [
-  { id: "1", anamnesisName: "Ümumi Anamnez" },
-  { id: "2", anamnesisName: "Stomatoloji Anamnez" },
-  { id: "3", anamnesisName: "Allergik Anamnez" },
-];
+// Store
+import useAnamnesisCategoryStore from "../../../stores/anamnesisCategoryStore";
 
 function EditAnamnesis() {
   const [anamnesisName, setAnamnesisName] = useState("");
   const navigate = useNavigate();
   const { id } = useParams();
+  const { categoryDetails, fetchCategoryById, updateCategory, loading } =
+    useAnamnesisCategoryStore();
 
   useEffect(() => {
-    // Find anamnesis from static data
-    const anamnesis = staticAnamnesisData.find(item => item.id === id);
-    if (anamnesis) {
-      setAnamnesisName(anamnesis.anamnesisName);
+    if (id) {
+      fetchCategoryById(id);
     }
-  }, [id]);
+  }, [id, fetchCategoryById]);
+
+  useEffect(() => {
+    if (categoryDetails) {
+      setAnamnesisName(categoryDetails.name || "");
+    }
+  }, [categoryDetails]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!anamnesisName.trim()) return;
+    if (!anamnesisName.trim()) {
+      toast.warning("Zəhmət olmasa kateqoriya adını daxil edin!");
+      return;
+    }
 
     try {
-      // Static data update example
-      const updatedAnamnesis = {
-        id,
-        anamnesisName: anamnesisName.trim(),
-      };
-
-      console.log("Updated Anamnesis:", updatedAnamnesis);
-      toast.success("Anamnez uğurla yeniləndi!");
-      navigate("/anamnesis");
+      await updateCategory(id, { name: anamnesisName.trim() });
+      toast.success("Anamnez kateqoriyası uğurla yeniləndi!");
+      setTimeout(() => {
+        navigate("/anamnesis");
+      }, 1500);
     } catch (error) {
       console.error("Anamnez yenilənərkən xəta:", error);
       toast.error("Anamnez yenilənərkən xəta baş verdi!");
@@ -56,6 +57,7 @@ function EditAnamnesis() {
 
   return (
     <div className="editAnamnesisWrapper">
+      <ToastContainer />
       <form className="editAnamnesisContainer" onSubmit={handleSubmit}>
         <div className="editAnamnesisInput">
           <p>
@@ -66,6 +68,8 @@ function EditAnamnesis() {
             placeholder="Anamnezin adı"
             value={anamnesisName}
             onChange={(e) => setAnamnesisName(e.target.value)}
+            disabled={loading}
+            required
           />
         </div>
 
@@ -73,14 +77,15 @@ function EditAnamnesis() {
           <button
             type="button"
             className="cancelFormCondition"
-            onClick={() => navigate("/anamnesis")}>
+            onClick={() => navigate("/anamnesis")}
+            disabled={loading}>
             <img src={cancelButton} alt="cancel" />
             İmtina et
           </button>
 
-          <button type="submit" className="acceptFormCondition">
+          <button type="submit" className="acceptFormCondition" disabled={loading}>
             <img src={acceptButton} alt="accept" />
-            Yadda saxla
+            {loading ? "Zəhmət olmasa gözləyin..." : "Yadda saxla"}
           </button>
         </div>
       </form>
@@ -89,3 +94,4 @@ function EditAnamnesis() {
 }
 
 export default EditAnamnesis;
+

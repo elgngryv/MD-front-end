@@ -4,6 +4,8 @@ import { GoTrash } from "react-icons/go";
 import { CiSearch } from "react-icons/ci";
 import { PiWarningCircleLight } from "react-icons/pi";
 import { HiArrowsUpDown } from "react-icons/hi2";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "../../assets/style/Teeth/operationpictures.css";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import useTeethExaminationStore from "../../../stores/teeth-examinationStore";
@@ -11,7 +13,7 @@ import useTeethExaminationStore from "../../../stores/teeth-examinationStore";
 const ExaminationPictures = () => {
   const navigate = useNavigate();
   const { id: teethId } = useParams();
-  const { teethExaminations, fetchAllTeethExaminations } =
+  const { teethExaminations, fetchAllTeethExaminations, deleteTeethExamination } =
     useTeethExaminationStore();
 
   useEffect(() => {
@@ -22,16 +24,32 @@ const ExaminationPictures = () => {
     (exam) => String(exam.teeth?.id) === String(teethId)
   );
 
-  const handleEdit = (id) => () => {
-    navigate(`edit/${id}`);
+  const handleEdit = (id, examination) => () => {
+    navigate(`edit/${id}`, { state: { examination } });
   };
 
-  const handleInfo = (id) => () => {
-    navigate(`info/${id}`);
+  const handleInfo = (id, examination) => () => {
+    navigate(`info/${id}`, { state: { examination } });
+  };
+
+  const handleDelete = async (id, examName) => {
+    const confirmed = window.confirm(
+      `"${examName}" müayinəsini silmək istədiyinizə əminsiniz?`
+    );
+    if (!confirmed) return;
+
+    try {
+      await deleteTeethExamination(id);
+      toast.success("Müayinə uğurla silindi!");
+    } catch (error) {
+      toast.error("Silinmə zamanı xəta baş verdi!");
+      console.error("Delete error:", error);
+    }
   };
 
   return (
     <div className="operationPictures-container">
+      <ToastContainer />
       <div className="operationPictures-controls-section">
         <div style={{ width: 250 }}>
           <div className="operationPictures-search-box">
@@ -86,14 +104,19 @@ const ExaminationPictures = () => {
                 <td>
                   <div className="operationPictures-action-icons">
                     <PiWarningCircleLight
-                      onClick={handleInfo(row.id)}
+                      onClick={handleInfo(row.id, row)}
                       className="operationPictures-warning-button"
                     />
                     <FiEdit3
-                      onClick={handleEdit(row.id)}
+                      onClick={handleEdit(row.id, row)}
                       className="operationPictures-edit-button"
                     />
-                    <GoTrash className="operationPictures-delete-button" />
+                    <GoTrash
+                      onClick={() =>
+                        handleDelete(row.id, row.examination?.typeName)
+                      }
+                      className="operationPictures-delete-button"
+                    />
                   </div>
                 </td>
               </tr>

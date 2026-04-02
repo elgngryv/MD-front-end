@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import "../../assets/style/PermissionPage/infopermission.css";
-import { FiEdit3 } from "react-icons/fi";
+import { FiEdit3, FiCheck } from "react-icons/fi";
+import { RxCross2 } from "react-icons/rx";
 import usePermissionStore from "../../../stores/permissionStore";
 
 const permissions = [
@@ -183,6 +184,23 @@ function InfoPermission() {
                 </tbody>
               </table>
             )}
+          </div>
+
+          <div className="editPermissionActions">
+            <button
+              type="button"
+              className="cancelBtn"
+              onClick={() => navigate("/permissions")}
+            >
+              <RxCross2 /> İmtina et
+            </button>
+            <button
+              type="button"
+              className="saveBtn"
+              onClick={() => navigate(`../permissions/edit/${id}`)}
+            >
+              <FiCheck /> Redaktə et
+            </button>
           </div>
         </form>
       </div>

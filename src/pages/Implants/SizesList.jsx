@@ -33,7 +33,7 @@ function SizesList() {
   }, [id, implants]);
 
   const handleEdit = (row) => {
-    navigate(`edit/${row.id}`);
+    navigate(`/implants/sizes/${id}/edit/${row.id}`);
   };
 
   const handleDelete = async (row) => {
