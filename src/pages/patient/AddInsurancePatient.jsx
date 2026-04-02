@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { message } from "antd";
 import useInsuranceCompanyStore from "../../../stores/insuranceStore";
 import usePatientInsuranceStore from "../../../stores/patientInsuranceStore";
 
@@ -36,16 +37,20 @@ const AddInsurancePatient = () => {
     const payload = {
       ...formData,
       insuranceCompanyId: Number(formData.insuranceCompanyId),
-      deductibleAmount: Number(formData.deductibleAmount) || 0,
-      annualMaxAmount: Number(formData.annualMaxAmount) || 0,
+      deductibleAmount: formData.deductibleAmount ? Number(formData.deductibleAmount) : null,
+      annualMaxAmount: formData.annualMaxAmount ? Number(formData.annualMaxAmount) : null,
       patientId: Number(patientId),
     };
 
     try {
       await createPatientInsurance(payload);
+      message.success("Sığorta məlumatı uğurla əlavə edildi!");
       navigate(`/patients/patient/${patientId}/insurance`);
     } catch (err) {
       console.error("Yaratma xətası:", err);
+      const status = err.response?.status;
+      const errorMsg = err.response?.data?.message || "Sığorta əlavə edilərkən xəta baş verdi";
+      message.error(`Xəta (Status: ${status || 500}): ${errorMsg}`);
     }
   };
 

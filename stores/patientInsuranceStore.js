@@ -27,8 +27,10 @@ const usePatientInsuranceStore = create((set) => ({
     try {
       const data = await createPatientInsurance(newData);
       set({ patientInsurance: data, loading: false });
+      return { success: true, data };
     } catch (error) {
       set({ error, loading: false });
+      throw error;
     }
   },
 
@@ -37,8 +39,10 @@ const usePatientInsuranceStore = create((set) => ({
     try {
       const data = await updatePatientInsurance(id, updatedData);
       set({ patientInsurance: data, loading: false });
+      return { success: true, data };
     } catch (error) {
       set({ error, loading: false });
+      throw error;
     }
   },
 

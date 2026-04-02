@@ -12,6 +12,30 @@ import usePatientInsuranceStore from '../../../../stores/patientInsuranceStore';
 import usePlansStore from '../../../../stores/plans';
 import usePatientPlansControllerStore from '../../../../stores/patient-plans-controller'; 
 
+// LocalStorage helpers for draft plans
+const getDraftPlans = (patientId) => {
+  try {
+    return JSON.parse(localStorage.getItem(`MD_DRAFT_PLANS_${patientId}`) || '[]');
+  } catch {
+    return [];
+  }
+};
+
+const setDraftPlans = (patientId, drafts) => {
+  localStorage.setItem(`MD_DRAFT_PLANS_${patientId}`, JSON.stringify(drafts));
+};
+
+const addDraftPlan = (patientId, plan) => {
+  const drafts = getDraftPlans(patientId);
+  if (!drafts.some(p => p.id === plan.id)) {
+    setDraftPlans(patientId, [...drafts, plan]);
+  }
+};
+
+const removeDraftPlan = (patientId, planId) => {
+  const drafts = getDraftPlans(patientId);
+  setDraftPlans(patientId, drafts.filter(p => p.id !== planId));
+};
 const Plans = () => {     
   const { id: patientId } = useParams();
   const [form] = Form.useForm();
@@ -74,16 +98,28 @@ const Plans = () => {
     
     if (editingPlan) {
       // Plan düzenleme - API çağrısı addToPlan içinde yapıldı, API-dən gələn datanı istifadə et
+      const isSaveVal = planData.isSave !== undefined ? planData.isSave : (editingPlan.isSave !== undefined ? editingPlan.isSave : false);
       setPlans(plans.map(plan => 
         plan.id === editingPlan.id 
           ? { 
               ...plan, 
               ...planData, 
               key: planKey,
-              isSave: planData.isSave !== undefined ? planData.isSave : (plan.isSave !== undefined ? plan.isSave : false)
+              isSave: isSaveVal
             }
           : plan
       ));
+      
+      const drafts = getDraftPlans(patientId);
+      if (drafts.some(p => p.id === editingPlan.id)) {
+        setDraftPlans(patientId, drafts.map(p => p.id === editingPlan.id ? {
+          ...p,
+          ...planData,
+          key: planKey,
+          isSave: isSaveVal
+        } : p));
+      }
+
       // Plan düzəldikdən sonra seçimləri sıfırla
       // API çağırışı lazım deyil - useEffect avtomatik işləyəcək
       resetAllSelections();
@@ -96,6 +132,11 @@ const Plans = () => {
         isSave: planData.isSave !== undefined ? planData.isSave : false
       };
       console.log('handlePlanAdd - newPlan:', newPlan); // Debug üçün
+      
+      if (!newPlan.isSave) {
+        addDraftPlan(patientId, newPlan);
+      }
+      
       setPlans([...plans, newPlan]);
       setSelectedPlanId(newPlan.id);
       // API çağırışı lazım deyil - useEffect avtomatik işləyəcək (selectedPlanId dəyişdikdə)
@@ -111,6 +152,7 @@ const Plans = () => {
       
       // Sadece başarılı olduğunda (200 status) state güncelle
       if (result.success && result.status === 200) {
+        removeDraftPlan(patientId, planId);
         const updatedPlans = plans.filter(plan => plan.id !== planId);
         setPlans(updatedPlans);
         // Əgər yalnız 1 plan qalıbsa, onu seç, yoxsa seçimi sıfırla
@@ -221,6 +263,7 @@ const Plans = () => {
       
       if (result.success && result.status === 200) {
         message.success('Plan uğurla təsdiqləndi!');
+        removeDraftPlan(patientId, selectedPlanId);
         // Plans listini yenilə ki isSave dəyəri yenilənsin
         if (patientId) {
           const plansResult = await fetchPlansFromStore(Number(patientId));
@@ -321,7 +364,7 @@ const Plans = () => {
         if (result.success && result.status === 200) {
           // API'den gelen planları state'e ekle
           console.log('API Response:', result.data); // Debug üçün
-          const formattedPlans = Array.isArray(result.data) 
+          const backendPlans = Array.isArray(result.data) 
             ? result.data.map(plan => {
                 console.log('Plan from API:', plan); // Debug üçün
                 return {
@@ -330,16 +373,27 @@ const Plans = () => {
                   'Sığorta Şirkəti': plan.insuranceId || plan.patientInsuranceId,
                   'Gender': plan.key === 'Yetkin' ? 'yetkin' : plan.key === 'Uşaq' ? 'usaq' : plan.key,
                   'key': plan.key, // Orijinal key-i saxla
-                  isSave: plan.isSave !== undefined ? plan.isSave : false, // isSave dəyərini saxla, yoxdursa false
+                  isSave: plan.isSave !== undefined ? plan.isSave : true, // API-dan gələnlər çox ehtimal true-dur (draft-lar oxunmur)
                 };
               })
             : [];
+            
+          const drafts = getDraftPlans(patientId);
+          const backendIds = new Set(backendPlans.map(p => p.id));
+          const validDrafts = drafts.filter(d => !backendIds.has(d.id));
+          
+          if (validDrafts.length !== drafts.length) {
+            setDraftPlans(patientId, validDrafts);
+          }
+          
+          const formattedPlans = [...backendPlans, ...validDrafts];
           setPlans(formattedPlans);
+          
           // Yalnız 1 plan varsa, onu avtomatik seç
-          if (formattedPlans.length === 1) {
+          if (formattedPlans.length === 1 && !selectedPlanId) {
             setSelectedPlanId(formattedPlans[0].id);
-          } else {
-            // Birdən çox plan varsa, seçimi sıfırla
+          } else if (formattedPlans.length === 0) {
+            // Birdən çox plan yoxdursa, seçimi sıfırla
             setSelectedPlanId(null);
           }
         }

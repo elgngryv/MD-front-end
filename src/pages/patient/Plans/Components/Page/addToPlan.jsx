@@ -1,6 +1,6 @@
 import { Button, Form, Input, message, Select } from 'antd'
 import React, { useEffect } from 'react'
-import usePatientInsuranceStore from '../../../../../../stores/patientInsuranceStore';
+import useInsuranceCompanyStore from '../../../../../../stores/insuranceStore';
 import usePlansStore from '../../../../../../stores/plans';
 
 const AddToPlan = ({ onClose, onFinish, editingPlan, patientId }) => {
@@ -8,8 +8,9 @@ const AddToPlan = ({ onClose, onFinish, editingPlan, patientId }) => {
 
 
   const {
-      patientInsurance,
-    } = usePatientInsuranceStore();
+      insuranceCompanyList,
+      fetchList
+    } = useInsuranceCompanyStore();
 
   const {
     createPlans,
@@ -17,12 +18,16 @@ const AddToPlan = ({ onClose, onFinish, editingPlan, patientId }) => {
     loading: plansLoading,
   } = usePlansStore();
 
-  // patientInsurance məlumatını Select options formatına çevir
+  useEffect(() => {
+    fetchList();
+  }, [fetchList]);
+
+  // insuranceCompanyList məlumatını Select options formatına çevir
   const insuranceOptions = [
     { label: 'Yoxdur', value: 0 },
-    ...(Array.isArray(patientInsurance) 
-      ? patientInsurance.map(insurance => ({
-          label: insurance.insuranceCompanyName || insurance.policyNumber || `Sığorta #${insurance.id}`,
+    ...(Array.isArray(insuranceCompanyList) 
+      ? insuranceCompanyList.map(insurance => ({
+          label: insurance.companyName || `Sığorta #${insurance.id}`,
           value: insurance.id,
         }))
       : [])
