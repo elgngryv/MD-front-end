@@ -63,6 +63,7 @@ const ListWithSubtotal = ({
               <div className="flex flex-1 justify-end px-2 gap-2">
                 {enableView && (
                   <button 
+                    type="button"
                     onClick={() => handleView?.(item.id)}
                     className="text-[#155EEF] hover:text-[#155EEF]"
                   >
@@ -71,6 +72,7 @@ const ListWithSubtotal = ({
                 )}
                 {enableEdit && (
                   <button 
+                    type="button"
                     onClick={() => handleEdit(item)}
                     className="text-yellow-600 hover:text-yellow-800"
                   >
@@ -79,6 +81,7 @@ const ListWithSubtotal = ({
                 )}
                 {enableDelete && (
                   <button 
+                    type="button"
                     onClick={() => handleDelete?.(item.id)}
                     className="text-red-600 hover:text-red-800"
                   >

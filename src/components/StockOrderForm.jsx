@@ -60,22 +60,19 @@ const StockOrderForm = ({
         const categoriesResponse = await axiosInstance.get(
           "/product-category/read"
         );
-        setCategories(
-          categoriesResponse.data.map((cat) => ({
-            value: cat.id,
-            label: cat.name || cat.categoryName,
-          }))
-        );
+        const categoryListData = categoriesResponse.data.map((cat) => ({
+          value: cat.id,
+          label: cat.name || cat.categoryName,
+        }));
+        setCategories(categoryListData);
 
-        const productsResponse = await axiosInstance.get("/product/read");
-        setProductsByCategory(
-          productsResponse.data.map((prod) => ({
-            value: prod.id,
-            label: prod.name || prod.productName,
-            categoryId: prod.categoryId || prod.productCategoryId,
-            price: prod.price,
-          }))
-        );
+        const productListData = productsResponse.data.map((prod) => ({
+          value: prod.id,
+          label: prod.name || prod.productName,
+          categoryId: prod.categoryId || prod.productCategoryId,
+          price: prod.price,
+        }));
+        setProductsByCategory(productListData);
 
         const warehouseEntriesResponse = await axiosInstance.get(
           "/warehouse-entry/read"
@@ -101,10 +98,10 @@ const StockOrderForm = ({
           if (orderData.orderFromWarehouseProductRequests) {
             const formattedProducts =
               orderData.orderFromWarehouseProductRequests.map((item) => {
-                const category = categories.find(
+                const category = categoryListData.find(
                   (c) => c.value === item.categoryId
                 );
-                const product = productsByCategory.find(
+                const product = productListData.find(
                   (p) => p.value === item.productId
                 );
 

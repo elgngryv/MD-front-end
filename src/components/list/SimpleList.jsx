@@ -51,6 +51,7 @@ const List = ({
               <div className="flex flex-1 justify-end px-2 gap-2">
                 {enableView && (
                   <button
+                    type="button"
                     onClick={() => handleView?.(item.id)}
                     className="text-[#155EEF] hover:text-[#155EEF]">
                     <InfoIcon />
@@ -58,6 +59,7 @@ const List = ({
                 )}
                 {enableEdit && (
                   <button
+                    type="button"
                     onClick={() => handleEdit?.(item.id)}
                     className="text-yellow-600 hover:text-yellow-800">
                     <EditIcon />
@@ -65,6 +67,7 @@ const List = ({
                 )}
                 {enableDelete && (
                   <button
+                    type="button"
                     onClick={() => handleDelete?.(item.id)}
                     className="text-red-600 hover:text-red-800">
                     <DeleteIcon />

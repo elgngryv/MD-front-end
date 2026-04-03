@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import useWarehouseDeletionStore from "../../../stores/warehouseDeletionStore.js";
 
 const StockDeleteDetail = ({ mode }) => {
+  const currentMode = mode || "view";
   const navigate = useNavigate();
   const { id } = useParams();
   const [initialData, setInitialData] = useState(null);
@@ -18,35 +19,45 @@ const StockDeleteDetail = ({ mode }) => {
   } = useWarehouseDeletionStore();
 
   useEffect(() => {
-    if (mode === "edit" && id) {
+    if (id) {
       fetchDeletionById(id);
     } else {
       setLoading(false);
     }
-  }, [mode, id, fetchDeletionById]);
+  }, [id, fetchDeletionById]);
 
   useEffect(() => {
-    if (mode === "edit" && selectedDeletion) {
+    if (selectedDeletion) {
       // API-dən gələn məlumatı formata uyğunlaşdır
-      // products əvvəlcə yoxlayırıq və default [] istifadə edirik
-      const products = selectedDeletion.products || [];
+      const products = selectedDeletion.deletionFromWarehouseProductResponses || selectedDeletion.products || [];
+      
+      // Saatı input[type=time] formatına çevir
+      let timeValue = "00:00";
+      if (selectedDeletion.time) {
+        if (typeof selectedDeletion.time === "string") {
+          timeValue = selectedDeletion.time.substring(0, 5);
+        } else if (selectedDeletion.time.hour !== undefined) {
+          timeValue = `${selectedDeletion.time.hour
+            .toString()
+            .padStart(2, "0")}:${selectedDeletion.time.minute
+            .toString()
+            .padStart(2, "0")}`;
+        }
+      }
+
       const formattedData = {
-        deletionFromWarehouseId: selectedDeletion.id,
-        date: selectedDeletion.date,
-        time: selectedDeletion.time || {
-          hour: 0,
-          minute: 0,
-          second: 0,
-          nano: 0,
-        },
-        description: selectedDeletion.description || "",
-        deletionFromWarehouseProductRequests: products.map((product) => ({
-          deletionFromWarehouseProductId: product.id || 0,
-          warehouseEntryId: product.warehouseEntryId || 0,
-          warehouseEntryProductId: product.warehouseEntryProductId || 0,
-          productId: product.productId || 0,
-          categoryId: product.categoryId || 0,
-          quantity: product.quantity || 0,
+        orderDate: selectedDeletion.date,
+        orderTime: timeValue,
+        note: selectedDeletion.description || "",
+        products: products.map((product) => ({
+          warehouseEntryId: product.warehouseEntryId,
+          warehouseEntryProductId: product.warehouseEntryProductId,
+          productId: product.productId,
+          categoryId: product.categoryId,
+          quantity: product.quantity,
+          productName: product.productName || "Naməlum",
+          categoryName: product.categoryName || "Naməlum",
+          availableQuantity: product.availableQuantity || 0,
         })),
       };
       setInitialData(formattedData);
@@ -70,11 +81,11 @@ const StockDeleteDetail = ({ mode }) => {
     navigate("/stock/delete");
   };
 
-  if ((mode === "edit" && loading) || storeLoading) {
+  if ((currentMode === "edit" && loading) || storeLoading) {
     return <div>Yüklənir...</div>;
   }
 
-  if (error && mode === "edit") {
+  if (error && currentMode === "edit") {
     return <div>Xəta: {error}</div>;
   }
 
@@ -82,11 +93,11 @@ const StockDeleteDetail = ({ mode }) => {
     <div className="w-full h-screen flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-4xl min-h-screen border border-gray-200 rounded-lg p-4 bg-white">
         <h1 className="text-2xl font-bold mb-4">
-          {mode === "edit" ? "Məhsul Silinməsinə Düzəliş" : "Məhsul Sil"}
+          {currentMode === "edit" ? "Məhsul Silinməsinə Düzəliş" : currentMode === "view" ? "Anbar Silinmə Detalları" : "Məhsul Sil"}
         </h1>
         <StockDeleteForm
           initialData={initialData}
-          mode={mode}
+          mode={currentMode}
           onSubmit={handleSubmit}
           onCancel={handleCancel}
         />

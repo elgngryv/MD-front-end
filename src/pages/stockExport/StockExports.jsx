@@ -11,12 +11,10 @@ function StockExports() {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // Düzəliş 1: URL-dən ID-ni əldə edirik
-    const pathParts = location.pathname.split('/');
-    const urlId = pathParts[pathParts.length - 1]; // URL-dən sonuncu hissəni alırıq
+    const urlId = pathParts[pathParts.length - 1]; 
     const filterById = !isNaN(urlId) && parseInt(urlId) > 0 ? parseInt(urlId) : null;
 
-    console.log("URL-dən alınan ID:", urlId, "Filtrləmə üçün ID:", filterById);
+    console.log("URL-den alinan ID:", urlId, "Filtrleme ucun ID:", filterById);
 
     const {
         products,
@@ -61,7 +59,7 @@ function StockExports() {
     }
 
     // Düzəliş 3: tableData-nı filterləyirik
-    const filteredProducts = filterById ? products.filter(item => item.id === filterById) : products;
+    const filteredProducts = filterById ? products.filter(item => item.warehouseRemovalId === filterById) : products;
 
     const tableData = filteredProducts.map(item => ({
         id: item.id,

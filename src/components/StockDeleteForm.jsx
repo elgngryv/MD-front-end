@@ -79,7 +79,7 @@ const StockDeleteForm = ({
         await fetchProducts();
         await fetchCategories();
 
-        if (mode === "edit" && id) {
+        if ((mode === "edit" || mode === "view") && id) {
           try {
             const deletionResponse = await axiosInstance.get(
               `/deletion-from-warehouse/info/${id}`

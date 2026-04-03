@@ -1,23 +1,38 @@
-import React from "react";
-import SimpleListWithStatus from "../../components/list/SimpleListWithStatus";
-import SearchIcon  from "../../assets/icons/Search";
+import React, { useEffect } from "react";
+import SearchIcon from "../../assets/icons/Search";
 import CustomDropdown from "../../components/CustomDropdown";
 import DownloadIcon from "../../assets/icons/Download";
 import { useNavigate } from "react-router-dom";
 import SimpleList from "../../components/list/SimpleList";
+import useWarehouseRemovalProductsStore from "../../../stores/warehouseRemovalProductsStore";
+
 const ProductUsageList = () => {
     const navigate = useNavigate();
+    const { 
+        products, 
+        loading, 
+        error, 
+        fetchAllProducts, 
+        searchTerm, 
+        setSearchTerm, 
+        fetchProductsBySearch 
+    } = useWarehouseRemovalProductsStore();
+
+    useEffect(() => {
+        fetchAllProducts();
+    }, [fetchAllProducts]);
+
     const columns = [
         {
-            key: "category",
+            key: "categoryName",
             label: "Kategoriyası"
         },
         {   
-            key: "name",
+            key: "productName",
             label: "Məhsulun adı"
         },
         {
-            key: "code",
+            key: "idNumber",
             label: "Məhsulun kodu"
         },
         {
@@ -25,58 +40,37 @@ const ProductUsageList = () => {
             label: "Məhsulun Sayı"
         },
         {
-            key: "status",
+            key: "pendingStatus",
             label: "Status"
         }
     ];
 
-    const handleStatusClick = (id) => {
-        // Handle status change logic here
-        console.log('Status clicked for id:', id);
+    const handleSearch = () => {
+        if (searchTerm) {
+            fetchProductsBySearch();
+        } else {
+            fetchAllProducts();
+        }
     };
 
-    const data = [
-        {
-            id: 1,
-            category: "Dental Materials",
-            name: "Composite Resin",
-            code: "1234567890", 
-            quantity: 100,
-            status: "active"
-        },
-        {
-            id: 2,
-            category: "Dental Materials",
-            name: "Composite Resin",
-            code: "1234567890", 
-            quantity: 100,
-            status: "inactive"
-        },
-        {
-            id: 3,
-            category: "Dental Materials",
-            name: "Composite Resin",
-            code: "1234567890", 
-            quantity: 100,
-            status: "active"
-        },
-        {
-            id: 4,
-            category: "Dental Materials",
-            name: "Composite Resin",
-            code: "1234567890", 
-            quantity: 100,
-            status: "inactive"
-        }
-    ];
+    if (loading && products.length === 0) {
+        return <div className="text-center py-10">Yüklənir...</div>;
+    }
 
     return (
-        <div className="flex flex-col border border-gray-200 rounded-lg bg-white p-1">
+        <div className="flex flex-col border border-gray-200 rounded-lg bg-white p-1 min-h-screen">
             <div className="flex justify-between items-center gap-2 p-2">
                 <div className="flex items-center gap-2">               
                     <CustomDropdown />
-                    <input type="text" placeholder="Axtarış..." className="w-full p-2 rounded-lg border border-gray-300" />
-                    <button className="">
+                    <input 
+                        type="text" 
+                        placeholder="Axtarış..." 
+                        className="w-full p-2 rounded-lg border border-gray-300" 
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                    />
+                    <button className="" onClick={handleSearch}>
                         <SearchIcon />
                     </button>
                 </div>
@@ -87,13 +81,13 @@ const ProductUsageList = () => {
                 </div>
             </div>
 
+            {error && <div className="text-red-500 p-2">{error}</div>}
+
             <SimpleList
                 columns={columns} 
-                data={data} 
+                data={products} 
                 enableView={true} 
-                handleView={(id) => {navigate("/product/usage/" + id)}}
-                handleEdit={(id) => {navigate("/product/usage/" + id + "/edit")}}
-
+                handleView={(id) => {navigate("/stock/usage/" + id)}}
             />
         </div>
     );

@@ -621,21 +621,6 @@ const AnimatedRoutes = () => {
               path="product-categories/:name/edit-product/:id"
               element={<EditProduct />}
             />
-            <Route path="stock/export/:date" element={<StockExports />} />
-            <Route path="stock/export/:date/add" element={<AddExportStock />} />
-            <Route
-              path="stock/export/:date/detail"
-              element={<InfoExportStock />}
-            />
-            <Route
-              path="stock/export/:date/detail/edit"
-              element={<EditExportStock />}
-            />
-
-            <Route
-              path="stock/export/:date/edit"
-              element={<EditExportStock />}
-            />
             <Route path="/patients/add-patient" element={<PatientAdd />} />
 
             <Route path="patients/patient/:id" element={<PatientLayout />}>

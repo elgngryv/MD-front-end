@@ -26,11 +26,11 @@ const ImportDetail = () => {
 
   const handleSubmit = (formData) => {
     console.log("Form submitted:", formData);
-    navigate("/stock/import");
+    navigate("/stock/entry");
   };
 
   const handleCancel = () => {
-    navigate("/stock/import");
+    navigate("/stock/entry");
   };
 
   const handleStatusChange = (newStatus) => {

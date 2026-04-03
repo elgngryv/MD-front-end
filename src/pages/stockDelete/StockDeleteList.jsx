@@ -158,7 +158,7 @@ const StockDelete = () => {
         enableEdit={true}
         enableView={true}
         handleView={(id) => {
-          navigate("/stock/delete/info/" + id);
+          navigate("/stock/delete/" + id);
         }}
         handleEdit={(id) => {
           navigate("/stock/delete/" + id + "/edit");

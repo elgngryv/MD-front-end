@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import '../../assets/style/StockExport/addexportstock.css';
 import useWarehouseRemovalProductsStore from '../../../stores/warehouseRemovalProductsStore';
-import useOrdersFromWarehouseStore from '../../../stores/orderFromWarehouseStore';
+import useWarehouseRemovalsStore from '../../../stores/warehouseRemovalsStore';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const AddExportStock = () => {
@@ -16,11 +16,11 @@ const AddExportStock = () => {
 
     const { createProduct } = useWarehouseRemovalProductsStore();
     const { 
-        fetchOrderById, 
-        selectedOrder, 
-        loading: selectedOrderLoading,
-        error: selectedOrderError
-    } = useOrdersFromWarehouseStore();
+        fetchRemovalDetails, 
+        selectedRemovalDetails, 
+        loading: selectedRemovalLoading,
+        error: selectedRemovalError
+    } = useWarehouseRemovalsStore();
 
     const [quantity, setQuantity] = useState(0);
 
@@ -39,46 +39,48 @@ const AddExportStock = () => {
 
     useEffect(() => {
         if (id) {
-            fetchOrderById(id);
+            fetchRemovalDetails(id);
         }
-    }, [id, fetchOrderById]);
+    }, [id, fetchRemovalDetails]);
 
     useEffect(() => {
-        if (selectedOrder) {
-            const formattedTime = selectedOrder.time 
-                ? selectedOrder.time.substring(0, 5) 
+        if (selectedRemovalDetails) {
+            const formattedTime = selectedRemovalDetails.time 
+                ? (typeof selectedRemovalDetails.time === 'string' 
+                    ? selectedRemovalDetails.time.substring(0, 5) 
+                    : `${selectedRemovalDetails.time.hour.toString().padStart(2, '0')}:${selectedRemovalDetails.time.minute.toString().padStart(2, '0')}`)
                 : '';
 
-            if (selectedOrder.orderFromWarehouseProductResponses && selectedOrder.orderFromWarehouseProductResponses.length > 0) {
-                const newProducts = selectedOrder.orderFromWarehouseProductResponses.map(apiProduct => ({
-                    orderFromWarehouseProductId: id, 
+            if (selectedRemovalDetails.warehouseRemovalProducts && selectedRemovalDetails.warehouseRemovalProducts.length > 0) {
+                const newProducts = selectedRemovalDetails.warehouseRemovalProducts.map(product => ({
+                    orderFromWarehouseProductId: product.id, 
                     currentExpenses: 0,
-                    category: apiProduct.categoryName || 'N/A',
-                    productName: apiProduct.productName || 'N/A',
-                    specifications: apiProduct.productTitle || 'N/A',
-                    orderQuantity: apiProduct.quantity || 0,
-                    sentQuantity: apiProduct.sentQuantity || 0,
-                    remainingQuantity: (apiProduct.quantity || 0) - (apiProduct.sentQuantity || 0),
+                    category: product.categoryName || 'N/A',
+                    productName: product.productName || 'N/A',
+                    specifications: product.productTitle || 'N/A',
+                    orderQuantity: product.quantity || 0,
+                    sentQuantity: product.sendAmount || 0,
+                    remainingQuantity: (product.quantity || 0) - (product.sendAmount || 0),
                 }));
                 
                 setFormData(prev => ({
                     ...prev,
-                    date: selectedOrder.date || '',
+                    date: selectedRemovalDetails.date || '',
                     time: formattedTime,
-                    description: selectedOrder.description || '',
+                    description: selectedRemovalDetails.description || '',
                     requests: newProducts
                 }));
             } else {
                 setFormData(prev => ({ 
                     ...prev, 
-                    date: selectedOrder.date || '',
+                    date: selectedRemovalDetails.date || '',
                     time: formattedTime,
-                    description: selectedOrder.description || '',
+                    description: selectedRemovalDetails.description || '',
                     requests: [] 
                 }));
             }
         }
-    }, [selectedOrder]);
+    }, [selectedRemovalDetails]);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
