@@ -141,8 +141,9 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
     address: yup.string().nullable(),
     experience: yup
       .number()
-      .min(0, "Təcrübə mənfi ola bilməz")
+      .nullable()
       .typeError("Təcrübə rəqəm olmalıdır"),
+    degree: yup.string().nullable(),
     permissions:
       mode !== "view"
         ? yup.array().min(1, "Ən azı bir icazə seçilməlidir")
@@ -162,12 +163,24 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
     mode: "onBlur",
     defaultValues: userData
       ? {
-          ...userData,
-          permissions: getDefaultPermissions(),
+          username: userData.username || "",
           password: "",
+          name: userData.name || "",
+          surname: userData.surname || "",
+          patronymic: userData.patronymic || "",
+          finCode: userData.finCode || "",
+          colorCode: userData.colorCode || "#ffffff",
+          genderStatus: userData.genderStatus || "",
+          dateOfBirth: userData.dateOfBirth || "",
+          degree: userData.degree || "",
+          phone: userData.phone || "",
           phone2: userData.phone2 || "",
+          phone3: userData.phone3 || "",
+          homePhone: userData.homePhone || "",
           email: userData.email || "",
           address: userData.address || "",
+          experience: userData.experience ?? 0,
+          permissions: getDefaultPermissions(),
         }
       : {
           username: "",
@@ -185,6 +198,7 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
           phone3: "",
           email: "",
           address: "",
+          degree: "",
           experience: 0,
           permissions: [],
         },
@@ -221,16 +235,28 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
     });
 
     const transformedData = {
-      ...data,
-      password: data.password,
-      phone2: data.phone2 || null,
-      homePhone: data.homePhone || null,
-      phone3: data.phone3 || null,
-      email: data.email || null,
-      address: data.address || null,
-      experience: data.experience || 0,
-      permissions: permissionsWithNames,
-    };
+        username: data.username || "",
+        password: data.password || "",
+        name: data.name || "",
+        surname: data.surname || "",
+        patronymic: data.patronymic || "",
+        finCode: data.finCode || "",
+        colorCode: (data.colorCode && data.colorCode.trim() !== "") ? data.colorCode : "#ffffff",
+        genderStatus: data.genderStatus || "",
+        dateOfBirth: data.dateOfBirth || "",
+        degree: data.degree || "",
+        phone: data.phone || "",
+        phone2: data.phone2 || "",
+        phone3: data.phone3 || "",
+        homePhone: data.homePhone || "",
+        email: data.email || "",
+        address: (data.address && data.address.trim() !== "") ? data.address : "",
+        experience: (data.experience !== undefined && data.experience !== null && data.experience !== "") ? Number(data.experience) : 0,
+        permissions: permissionsWithNames,
+      };
+
+    console.log("🔍 Transformasyon əvvəl (data):", data);
+    console.log("🔍 Transformasyon sonra (transformedData):", JSON.stringify(transformedData, null, 2));
 
     try {
       if (mode === "edit") {
@@ -656,6 +682,17 @@ function UserForm({ mode: initialMode, userData = null, onSubmit, onDelete }) {
                 id="address"
                 type="text"
                 {...register("address")}
+                readOnly={mode === "view"}
+                className={mode === "view" ? "readonly" : ""}
+              />
+            </div>
+
+            <div className="main-form-group">
+              <label htmlFor="degree">Dərəcə</label>
+              <input
+                id="degree"
+                type="text"
+                {...register("degree")}
                 readOnly={mode === "view"}
                 className={mode === "view" ? "readonly" : ""}
               />

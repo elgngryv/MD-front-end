@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import "../../assets/style/Operations/operationcategorylist.css";
 import { CiSearch } from "react-icons/ci";
 import { FiDownload, FiEdit3 } from "react-icons/fi";
@@ -9,6 +9,10 @@ import useOperationTypesStore from "../../../stores/operationsTypeStore";
 
 const OperationCategoryList = () => {
   const navigate = useNavigate();
+  
+  // Filter state
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
 
   // Store-dan state və funksiyaları çəkmək
   const {
@@ -24,6 +28,15 @@ const OperationCategoryList = () => {
   useEffect(() => {
     fetchAll();
   }, [fetchAll]);
+
+  // Filtered data
+  const filteredOperationTypes = operationTypes.filter((operation) => {
+    const matchesSearch = operation.categoryName
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesStatus = selectedStatus === "" || operation.status === selectedStatus;
+    return matchesSearch && matchesStatus;
+  });
 
   const handleEdit = (id) => {
     navigate(`/operations/edit/${id}`);
@@ -61,7 +74,11 @@ const OperationCategoryList = () => {
     <div className="operationsList-container">
       <div className="operationsList-controls-section">
         <div className="operationsList-filters">
-          <select className="operationsList-status-dropdown">
+          <select 
+            className="operationsList-status-dropdown"
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value)}
+          >
             <option value="">Status</option>
             <option value="ACTIVE">Aktiv</option>
             <option value="PASSIVE">Passiv</option>
@@ -71,6 +88,8 @@ const OperationCategoryList = () => {
               type="text"
               placeholder="Axtarış"
               className="operationsList-search-input"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
             <button className="operationsList-search-button">
               <CiSearch className="operationsList-search-icon" />
@@ -94,18 +113,18 @@ const OperationCategoryList = () => {
             Xəta baş verdi: {error.message || error.toString()}
           </p>
         )}
-        {!loading && !error && operationTypes.length === 0 && (
+        {!loading && !error && filteredOperationTypes.length === 0 && (
           <p>Məlumat tapılmadı.</p>
         )}
 
-        {!loading && !error && operationTypes.length > 0 && (
+        {!loading && !error && filteredOperationTypes.length > 0 && (
           <table className="operationsList-table">
             <thead>
               <tr>
                 <th className="!text-center">
                   <span className="firstElementOfTHS !flex !items-center gap-1">
                     <HiOutlineArrowsUpDown className="operationsList-sort-icon !-ml-2" />
-                    {`1-${operationTypes.length}`}
+                    {`1-${filteredOperationTypes.length}`}
                   </span>
                 </th>
                 <th >
@@ -132,7 +151,7 @@ const OperationCategoryList = () => {
               </tr>
             </thead>
             <tbody>
-              {operationTypes.map((row, index) => (
+              {filteredOperationTypes.map((row, index) => (
                 <tr key={row.id}>
                   <td>{index + 1}</td>
                   <td className="!text-center">{row.categoryName}</td>

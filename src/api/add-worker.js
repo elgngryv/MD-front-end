@@ -4,13 +4,32 @@ const API_BASE_URL = import.meta.env.VITE_BASE_URL;
 
 export const createWorker = async (workerData) => {
   try {
-    console.log(
-      "Creating worker with data:",
-      JSON.stringify(workerData, null, 2)
-    );
+    // Create a simple JSON object with all fields
+    const payload = {
+      username: workerData.username,
+      password: workerData.password,
+      name: workerData.name,
+      surname: workerData.surname,
+      patronymic: workerData.patronymic,
+      finCode: workerData.finCode || "",
+      colorCode: workerData.colorCode || "#ffffff",
+      genderStatus: workerData.genderStatus,
+      dateOfBirth: workerData.dateOfBirth,
+      degree: workerData.degree || "",
+      phone: workerData.phone,
+      phone2: workerData.phone2 || "",
+      phone3: workerData.phone3 || "",
+      homePhone: workerData.homePhone || "",
+      email: workerData.email || "",
+      address: workerData.address || "",
+      experience: workerData.experience || 0,
+      permissions: workerData.permissions || [],
+    };
+    
+    console.log("Creating worker with data:", JSON.stringify(payload, null, 2));
     const response = await axiosInstance.post(
       `${API_BASE_URL}/add-worker/create`,
-      workerData
+      payload
     );
     console.log("Worker created successfully:", response.data);
     return response.data;

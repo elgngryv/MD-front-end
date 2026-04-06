@@ -102,10 +102,44 @@ const AddOperationPicture = () => {
   return (
     <div className="addOperationPictureContainer">
       <div className="header-icons">
-        <MdEdit className="icon edit-icon" />
+        <MdEdit 
+          className="icon edit-icon" 
+          style={{
+            fontSize: "24px",
+            color: "#3B82F6",
+            cursor: "pointer",
+            transition: "all 0.3s ease",
+            padding: "1px",
+            borderRadius: "6px",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "scale(1.1)";
+            e.currentTarget.style.backgroundColor = "rgba(59, 130, 246, 0.1)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "scale(1)";
+            e.currentTarget.style.backgroundColor = "transparent";
+          }}
+        />
         <MdDelete
           className="icon delete-icon"
           onClick={handleImageDelete}
+          style={{
+            fontSize: "24px",
+            color: "#EF4444",
+            cursor: "pointer",
+            transition: "all 0.3s ease",
+            padding: "1px",
+            borderRadius: "6px",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = "scale(1.1)";
+            e.currentTarget.style.backgroundColor = "rgba(239, 68, 68, 0.1)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = "scale(1)";
+            e.currentTarget.style.backgroundColor = "transparent";
+          }}
         />
       </div>
 

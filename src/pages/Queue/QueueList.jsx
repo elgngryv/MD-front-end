@@ -101,12 +101,6 @@ function QueueList() {
         <div className="leftPart -ml-5">
           <input
             type="text"
-            placeholder="İstifadəçi adı"
-            value={searchUserName}
-            onChange={(e) => setSearchUserName(e.target.value)}
-          />
-          <input
-            type="text"
             placeholder="Ad"
             value={searchName}
             onChange={(e) => setSearchName(e.target.value)}
@@ -116,12 +110,6 @@ function QueueList() {
             placeholder="Soyad"
             value={searchSurname}
             onChange={(e) => setSearchSurname(e.target.value)}
-          />
-          <input
-            type="text"
-            placeholder="Ata adı"
-            value={searchPatronymic}
-            onChange={(e) => setSearchPatronymic(e.target.value)}
           />
           <input
             type="text"

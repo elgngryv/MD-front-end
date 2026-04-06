@@ -233,8 +233,6 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
   // Confirm appointment creation
   const handleConfirmAppointment = () => {
     const appointmentData = {
-      doctorId: selectedDoctorId,
-      doctorName: selectedDoctor?.label || "",
       cabinetName: selectedRoom?.value || "",
       patientId: selectedPatient ? parseInt(selectedPatient.value) : 0,
       appointment: selectedStatus?.value || "MEETING",
@@ -242,11 +240,15 @@ const AddNewAppointment = ({ employees, WORK_HOURS, WEEKDAYS_SHORT }) => {
         id: parseInt(op.value),
       })),
       date: formData.date,
-      time: formData.time, // "HH:mm:ss" formatında
-      period: formData.period, // "HH:mm:ss" formatında
+      // Send time as ISO string format (HH:mm:ss)
+      time: formData.time, // "09:00:00"
+      // Send period as ISO string format (HH:mm:ss)
+      period: formData.period, // "01:00:00"
     };
 
-    console.log("Sending appointment data:", appointmentData);
+    console.log("📤 Sending appointment data:", JSON.stringify(appointmentData, null, 2));
+    console.log("📋 Time format:", typeof appointmentData.time, appointmentData.time);
+    console.log("📋 Period format:", typeof appointmentData.period, appointmentData.period);
 
     createAppointment(appointmentData, {
       onSuccess: () => {

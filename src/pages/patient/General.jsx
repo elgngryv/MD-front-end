@@ -167,7 +167,7 @@ const General = () => {
               { label: "Cinsiyyət", name: "genderStatus" },
               { label: "FIN kod", name: "finCode" },
               { label: "Doğum tarixi", name: "dateOfBirth", type: "date" },
-              { label: "İxtisas", name: "specializationStatus" },
+              // { label: "İxtisas", name: "specializationStatus" },
               {
                 label: "Həkim",
                 name: "doctorId",
@@ -197,19 +197,25 @@ const General = () => {
 
           <div className="right">
             {[
-              { label: "Qiymət kateqoriyası", name: "priceCategory" },
-              { label: "Qara siyahı", name: "isBlocked" },
+              { label: "Qiymət kateqoriyası", name: "priceCategoryName" },
+              { label: "Qara siyahı", name: "isBlocked", customRender: () => {
+                  if (patient?.isBlocked === null || patient?.isBlocked === undefined) {
+                    return "";
+                  }
+                  return patient.isBlocked ? "Evet" : "Xəir";
+                }
+              },
               { label: "İş telefonu", name: "workPhone", type: "tel" },
               { label: "Ev telefonu", name: "homePhone", type: "tel" },
               { label: "E-poçt ünvanı", name: "email", type: "email" },
               { label: "Ev ünvanı", name: "homeAddress" },
-            ].map(({ label, name, type = "text" }) => (
+            ].map(({ label, name, type = "text", customRender }) => (
               <div className="main-form-group" key={name}>
                 <label htmlFor={name}>{label}</label>
                 <input
                   id={name}
                   type={type}
-                  value={patient?.[name] || ""}
+                  value={customRender ? customRender() : patient?.[name] || ""}
                   readOnly
                   className="readonly"
                 />
