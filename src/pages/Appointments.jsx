@@ -107,12 +107,10 @@ const Appointments = () => {
 
   const handleRoomChange = (option) => {
     setSelectedRoom(option);
-    setSelectedDoctorId(null);
   };
 
   const handleDoctorChange = (option) => {
     setSelectedDoctorId(option ? option.value : null);
-    setSelectedRoom(null);
   };
 
   const doctorOptions = doctors.map((doctor) => ({
@@ -300,14 +298,24 @@ const Appointments = () => {
 
             {weekDates.map((date, dayIndex) => {
               const dayAppointments = appointments.filter((appointment) => {
+                if (!appointment.date) return false;
                 try {
-                  const appointmentDate = parse(
-                    appointment.date,
-                    "yyyy-MM-dd",
-                    new Date()
-                  );
-                  return isSameDay(appointmentDate, date);
-                } catch {
+                  // Portably handle different date formats from API
+                  let appointmentDate;
+                  if (appointment.date.includes("-")) {
+                    appointmentDate = parse(appointment.date, "yyyy-MM-dd", new Date());
+                    if (isNaN(appointmentDate)) {
+                        appointmentDate = parse(appointment.date, "dd-MM-yyyy", new Date());
+                    }
+                  } else if (appointment.date.includes(".")) {
+                    appointmentDate = parse(appointment.date, "dd.MM.yyyy", new Date());
+                  } else {
+                    appointmentDate = new Date(appointment.date);
+                  }
+                  
+                  return !isNaN(appointmentDate) && isSameDay(appointmentDate, date);
+                } catch (err) {
+                  console.error("Date parsing error:", err, appointment.date);
                   return false;
                 }
               });

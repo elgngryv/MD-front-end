@@ -7,12 +7,48 @@ const EditSettings = () => {
   const [interval, setInterval] = useState("15");
   const [diagnosisItems, setDiagnosisItems] = useState(["Müayinə", "14"]);
   const [labItems, setLabItems] = useState(["Endodontiya - 1Perio lateral"]);
+  const [saving, setSaving] = useState(false);
 
   const removeItem = (type, index) => {
     if (type === "diagnosis") {
       setDiagnosisItems(diagnosisItems.filter((_, i) => i !== index));
     } else {
       setLabItems(labItems.filter((_, i) => i !== index));
+    }
+  };
+
+  const handleCancel = () => {
+    window.history.back();
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const token = localStorage.getItem("token");
+      const API_BASE_URL = import.meta.env.VITE_BASE_URL || "/api/v1";
+      const response = await fetch(`${API_BASE_URL}/general-settings/update`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          startTime,
+          endTime,
+          intervalMinutes: Number(interval),
+        }),
+      });
+      if (response.ok) {
+        alert("Tənzimləmələr uğurla yadda saxlandı!");
+        window.history.back();
+      } else {
+        alert("Xəta baş verdi. Zəhmət olmasa yenidən cəhd edin.");
+      }
+    } catch (err) {
+      console.error("Settings save error:", err);
+      alert("Xəta baş verdi: " + err.message);
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -56,6 +92,7 @@ const EditSettings = () => {
                 <span key={index} className="editSettings-tag">
                 {item}
                 <button
+                    type="button"
                     onClick={() => removeItem("diagnosis", index)}
                     className="editSettings-remove"
                 >
@@ -73,6 +110,7 @@ const EditSettings = () => {
                 <span key={index} className="editSettings-tag">
                 {item}
                 <button
+                    type="button"
                     onClick={() => removeItem("lab", index)}
                     className="editSettings-remove"
                 >
@@ -84,8 +122,21 @@ const EditSettings = () => {
         </div>
 
         <div className="editSettings-actions">
-            <button className="editSettings-cancel">İmtina et</button>
-            <button className="editSettings-save">Yadda saxla</button>
+            <button
+              type="button"
+              className="editSettings-cancel"
+              onClick={handleCancel}
+            >
+              İmtina et
+            </button>
+            <button
+              type="button"
+              className="editSettings-save"
+              disabled={saving}
+              onClick={handleSave}
+            >
+              {saving ? "Saxlanılır..." : "Yadda saxla"}
+            </button>
         </div>
         </div>
     </div>

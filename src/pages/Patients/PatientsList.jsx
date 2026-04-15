@@ -34,9 +34,9 @@ const PatientRow = React.memo(({ item, onInfoClick, onDeleteClick }) => {
       <td>{item.finCode}</td>
       <td>{item.genderStatus === "MAN" ? "Kişi" : "Qadın"}</td>
       <td>{item.phone}</td>
-      <td>{item.dateOfBirth}</td>
+      <td>{item.createdAt ? new Date(item.createdAt).toLocaleDateString('az-AZ') : item.dateOfBirth}</td>
+      <td>{item.priceCategoryName || "Standart"}</td>
       <td>{item.isBlocked ? "Bəli" : "Xeyr"}</td>
-      <td>{item.phone}</td>
       <td>
         <div className="actionsWrapper">
           <CiCircleInfo
@@ -80,7 +80,7 @@ function PatientsList() {
 
     // Cache yoxdursa, API-dən gətir
     const token = localStorage.getItem("token");
-    const API_BASE_URL = import.meta.env.VITE_BASE_URL || "http://localhost:5555/api/v1";
+    const API_BASE_URL = import.meta.env.VITE_BASE_URL || "/api/v1";
     axios
       .get(`${API_BASE_URL}/patient/read`, {
         headers: {
@@ -102,7 +102,7 @@ function PatientsList() {
   const removePatient = useCallback(async (id) => {
     try {
       const token = localStorage.getItem("token");
-      const API_BASE_URL = import.meta.env.VITE_BASE_URL || "http://localhost:5555/api/v1";
+      const API_BASE_URL = import.meta.env.VITE_BASE_URL || "/api/v1";
       await axios.delete(
         `${API_BASE_URL}/patient/delete/${id}`,
         {

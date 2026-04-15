@@ -217,10 +217,10 @@ const AddExportStock = () => {
 
                 <div className="addExportStockTableSection">
                     <h3>Məhsullar</h3>
-                    {selectedOrderLoading ? (
+                    {selectedRemovalLoading ? (
                         <div className="loading-message">Məhsullar yüklənir...</div>
-                    ) : selectedOrderError ? (
-                        <div className="error-message">Xəta: Məlumatlar yüklənərkən problem yarandı. {selectedOrderError}</div>
+                    ) : selectedRemovalError ? (
+                        <div className="error-message">Xəta: Məlumatlar yüklənərkən problem yarandı. {selectedRemovalError}</div>
                     ) : (
                         <table className="addExportStockTable">
                             <thead>

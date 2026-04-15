@@ -160,7 +160,7 @@ const handleSubmit = async (e) => {
     dateOfBirth: formRefs.dateOfBirth.current.value,
     priceCategoryName: priceCategoryName,
     specializationName: specializationName,
-    doctor_id: doctor_id,
+    doctorId: doctor_id,
     phone: formRefs.phone.current.value,
     workPhone: formRefs.workPhone.current.value || null,
     homePhone: formRefs.homePhone.current.value || null,

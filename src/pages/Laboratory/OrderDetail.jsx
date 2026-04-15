@@ -18,7 +18,7 @@ const OrderDetail = () => {
         return <div className="flex justify-center items-center h-screen">Yüklənir...</div>;
     }
 
-    if (!currentOrder && !loading) {
+    if (!currentOrder) {
         return <div className="flex justify-center items-center h-screen">Sifariş tapılmadı</div>;
     }
 

@@ -413,8 +413,8 @@ const StockImportForm = ({
           columns={columns}
           keyExtractor={(item) => item.id}
           mode={mode}
-          onEdit={handleEditProduct}
-          onDelete={handleDeleteProduct}
+          handleEdit={handleEditProduct}
+          handleDelete={handleDeleteProduct}
           subtotal={sumPrice}
           actions={(item) =>
             mode !== "view" && (

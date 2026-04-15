@@ -785,8 +785,8 @@ const AnimatedRoutes = () => {
 
             {/* Stock Delete Routes */}
             <Route path="/stock/delete" element={<StockDeleteList />} />
-            <Route path="/stock/delete/:id" element={<StockDeleteDetail />} />
             <Route path="/stock/delete/add" element={<AddStockDelete />} />
+            <Route path="/stock/delete/:id" element={<StockDeleteDetail mode="view" />} />
             <Route
               path="/stock/delete/:id/edit"
               element={<StockDeleteDetail mode="edit" />}
@@ -802,6 +802,7 @@ const AnimatedRoutes = () => {
             {/* Stock Export Routes */}
             <Route path="/stock/export" element={<StockExportList />} />
             <Route path="/stock/export/:id/add" element={<AddExportStock />} />
+            <Route path="/stock/export/info/:id" element={<InfoExportStock />} />
             <Route
               path="/stock/export/:id/detail/edit"
               element={<EditExportStock />}

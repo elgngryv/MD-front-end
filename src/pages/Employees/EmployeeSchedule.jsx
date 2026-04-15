@@ -203,12 +203,10 @@ const EmployeeSchedule = () => {
 
   const handleEmployeeChange = (e) => {
     setSelectedEmployee(e.target.value);
-    if (e.target.value) setSelectedRoom("");
   };
 
   const handleRoomChange = (e) => {
     setSelectedRoom(e.target.value);
-    if (e.target.value) setSelectedEmployee("");
   };
 
   const handleClearFilters = () => {

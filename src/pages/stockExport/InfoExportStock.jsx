@@ -1,32 +1,60 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import '../../assets/style/StockExport/infoexportstock.css';
 import { FiEdit3 } from "react-icons/fi";
 import { GoTrash } from "react-icons/go";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import useWarehouseRemovalsStore from '../../../stores/warehouseRemovalsStore';
 
-const InfoExportStock = ({ data }) => {
+const InfoExportStock = ({ data: propData }) => {
+    const { id } = useParams();
     const navigate = useNavigate();
+    const { selectedRemovalDetails, fetchRemovalDetails, loading, error } = useWarehouseRemovalsStore();
+    
     const [files, setFiles] = useState([]);
     const [selectedImage, setSelectedImage] = useState(null);
     const fileInputRef = useRef(null);
+    
     const [formData, setFormData] = useState({
         date: '',
         time: '',
         quantity: '',
         notes: '',
-        status: data?.status || 'PENDING', // Default status
-        products: [
-            {
-                category: 'Sementlər',
-                productName: 'Sementlər A1',
-                specifications: 'Boş, Türkiyə',
-                orderQuantity: 4,
-                sentQuantity: 0,
-                remainingQuantity: 1,
-                totalPrice: ''
-            },
-        ]
+        status: 'PENDING',
+        products: []
     });
+
+    useEffect(() => {
+        if (propData) {
+            setFieldsFromData(propData);
+        } else if (id) {
+            fetchRemovalDetails(id);
+        }
+    }, [id, propData, fetchRemovalDetails]);
+
+    useEffect(() => {
+        if (selectedRemovalDetails && !propData) {
+            setFieldsFromData(selectedRemovalDetails);
+        }
+    }, [selectedRemovalDetails, propData]);
+
+    const setFieldsFromData = (data) => {
+        setFormData({
+            date: data.date || '',
+            time: data.time || '',
+            quantity: data.warehouseRemovalProducts?.length || 0,
+            notes: data.description || '',
+            status: data.status || 'PENDING',
+            products: (data.warehouseRemovalProducts || []).map(p => ({
+                category: p.categoryName || 'Sementlər',
+                productName: p.productName || 'Məhsul',
+                specifications: p.specifications || '-',
+                orderQuantity: p.quantity || 0,
+                sentQuantity: p.sentQuantity || 0,
+                remainingQuantity: p.remainingQuantity || 0,
+                totalPrice: p.price || ''
+            }))
+        });
+    };
 
     const handleDeleteImage = (index) => {
         setFiles((prev) => prev.filter((_, i) => i !== index));
@@ -48,21 +76,22 @@ const InfoExportStock = ({ data }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        // Handle form submission
     };
 
-    // Status class generator
     const getStatusClass = (status) => {
         return `infoExport${status}`;
     };
 
     const handleEdit = () => {
-        navigate(`edit`);
+        navigate(`/stock/export/${id}/edit`);
     }
 
     const handleDelete = () => {
         console.log('Delete');
     }
+
+    if (loading) return <div className="p-10 text-center text-gray-500">Yüklənir...</div>;
+    if (error) return <div className="p-10 text-center text-red-500">{error}</div>;
 
     return (
         <div className="infoExportStockContainer">
@@ -85,7 +114,6 @@ const InfoExportStock = ({ data }) => {
                         <input 
                             type="date" 
                             value={formData.date}
-                            onChange={(e) => setFormData({...formData, date: e.target.value})}
                             readOnly
                         />
                     </div>
@@ -93,8 +121,7 @@ const InfoExportStock = ({ data }) => {
                         <label>Saat</label>
                         <input 
                             type="time" 
-                            value={formData.time}
-                            onChange={(e) => setFormData({...formData, time: e.target.value})}
+                            value={formData.time ? formData.time.slice(0,5) : ''}
                             readOnly
                         />
                     </div>
@@ -103,7 +130,6 @@ const InfoExportStock = ({ data }) => {
                         <input 
                             type="number" 
                             value={formData.quantity}
-                            onChange={(e) => setFormData({...formData, quantity: e.target.value})}
                             readOnly
                         />
                     </div>
@@ -112,7 +138,6 @@ const InfoExportStock = ({ data }) => {
                         <label>Qeyd</label>
                         <textarea 
                             value={formData.notes}
-                            onChange={(e) => setFormData({...formData, notes: e.target.value})}
                             readOnly
                         />
                     </div>
@@ -153,11 +178,8 @@ const InfoExportStock = ({ data }) => {
                     </table>
                 </div>
                 <div className="infoExportStockButtonGroup">
-                    <button type="button" className="infoExportStockCancelButton">
-                        İmtina et
-                    </button>
-                    <button type="submit" className="infoExportStockSaveButton">
-                        Yadda saxla
+                    <button type="button" className="infoExportStockCancelButton" onClick={() => navigate(-1)}>
+                        Geri qayıt
                     </button>
                 </div>
             </form>

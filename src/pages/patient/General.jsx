@@ -175,10 +175,14 @@ const General = () => {
                   if (doctorsLoading) {
                     return "Yüklənir...";
                   }
-                  if (!doctor) {
+                  const dId = patient?.doctorId || patient?.doctor_id;
+                  const foundDoctor = doctors.find(
+                    (d) => d.doctorId?.toString() === dId?.toString()
+                  );
+                  if (!foundDoctor) {
                     return "Həkim tapılmadı";
                   }
-                  return `${doctor.name || ""} ${doctor.surname || ""}`.trim();
+                  return `${foundDoctor.name || ""} ${foundDoctor.surname || ""}`.trim();
                 },
               },
             ].map(({ label, name, type = "text", customRender }) => (
@@ -194,15 +198,15 @@ const General = () => {
               </div>
             ))}
           </div>
-
+ 
           <div className="right">
             {[
-              { label: "Qiymət kateqoriyası", name: "priceCategoryName" },
+              { label: "Qiymət kateqoriyası", name: "priceCategoryName", customRender: () => patient?.priceCategoryName || patient?.priceCategory || "" },
               { label: "Qara siyahı", name: "isBlocked", customRender: () => {
                   if (patient?.isBlocked === null || patient?.isBlocked === undefined) {
-                    return "";
+                    return "Xeyr";
                   }
-                  return patient.isBlocked ? "Evet" : "Xəir";
+                  return patient.isBlocked ? "Bəli" : "Xeyr";
                 }
               },
               { label: "İş telefonu", name: "workPhone", type: "tel" },
